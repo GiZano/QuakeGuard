@@ -165,7 +165,10 @@ def get_misurators(
     Get all misurators with optional filters
 
     Parameters:
-    - N/A
+    - Skip
+    - Limit
+    - Active
+    - Zone_id
 
     Returns:
     - List of Misurators
@@ -490,7 +493,7 @@ def get_misurator_misurations(
 
 ### Statistics Endpoints ###
 
-# Get statistics
+# Get statistics of zones
 @app.get("/stats/zones")
 def get_zones_stats(db: Session = Depends(get_db)):
     """
@@ -531,7 +534,7 @@ def get_zones_stats(db: Session = Depends(get_db)):
 @app.get("/stats/misurators/{misurator_id}")
 def get_misurator_stats(
     misurator_id: int,
-    days: int = Query(7, description="Ultimi N giorni"),
+    days: int = Query(7, description="Last x days"),
     db: Session = Depends(get_db)
 ):
     """
