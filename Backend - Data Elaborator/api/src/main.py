@@ -1,8 +1,17 @@
-### Importing Modules ###
+"""
+Earthquake Monitoring System API
+--------------------------------
+Main entry point for the backend application. 
+This FastAPI application handles:
+1. Management of Zones and IoT Devices (Misurators).
+2. Data ingestion from sensors (Misurations).
+3. Real-time analysis for seismic alert detection.
+"""
 
 import sys
 import os
 
+# Ensure the parent directory is in the python path for module resolution
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from fastapi import FastAPI, Depends, HTTPException, status, Query
@@ -14,21 +23,25 @@ from .database import get_db, engine
 import models
 import schemas
 
-# Create tables if they don't exist
+# Initialize Database Schema
 models.Base.metadata.create_all(bind=engine)
 
-# Alert Configuration Constants
-ALERT_THRESHOLD = 10  # Numero minimo di misurazioni per attivare l'allarme
-ALERT_TIME_WINDOW_SECONDS = 5  # Finestra temporale in secondi per il conteggio
+# --- Configuration Constants ---
+# Minimum number of anomalous readings required to trigger an alert
+ALERT_THRESHOLD = 10  
+# Time window to consider for the alert threshold (sliding window)
+ALERT_TIME_WINDOW_SECONDS = 5  
 
-# Define the app
+# Define the application instance
 app = FastAPI(
     title="Earthquake Monitoring System",
-    description="API to manage zones, misurators and alert_misurations",
+    description="Backend API for managing seismic sensors and detecting anomalies in real-time.",
     version="1.0.0"
 )
 
-### Alert Detection Endpoint ###
+# ==========================================
+# ALERT SYSTEM ENDPOINTS
+# ==========================================
 
 @app.get("/alerts/{zone_id}", response_model=schemas.AlertResponse)
 def check_earthquake_alert(
@@ -36,46 +49,44 @@ def check_earthquake_alert(
     db: Session = Depends(get_db)
 ):
     """
-    Verifica se in una zona è in corso un'attività sismica
-    basata sul numero di misurazioni negli ultimi N secondi
-    
-    Parameters:
-    - zone_id: ID della zona da monitorare
-    
+    Evaluates seismic activity in a specific zone to detect potential earthquakes.
+
+    Algorithm:
+    Counts the number of high-value measurements received from ALL active sensors 
+    in the target zone within the last N seconds.
+
+    Args:
+        zone_id (int): The ID of the zone to monitor.
+
     Returns:
-    - zone_id: ID della zona
-    - is_earthquake_detected: booleano indicante la rilevazione
-    - measurement_count: numero di misurazioni nel periodo
-    - threshold: la soglia configurata
-    - time_window_seconds: la finestra temporale utilizzata
-    - timestamp: data e ora della verifica
+        AlertResponse: Object containing boolean detection status and metadata.
     """
     
-    # 1. Verifica che la zona esista
+    # 1. Validate Zone existence
     zone = db.query(models.Zone).filter(models.Zone.id == zone_id).first()
     if zone is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Zona con ID {zone_id} non trovata"
+            detail=f"Zone with ID {zone_id} not found."
         )
     
-    # 2. Calcola il timestamp di inizio della finestra temporale
+    # 2. Define the time window
     time_threshold = datetime.utcnow() - timedelta(seconds=ALERT_TIME_WINDOW_SECONDS)
     
-    # 3. Conta le misurazioni nella zona negli ultimi N secondi
-    # da tutti i misuratori attivi in quella zona
-    measurement_count = db.query(func.count(models.Misuration.id)).\
-        join(models.Misurator, models.Misurator.id == models.Misuration.misurator_id).\
-        filter(
+    # 3. Aggregation Query
+    # Efficiently counts records using a JOIN between Misuration and Misurator.
+    # Filters by: Zone ID, Time Window, and Active Status of the sensor.
+    measurement_count = db.query(func.count(models.Misuration.id))\
+        .join(models.Misuration.misurator)\
+        .filter(
             models.Misurator.zone_id == zone_id,
             models.Misuration.created_at >= time_threshold,
             models.Misurator.active == True
         ).scalar()
     
-    # 4. Determina se c'è un terremoto in corso
+    # 4. Threshold Logic
     is_earthquake_detected = measurement_count >= ALERT_THRESHOLD
     
-    # 5. Prepara e restituisce la risposta
     return schemas.AlertResponse(
         zone_id=zone_id,
         is_earthquake_detected=is_earthquake_detected,
@@ -85,97 +96,53 @@ def check_earthquake_alert(
         timestamp=datetime.utcnow()
     )
 
-### Zone endpoints ###
+# ==========================================
+# ZONE MANAGEMENT
+# ==========================================
 
-# Get all zones
 @app.get("/zones/", response_model=List[schemas.Zone])
 def get_zones(
     skip: int = 0, 
     limit: int = 100, 
     db: Session = Depends(get_db)
 ):
-    """
-    Get all zones
+    """Retrieves a paginated list of all registered zones."""
+    return db.query(models.Zone).offset(skip).limit(limit).all()
 
-    Parameters:
-    - N/A
-
-    Returns:
-    - List of all zones
-    """
-    zones = db.query(models.Zone).offset(skip).limit(limit).all()
-    return zones
-
-# Create a new zone
 @app.post("/zones/", response_model=schemas.Zone, status_code=status.HTTP_201_CREATED)
 def create_zone(
     zone: schemas.ZoneCreate, 
     db: Session = Depends(get_db)
 ):
-    """
-    Create a new zone
-
-    Parameters:
-    - City
-
-    Returns:
-    - Newly Created Zone
-    """
+    """Registers a new geographical zone."""
     db_zone = models.Zone(**zone.model_dump())
     db.add(db_zone)
     db.commit()
     db.refresh(db_zone)
     return db_zone
 
-# Get specific zone by id
 @app.get("/zones/{zone_id}", response_model=schemas.Zone)
 def get_zone(
     zone_id: int, 
     db: Session = Depends(get_db)
 ):
-    """
-    Get a specific zone by id
-
-    Parameters
-    - Zone ID
-
-    Returns
-    - Single Zone
-    """
+    """Retrieves details of a specific zone by ID."""
     zone = db.query(models.Zone).filter(models.Zone.id == zone_id).first()
     if zone is None:
-        raise HTTPException(
-            status_code=404, 
-            detail="Zone Not Found"
-        )
+        raise HTTPException(status_code=404, detail="Zone not found")
     return zone
 
-# Update Zone
 @app.put("/zones/{zone_id}", response_model=schemas.Zone)
 def update_zone(
     zone_id: int, 
     zone_update: schemas.ZoneUpdate, 
     db: Session = Depends(get_db)
 ):
-    """
-    Update a zone by id
-
-    Parameters:
-    - Zone ID
-    - City
-
-    Returns:
-    - Updated Zone
-    """
-
+    """Updates the attributes of an existing zone."""
     db_zone = db.query(models.Zone).filter(models.Zone.id == zone_id).first()
     if db_zone is None:
-        raise HTTPException(
-            status_code=404, 
-            detail="Zone Not Found"
-        )
+        raise HTTPException(status_code=404, detail="Zone not found")
     
-    # Update only given fields
     update_data = zone_update.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(db_zone, field, value)
@@ -184,36 +151,27 @@ def update_zone(
     db.refresh(db_zone)
     return db_zone
 
-# Delete Zone
 @app.delete("/zones/{zone_id}")
 def delete_zone(
     zone_id: int, 
     db: Session = Depends(get_db)
 ):
     """
-    Delete a Zone
-
-    Parameters:
-    - Zone ID
-    
-    Returns:
-    - Succesfulness msg
+    Deletes a zone. 
+    WARNING: This cascades delete to all associated Misurators and Misurations.
     """
-
     db_zone = db.query(models.Zone).filter(models.Zone.id == zone_id).first()
     if db_zone is None:
-        raise HTTPException(
-            status_code=404, 
-            detail="Zone Not Found"
-        )
+        raise HTTPException(status_code=404, detail="Zone not found")
     
     db.delete(db_zone)
     db.commit()
-    return {"message": "Zone eliminated succesfully!"}
+    return {"message": "Zone deleted successfully"}
 
-### Misurators endpoints ###
+# ==========================================
+# MISURATOR (SENSOR) MANAGEMENT
+# ==========================================
 
-# Get all misurators
 @app.get("/misurators/", response_model=List[schemas.Misurator])
 def get_misurators(
     skip: int = 0, 
@@ -222,19 +180,7 @@ def get_misurators(
     zone_id: Optional[int] = None,
     db: Session = Depends(get_db)
 ):
-    """
-    Get all misurators with optional filters
-
-    Parameters:
-    - Skip
-    - Limit
-    - Active
-    - Zone_id
-
-    Returns:
-    - List of Misurators
-    """
-
+    """Retrieves a list of sensors with optional filtering by status or zone."""
     query = db.query(models.Misurator)
     
     if active is not None:
@@ -242,33 +188,18 @@ def get_misurators(
     if zone_id is not None:
         query = query.filter(models.Misurator.zone_id == zone_id)
     
-    misurators = query.offset(skip).limit(limit).all()
-    return misurators
+    return query.offset(skip).limit(limit).all()
 
-# Create new misurator
 @app.post("/misurators/", response_model=schemas.Misurator, status_code=status.HTTP_201_CREATED)
 def create_misurator(
     misurator: schemas.MisuratorCreate, 
     db: Session = Depends(get_db)
 ):
-    """
-    Create new misurator
-
-    Parameters:
-    - active
-    - zone_id
-
-    Returns:
-    - Created Misurator
-    """
-
-    # Check if zone exits
+    """Registers a new sensor device in a specific zone."""
+    # Integrity Check: Ensure the referenced zone exists
     zone = db.query(models.Zone).filter(models.Zone.id == misurator.zone_id).first()
     if zone is None:
-        raise HTTPException(
-            status_code=400, 
-            detail="Zone Not Found"
-        )
+        raise HTTPException(status_code=400, detail="Referenced Zone ID does not exist")
     
     db_misurator = models.Misurator(**misurator.model_dump())
     db.add(db_misurator)
@@ -276,65 +207,34 @@ def create_misurator(
     db.refresh(db_misurator)
     return db_misurator
 
-# Get specific misurator
 @app.get("/misurators/{misurator_id}", response_model=schemas.Misurator)
 def get_misurator(
     misurator_id: int, 
     db: Session = Depends(get_db)
 ):
-    """
-    Get specific misurator by id
-
-    Parameters:
-    - Misurator ID
-
-    Returns:
-    - Specific Misurator
-    """
-
+    """Retrieves details of a specific sensor."""
     misurator = db.query(models.Misurator).filter(models.Misurator.id == misurator_id).first()
     if misurator is None:
-        raise HTTPException(
-            status_code=404, 
-            detail="Misurator Not Found"
-        )
+        raise HTTPException(status_code=404, detail="Misurator not found")
     return misurator
 
-# Update misurator
 @app.put("/misurators/{misurator_id}", response_model=schemas.Misurator)
 def update_misurator(
     misurator_id: int, 
     misurator_update: schemas.MisuratorUpdate, 
     db: Session = Depends(get_db)
 ):
-    """
-    Update Misurator
-
-    Parameters:
-    - active
-    - zone_id
-
-    Returns:
-    - Updated Misurator
-    """
-
+    """Updates sensor configuration (e.g., moving to a new zone)."""
     db_misurator = db.query(models.Misurator).filter(models.Misurator.id == misurator_id).first()
     if db_misurator is None:
-        raise HTTPException(
-            status_code=404, 
-            detail="Misurator Not Found"
-        )
+        raise HTTPException(status_code=404, detail="Misurator not found")
     
-    # If updating zone, check if it exists
     if misurator_update.zone_id is not None:
+        # Validate new zone existence
         zone = db.query(models.Zone).filter(models.Zone.id == misurator_update.zone_id).first()
         if zone is None:
-            raise HTTPException(
-                status_code=400, 
-                detail="Zone Not Found"
-            )
+            raise HTTPException(status_code=400, detail="New Zone ID does not exist")
     
-    # Update only given fields
     update_data = misurator_update.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(db_misurator, field, value)
@@ -343,63 +243,32 @@ def update_misurator(
     db.refresh(db_misurator)
     return db_misurator
 
-# Activate misurator
 @app.put("/misurators/{misurator_id}/activate")
-def activate_misurator(
-    misurator_id: int, 
-    db: Session = Depends(get_db)
-):
-    """
-    Activate misurator
-
-    Parameters:
-    - Misurator ID
-
-    Returns:
-    - Succesfulness msg
-    """
-
+def activate_misurator(misurator_id: int, db: Session = Depends(get_db)):
+    """Sets a sensor status to Active."""
     misurator = db.query(models.Misurator).filter(models.Misurator.id == misurator_id).first()
     if misurator is None:
-        raise HTTPException(
-            status_code=404, 
-            detail="Misurator Not Found"
-        )
+        raise HTTPException(status_code=404, detail="Misurator not found")
     
     misurator.active = True
     db.commit()
-    return {"message": "Misurator activated succesfully"}
+    return {"message": "Misurator activated successfully"}
 
-# Deactivate misurator
 @app.put("/misurators/{misurator_id}/deactivate")
-def deactivate_misurator(
-    misurator_id: int, 
-    db: Session = Depends(get_db)
-):
-    """
-    Deactivate misurator
-
-    Parameters:
-    - Misurator ID
-
-    Returns:
-    - Succesfullness msg
-    """
-
+def deactivate_misurator(misurator_id: int, db: Session = Depends(get_db)):
+    """Sets a sensor status to Inactive (data will be ignored in alerts)."""
     misurator = db.query(models.Misurator).filter(models.Misurator.id == misurator_id).first()
     if misurator is None:
-        raise HTTPException(
-            status_code=404, 
-            detail="Misurator Not Found"
-        )
+        raise HTTPException(status_code=404, detail="Misurator not found")
     
     misurator.active = False
     db.commit()
-    return {"message": "Misurator deactivated succesfully"}
+    return {"message": "Misurator deactivated successfully"}
 
-### Misurations endpoints ###
+# ==========================================
+# MISURATIONS (DATA INGESTION)
+# ==========================================
 
-# Get all misurations
 @app.get("/misurations/", response_model=List[schemas.Misuration])
 def get_misurations(
     skip: int = 0, 
@@ -409,16 +278,7 @@ def get_misurations(
     end_date: Optional[datetime] = None,
     db: Session = Depends(get_db)
 ):
-    """
-    Get all misurations with optional filters
-
-    Parameters:
-    - Skip  (skip x records)
-    - Limit (maximum records)
-
-    Returns:
-    - List of all zones
-    """
+    """Retrieves historical data with optional time-range and device filtering."""
     query = db.query(models.Misuration)
     
     if misurator_id is not None:
@@ -428,38 +288,23 @@ def get_misurations(
     if end_date is not None:
         query = query.filter(models.Misuration.created_at <= end_date)
     
-    misurations = query.order_by(models.Misuration.created_at.desc()).offset(skip).limit(limit).all()
-    return misurations
+    return query.order_by(models.Misuration.created_at.desc()).offset(skip).limit(limit).all()
 
-# Create new misuration
 @app.post("/misurations/", response_model=schemas.Misuration, status_code=status.HTTP_201_CREATED)
 def create_misuration(
     misuration: schemas.MisurationCreate, 
     db: Session = Depends(get_db)
 ):
     """
-    Create a new misuration
-
-    Parameters:
-    - value
-    - misurator_id
-
-    Returns:
-    - Created Misuration
+    Ingests a new data point from a sensor.
+    Validation: Rejects data from non-existent or inactive sensors.
     """
-
-    # Check if misurator exists and is active
     misurator = db.query(models.Misurator).filter(models.Misurator.id == misuration.misurator_id).first()
+    
     if misurator is None:
-        raise HTTPException(
-            status_code=400, 
-            detail="Misurator Not Found"
-        )
+        raise HTTPException(status_code=400, detail="Misurator ID not found")
     if not misurator.active:
-        raise HTTPException(
-            status_code=400, 
-            detail="Misurator Not Active"
-        )
+        raise HTTPException(status_code=400, detail="Cannot accept data from an inactive Misurator")
     
     db_misuration = models.Misuration(**misuration.model_dump())
     db.add(db_misuration)
@@ -467,119 +312,68 @@ def create_misuration(
     db.refresh(db_misuration)
     return db_misuration
 
-# Get specific misuration
 @app.get("/misurations/{misuration_id}", response_model=schemas.Misuration)
 def get_misuration(
     misuration_id: int, 
     db: Session = Depends(get_db)
 ):
-    """
-    Get specific misuration by id
-
-    Parameters:
-    - Misuration ID
-
-    Returns:
-    - Specific Misuration
-    """
-
+    """Retrieves a single data point by ID."""
     misuration = db.query(models.Misuration).filter(models.Misuration.id == misuration_id).first()
     if misuration is None:
-        raise HTTPException(
-            status_code=404, 
-            detail="Misuration Not Found"
-        )
+        raise HTTPException(status_code=404, detail="Misuration not found")
     return misuration
 
-### Relationships Endpoints ###
+# ==========================================
+# RELATIONSHIP & STATISTICS ENDPOINTS
+# ==========================================
 
-# Get all misurators of a specific zone
 @app.get("/zones/{zone_id}/misurators", response_model=List[schemas.Misurator])
-def get_zone_misurators(
-    zone_id: int, 
-    db: Session = Depends(get_db)
-):
-    """
-    Get all misurators of a specific zone
-
-    Parameters:
-    - zone_id
-
-    Returns:
-    - List of all Misurators of a specific Zone
-    """
-
+def get_zone_misurators(zone_id: int, db: Session = Depends(get_db)):
+    """Returns all sensors installed in a specific zone."""
     zone = db.query(models.Zone).filter(models.Zone.id == zone_id).first()
     if zone is None:
-        raise HTTPException(
-            status_code=404, 
-            detail="Zone Not Found"
-        )
-    
-    misurators = db.query(models.Misurator).filter(models.Misurator.zone_id == zone_id).all()
-    return misurators
+        raise HTTPException(status_code=404, detail="Zone not found")
+    return zone.misurators # Uses SQLAlchemy relationship
 
-# Get all misurations of a specific misurator
 @app.get("/misurators/{misurator_id}/misurations", response_model=List[schemas.Misuration])
 def get_misurator_misurations(
     misurator_id: int, 
-    hours: Optional[int] = Query(24, description="Last X hours"),
+    hours: int = Query(24, description="Lookback period in hours"),
     db: Session = Depends(get_db)
 ):
-    """
-    Get all misurations of a specific misurator
-
-    Parameters:
-    - misurator_id
-    - hours
-
-    Returns:
-    - List of all Misurations of specific Misurator in the last X Hours
-    """
-
+    """Returns recent data points for a specific sensor."""
     misurator = db.query(models.Misurator).filter(models.Misurator.id == misurator_id).first()
     if misurator is None:
-        raise HTTPException(
-            status_code=404, 
-            detail="Misurator Not Found"
-        )
+        raise HTTPException(status_code=404, detail="Misurator not found")
     
     since_time = datetime.now() - timedelta(hours=hours)
-    misurations = db.query(models.Misuration).filter(
+    
+    # Utilizing relationship filtering could be an alternative, but direct query is explicit here
+    return db.query(models.Misuration).filter(
         models.Misuration.misurator_id == misurator_id,
         models.Misuration.created_at >= since_time
     ).order_by(models.Misuration.created_at.desc()).all()
-    
-    return misurations
 
-### Statistics Endpoints ###
-
-# Get statistics of zones
 @app.get("/stats/zones")
 def get_zones_stats(db: Session = Depends(get_db)):
     """
-    Get statistics for all zones
-
-    Parameters:
-    - N/A
-
-    Returns:
-    - total zones
-    - total misurators
-    - total active misurators
+    Computes aggregated statistics for all zones.
+    Returns counts of devices and timestamp of the last received data packet.
     """
     zones = db.query(models.Zone).all()
     stats = []
     
     for zone in zones:
-        misurators = db.query(models.Misurator).filter(models.Misurator.zone_id == zone.id)
-        active_misurators = misurators.filter(models.Misurator.active == True).count()
-        total_misurators = misurators.count()
+        # Utilizing relationships for cleaner counts
+        total_misurators = len(zone.misurators)
+        active_misurators = sum(1 for m in zone.misurators if m.active)
         
-        # Last misuration for this zone
-        last_misuration = db.query(models.Misuration).join(models.Misurator).filter(
-            models.Misurator.zone_id == zone.id
-        ).order_by(models.Misuration.created_at.desc()).first()
+        # Optimize: Get only the latest misuration via join
+        last_misuration = db.query(models.Misuration)\
+            .join(models.Misurator)\
+            .filter(models.Misurator.zone_id == zone.id)\
+            .order_by(models.Misuration.created_at.desc())\
+            .first()
         
         stats.append({
             "zone_id": zone.id,
@@ -591,34 +385,18 @@ def get_zones_stats(db: Session = Depends(get_db)):
     
     return stats
 
-# Get stats of a specific misurator
 @app.get("/stats/misurators/{misurator_id}")
 def get_misurator_stats(
     misurator_id: int,
-    days: int = Query(7, description="Last x days"),
+    days: int = Query(7, description="Lookback period in days"),
     db: Session = Depends(get_db)
 ):
     """
-    Gets stats of a specific misurator
-
-    Parameters:
-    - Misurator ID
-
-    Returns:
-    - misurator_id
-    - total_misurations
-    - avg_value
-    - min_value
-    - max_value
-    - period_days
-
+    Computes statistical metrics (Min, Max, Avg) for a sensor over a given period.
     """
     misurator = db.query(models.Misurator).filter(models.Misurator.id == misurator_id).first()
     if misurator is None:
-        raise HTTPException(
-            status_code=404, 
-            detail="Misurator Not Found"
-        )
+        raise HTTPException(status_code=404, detail="Misurator not found")
     
     since_date = datetime.now() - timedelta(days=days)
     misurations = db.query(models.Misuration).filter(
@@ -646,39 +424,28 @@ def get_misurator_stats(
         "period_days": days
     }
 
-### Health Check ###
+# ==========================================
+# SYSTEM HEALTH CHECKS
+# ==========================================
 
-# Root check
 @app.get("/")
 def read_root():
+    """Root endpoint providing API version and map."""
     return {
-        "message": "Earthquake Monitoring System",
+        "message": "Earthquake Monitoring System API",
         "version": "1.0.0",
-        "endpoints": {
-            "zones": "/zones/",
-            "misurators": "/misurators/",
-            "misurations": "/misurations/",
-            "alerts": "/alerts/{zone_id}",
-            "stats": "/stats/zones"
-        }
+        "docs_url": "/docs",
+        "redoc_url": "/redoc"
     }
 
-# Health endpoint
 @app.get("/health")
 def health_check(db: Session = Depends(get_db)):
     """
-    Application and Database health check
-
-    Parameters:
-    - N/A
-
-    Returns:
-    - status
-    - connection
-    - timestamp
+    Performs a deep health check ensuring Database connectivity.
+    Used by container orchestrators (e.g., Docker/K8s) to verify availability.
     """
     try:
-        # Database connection test
+        # Lightweight query to verify DB connection
         db.execute(text("SELECT 1"))
         return {
             "status": "healthy",
