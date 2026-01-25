@@ -2,13 +2,13 @@
 Database Models Definition
 --------------------------
 This module defines the SQLAlchemy ORM models for the Earthquake Monitoring System.
-It establishes the schema for Zones, Misurators (Sensors), and Misurations (Data points),
-including relationships and foreign key constraints to ensure data integrity.
+It integrates PostGIS geometry types for GPS location handling.
 """
 
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Float
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
+from geoalchemy2 import Geometry
 from src.database import Base
 
 class Zone(Base):
@@ -21,21 +21,29 @@ class Zone(Base):
     city = Column(String(100), nullable=False)
 
     # Relationships
-    # 'cascade' ensures that if a Zone is deleted, all associated Misurators are also removed.
     misurators = relationship("Misurator", back_populates="zone", cascade="all, delete-orphan")
 
 
 class Misurator(Base):
     """
     Represents a physical IoT sensor device installed in a specific Zone.
+    Includes GPS coordinates managed via PostGIS.
     """
     __tablename__ = "misurators"
 
     id = Column(Integer, primary_key=True, index=True)
     active = Column(Boolean, default=True, nullable=False)
     
-    # Foreign Key: Links the sensor to a specific Zone
+    # Foreign Key
     zone_id = Column(Integer, ForeignKey("zones.id"), nullable=False)
+
+    # --- GPS Configuration ---
+    # We store lat/lon as floats for easy API access/debugging
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
+    
+    # We store the actual spatial point for GIS queries (SRID 4326 = WGS84 Standard)
+    location = Column(Geometry('POINT', srid=4326), nullable=True)
 
     # Relationships
     zone = relationship("Zone", back_populates="misurators")
@@ -50,12 +58,12 @@ class Misuration(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     
-    # Indexed for performance on time-series queries (critical for alert system)
+    # Indexed for performance on time-series queries
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, index=True)
     
     value = Column(Integer, nullable=False)
     
-    # Foreign Key: Links the data point to the source device
+    # Foreign Key
     misurator_id = Column(Integer, ForeignKey("misurators.id"), nullable=False)
 
     # Relationships

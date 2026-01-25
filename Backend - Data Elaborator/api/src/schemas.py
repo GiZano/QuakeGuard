@@ -1,12 +1,11 @@
 """
 Pydantic Schemas (Data Transfer Objects)
 ----------------------------------------
-This module defines the Pydantic models used for request validation 
-and response serialization. It mirrors the SQLAlchemy models but adds 
-type safety and validation logic for the API layer.
+Defines request/response structures.
+Includes validation for GPS coordinates.
 """
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional, List
 from datetime import datetime
 
@@ -15,22 +14,16 @@ from datetime import datetime
 # ==========================================
 
 class ZoneBase(BaseModel):
-    """Shared properties for Zone."""
     city: str 
 
 class ZoneCreate(ZoneBase):
-    """Properties to receive on Zone creation."""
     pass 
 
 class ZoneUpdate(BaseModel):
-    """Properties to receive on Zone update."""
     city: Optional[str] = None
 
 class Zone(ZoneBase):
-    """Properties to return to client (ORM representation)."""
     id: int
-
-    # Configuration to allow creation from ORM objects
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -39,22 +32,29 @@ class Zone(ZoneBase):
 # ==========================================
 
 class MisuratorBase(BaseModel):
-    """Shared properties for Misurator (Sensor)."""
     active: bool 
     zone_id: int
 
 class MisuratorCreate(MisuratorBase):
-    """Properties to receive on Misurator creation."""
-    pass 
+    """
+    Payload for creating a new sensor.
+    Requires valid GPS coordinates.
+    """
+    latitude: float = Field(..., ge=-90, le=90, description="GPS Latitude (-90 to 90)")
+    longitude: float = Field(..., ge=-180, le=180, description="GPS Longitude (-180 to 180)")
 
 class MisuratorUpdate(BaseModel):
-    """Properties to receive on Misurator update."""
     active:  Optional[bool] = None
     zone_id: Optional[int] = None
 
 class Misurator(MisuratorBase):
-    """Properties to return to client (ORM representation)."""
+    """
+    Response object for a sensor.
+    Returns lat/lon as floats. The raw 'location' geometry is handled internally by DB.
+    """
     id: int
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -64,47 +64,20 @@ class Misurator(MisuratorBase):
 # ==========================================
 
 class MisurationBase(BaseModel):
-    """Shared properties for Misuration."""
     value: int
     misurator_id: int
 
 class MisurationCreate(MisurationBase): 
-    """Properties to receive on data ingestion."""
     pass
 
 class MisurationUpdate(BaseModel):
-    """Properties to receive on data update (rarely used for time-series)."""
     value: Optional[int] = None
     misurator_id: Optional[int] = None
 
 class Misuration(MisurationBase):
-    """Properties to return to client (ORM representation)."""
     id: int
     created_at: datetime
-
     model_config = ConfigDict(from_attributes=True)
-
-
-# ==========================================
-# AGGREGATED / NESTED SCHEMAS
-# ==========================================
-# These schemas enable nested JSON responses (e.g., getting a Zone with all its Sensors)
-
-class MisuratorWithZone(Misurator):
-    """Misurator response including Zone details."""
-    zone: Optional[Zone] = None
-
-class MisurationWithMisurator(Misuration):
-    """Misuration response including Sensor details."""
-    misurator: Optional[Misurator] = None
-
-class MisuratorWithMisurations(Misurator):
-    """Misurator response including historical data points."""
-    misurations: List[Misuration] = []
-
-class ZoneWithMisurators(Zone):
-    """Zone response including list of installed sensors."""
-    misurators: List[Misurator] = []
 
 
 # ==========================================
@@ -112,7 +85,6 @@ class ZoneWithMisurators(Zone):
 # ==========================================
 
 class ZoneStats(BaseModel):
-    """DTO for aggregated Zone statistics."""
     zone_id: int
     city: str
     active_misurators: int
@@ -121,22 +93,10 @@ class ZoneStats(BaseModel):
     last_misuration: Optional[datetime] = None
 
 class AlertResponse(BaseModel):
-    """DTO for Earthquake Alert System response."""
     zone_id: int
     is_earthquake_detected: bool
     measurement_count: int
     threshold: int
     time_window_seconds: int
     timestamp: datetime
-
     model_config = ConfigDict(from_attributes=True)
-
-
-# ==========================================
-# CIRCULAR REFERENCE HANDLING
-# ==========================================
-# Pydantic v2 method to resolve forward references in nested models.
-
-ZoneWithMisurators.model_rebuild()
-MisuratorWithMisurations.model_rebuild()
-MisurationWithMisurator.model_rebuild()
