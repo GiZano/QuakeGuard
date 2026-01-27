@@ -1,11 +1,13 @@
 """
 Earthquake Monitoring System API
 --------------------------------
-Main entry point. Handles GPS data ingestion via PostGIS.
+Main entry point. 
+Handles Data Ingestion with ECDSA Signature Verification to prevent DOS/Spoofing.
 """
 
 import sys
 import os
+import time
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
@@ -14,7 +16,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text, func
 from typing import List, Optional
 from datetime import datetime, timedelta
-from geoalchemy2.elements import WKTElement # Required for PostGIS insertions
+from geoalchemy2.elements import WKTElement 
+from ecdsa import VerifyingKey, NIST256p, BadSignatureError
 
 from src.database import get_db, engine
 import src.models as models
@@ -25,16 +28,153 @@ models.Base.metadata.create_all(bind=engine)
 
 # --- Configuration Constants ---
 ALERT_THRESHOLD = 10  
-ALERT_TIME_WINDOW_SECONDS = 5  
+ALERT_TIME_WINDOW_SECONDS = 5
+MAX_TIMESTAMP_DRIFT_SECONDS = 60 # Prevent replay attacks older than 60s
 
 app = FastAPI(
     title="Earthquake Monitoring System",
-    description="Backend API with PostGIS support for seismic monitoring.",
-    version="1.1.0"
+    description="Backend API with ECDSA Security and PostGIS support.",
+    version="1.2.0"
 )
 
 # ==========================================
-# ALERT SYSTEM
+# SECURITY UTILITIES
+# ==========================================
+
+def verify_device_signature(public_key_hex: str, message: str, signature_hex: str) -> bool:
+    """
+    Verifies the ECDSA signature of a message using the device's public key.
+    Curve: NIST256p (secp256r1)
+    """
+    try:
+        # Import the public key from Hex
+        vk = VerifyingKey.from_string(bytes.fromhex(public_key_hex), curve=NIST256p)
+        # Verify the signature (decoding signature from Hex first)
+        return vk.verify(bytes.fromhex(signature_hex), message.encode('utf-8'))
+    except (BadSignatureError, ValueError):
+        return False
+    except Exception as e:
+        print(f"[SECURITY ERROR] Signature verification failed: {e}")
+        return False
+
+# ==========================================
+# MISURATORS (SENSORS) + REGISTRATION
+# ==========================================
+
+@app.post("/misurators/", response_model=schemas.Misurator, status_code=status.HTTP_201_CREATED)
+def create_misurator(misurator: schemas.MisuratorCreate, db: Session = Depends(get_db)):
+    """
+    Registers a new sensor.
+    Stores the ECDSA Public Key for future authentication.
+    """
+    zone = db.query(models.Zone).filter(models.Zone.id == misurator.zone_id).first()
+    if zone is None:
+        raise HTTPException(status_code=400, detail="Referenced Zone ID does not exist")
+    
+    # Construct WKT for PostGIS
+    gps_point = f"POINT({misurator.longitude} {misurator.latitude})"
+    
+    db_misurator = models.Misurator(
+        active=misurator.active,
+        zone_id=misurator.zone_id,
+        latitude=misurator.latitude,
+        longitude=misurator.longitude,
+        location=WKTElement(gps_point, srid=4326),
+        public_key_hex=misurator.public_key_hex # Store key
+    )
+    
+    db.add(db_misurator)
+    db.commit()
+    db.refresh(db_misurator)
+    return db_misurator
+
+@app.get("/misurators/", response_model=List[schemas.Misurator])
+def get_misurators(
+    skip: int = 0, 
+    limit: int = 100, 
+    active: Optional[bool] = None,
+    zone_id: Optional[int] = None,
+    db: Session = Depends(get_db)
+):
+    query = db.query(models.Misurator)
+    if active is not None:
+        query = query.filter(models.Misurator.active == active)
+    if zone_id is not None:
+        query = query.filter(models.Misurator.zone_id == zone_id)
+    return query.offset(skip).limit(limit).all()
+
+# ==========================================
+# MISURATIONS (SECURE DATA INGESTION)
+# ==========================================
+
+@app.post("/misurations/", response_model=schemas.Misuration, status_code=status.HTTP_201_CREATED)
+def create_misuration(misuration: schemas.MisurationCreate, db: Session = Depends(get_db)):
+    """
+    Ingests data securely.
+    1. Checks if Misurator exists and is active.
+    2. Validates timestamp to prevent Replay Attacks.
+    3. Verifies ECDSA signature using the stored Public Key.
+    """
+    
+    # 1. Fetch Misurator
+    misurator = db.query(models.Misurator).filter(models.Misurator.id == misuration.misurator_id).first()
+    if misurator is None:
+        raise HTTPException(status_code=400, detail="Misurator ID not found")
+    if not misurator.active:
+        raise HTTPException(status_code=400, detail="Misurator is inactive")
+    if not misurator.public_key_hex:
+        raise HTTPException(status_code=403, detail="Security Error: This device has no Public Key registered.")
+
+    # 2. Check for Replay Attacks (Timestamp drift)
+    # We allow a small drift (e.g., 60 seconds) between device time and server time
+    server_time = time.time()
+    if abs(server_time - misuration.device_timestamp) > MAX_TIMESTAMP_DRIFT_SECONDS:
+         raise HTTPException(
+             status_code=403, 
+             detail=f"Security Error: Timestamp out of sync (Server: {server_time}, Device: {misuration.device_timestamp}). Potential replay attack."
+         )
+
+    # 3. Verify Signature
+    # The message format MUST match exactly what the ESP32 signs: "value:timestamp"
+    # Note: Ensure the timestamp precision (float vs int) matches exactly on both sides.
+    # It is recommended to cast timestamp to int or fixed string on ESP32.
+    message_to_verify = f"{misuration.value}:{misuration.device_timestamp}"
+    
+    is_valid = verify_device_signature(
+        public_key_hex=misurator.public_key_hex,
+        message=message_to_verify,
+        signature_hex=misuration.signature_hex
+    )
+
+    if not is_valid:
+        print(f"FAILED SIG: Msg='{message_to_verify}', Sig='{misuration.signature_hex}', Key='{misurator.public_key_hex}'")
+        raise HTTPException(status_code=401, detail="Security Error: Invalid Digital Signature. Data integrity check failed.")
+
+    # 4. Save Data (Signature is valid)
+    db_misuration = models.Misuration(
+        value=misuration.value,
+        misurator_id=misuration.misurator_id
+        # We don't save the signature itself, we just verified it.
+    )
+    db.add(db_misuration)
+    db.commit()
+    db.refresh(db_misuration)
+    return db_misuration
+
+@app.get("/misurations/", response_model=List[schemas.Misuration])
+def get_misurations(
+    skip: int = 0, 
+    limit: int = 100, 
+    misurator_id: Optional[int] = None,
+    db: Session = Depends(get_db)
+):
+    query = db.query(models.Misuration)
+    if misurator_id is not None:
+        query = query.filter(models.Misuration.misurator_id == misurator_id)
+    return query.order_by(models.Misuration.created_at.desc()).offset(skip).limit(limit).all()
+
+# ==========================================
+# ALERT SYSTEM (Optimized)
 # ==========================================
 
 @app.get("/alerts/{zone_id}", response_model=schemas.AlertResponse)
@@ -66,7 +206,7 @@ def check_earthquake_alert(zone_id: int, db: Session = Depends(get_db)):
     )
 
 # ==========================================
-# ZONES
+# ZONES & HEALTH
 # ==========================================
 
 @app.get("/zones/", response_model=List[schemas.Zone])
@@ -88,123 +228,9 @@ def get_zone(zone_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Zone not found")
     return zone
 
-@app.delete("/zones/{zone_id}")
-def delete_zone(zone_id: int, db: Session = Depends(get_db)):
-    db_zone = db.query(models.Zone).filter(models.Zone.id == zone_id).first()
-    if db_zone is None:
-        raise HTTPException(status_code=404, detail="Zone not found")
-    db.delete(db_zone)
-    db.commit()
-    return {"message": "Zone deleted successfully"}
-
-# ==========================================
-# MISURATORS (SENSORS) + GPS
-# ==========================================
-
-@app.get("/misurators/", response_model=List[schemas.Misurator])
-def get_misurators(
-    skip: int = 0, 
-    limit: int = 100, 
-    active: Optional[bool] = None,
-    zone_id: Optional[int] = None,
-    db: Session = Depends(get_db)
-):
-    query = db.query(models.Misurator)
-    if active is not None:
-        query = query.filter(models.Misurator.active == active)
-    if zone_id is not None:
-        query = query.filter(models.Misurator.zone_id == zone_id)
-    return query.offset(skip).limit(limit).all()
-
-@app.post("/misurators/", response_model=schemas.Misurator, status_code=status.HTTP_201_CREATED)
-def create_misurator(misurator: schemas.MisuratorCreate, db: Session = Depends(get_db)):
-    """
-    Registers a new sensor.
-    Converts lat/lon inputs into a PostGIS Geometry Point (SRID 4326).
-    """
-    zone = db.query(models.Zone).filter(models.Zone.id == misurator.zone_id).first()
-    if zone is None:
-        raise HTTPException(status_code=400, detail="Referenced Zone ID does not exist")
-    
-    # Construct WKT (Well-Known Text) for PostGIS: POINT(longitude latitude)
-    # Note: PostGIS uses X (Lon), Y (Lat) order.
-    gps_point = f"POINT({misurator.longitude} {misurator.latitude})"
-    
-    db_misurator = models.Misurator(
-        active=misurator.active,
-        zone_id=misurator.zone_id,
-        latitude=misurator.latitude,   # Stored as simple float
-        longitude=misurator.longitude, # Stored as simple float
-        location=WKTElement(gps_point, srid=4326) # Stored as Geometry
-    )
-    
-    db.add(db_misurator)
-    db.commit()
-    db.refresh(db_misurator)
-    return db_misurator
-
-@app.get("/misurators/{misurator_id}", response_model=schemas.Misurator)
-def get_misurator(misurator_id: int, db: Session = Depends(get_db)):
-    misurator = db.query(models.Misurator).filter(models.Misurator.id == misurator_id).first()
-    if misurator is None:
-        raise HTTPException(status_code=404, detail="Misurator not found")
-    return misurator
-
-@app.put("/misurators/{misurator_id}/activate")
-def activate_misurator(misurator_id: int, db: Session = Depends(get_db)):
-    misurator = db.query(models.Misurator).filter(models.Misurator.id == misurator_id).first()
-    if misurator is None:
-        raise HTTPException(status_code=404, detail="Misurator not found")
-    misurator.active = True
-    db.commit()
-    return {"message": "Misurator activated"}
-
-@app.put("/misurators/{misurator_id}/deactivate")
-def deactivate_misurator(misurator_id: int, db: Session = Depends(get_db)):
-    misurator = db.query(models.Misurator).filter(models.Misurator.id == misurator_id).first()
-    if misurator is None:
-        raise HTTPException(status_code=404, detail="Misurator not found")
-    misurator.active = False
-    db.commit()
-    return {"message": "Misurator deactivated"}
-
-# ==========================================
-# MISURATIONS (DATA)
-# ==========================================
-
-@app.get("/misurations/", response_model=List[schemas.Misuration])
-def get_misurations(
-    skip: int = 0, 
-    limit: int = 100, 
-    misurator_id: Optional[int] = None,
-    db: Session = Depends(get_db)
-):
-    query = db.query(models.Misuration)
-    if misurator_id is not None:
-        query = query.filter(models.Misuration.misurator_id == misurator_id)
-    return query.order_by(models.Misuration.created_at.desc()).offset(skip).limit(limit).all()
-
-@app.post("/misurations/", response_model=schemas.Misuration, status_code=status.HTTP_201_CREATED)
-def create_misuration(misuration: schemas.MisurationCreate, db: Session = Depends(get_db)):
-    misurator = db.query(models.Misurator).filter(models.Misurator.id == misuration.misurator_id).first()
-    if misurator is None:
-        raise HTTPException(status_code=400, detail="Misurator ID not found")
-    if not misurator.active:
-        raise HTTPException(status_code=400, detail="Misurator is inactive")
-    
-    db_misuration = models.Misuration(**misuration.model_dump())
-    db.add(db_misuration)
-    db.commit()
-    db.refresh(db_misuration)
-    return db_misuration
-
-# ==========================================
-# HEALTH & ROOT
-# ==========================================
-
 @app.get("/")
 def read_root():
-    return {"message": "Earthquake Monitoring System API", "version": "1.1.0"}
+    return {"message": "Earthquake Monitoring System API", "version": "1.2.0"}
 
 @app.get("/health")
 def health_check(db: Session = Depends(get_db)):
