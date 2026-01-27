@@ -30,4 +30,4 @@ The system implements **ECDSA (Elliptic Curve Digital Signature Algorithm)** on 
 * **Server:** Holds the Public Key. Verifies the signature before accepting data.
 
 ---
-*For detailed instructions, refer to the README.md files within each subdirectory.*
+*For detailed instructions, refer to the README.md files within each subdirectory.* 
