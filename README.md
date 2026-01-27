@@ -1,9 +1,9 @@
-# Electro-Domestic Earthquake Alarm System (EDEAS) 🌋
+# Electro-Domestic Earthquake Alarm System (QuakeFinder) 🌋
 
 **Project Status:** Active Development (Alpha)
 
 ## 📖 Overview
-EDEAS is a full-stack IoT solution designed to detect, analyze, and visualize seismic activity in domestic environments. The system utilizes low-cost hardware (ESP32) to capture vibration data, securely transmits it to a central server via ECDSA-signed payloads, and visualizes alerts and status via a mobile application.
+QuakeFinder is a full-stack IoT solution designed to detect, analyze, and visualize seismic activity in domestic environments. The system utilizes low-cost hardware (ESP32) to capture vibration data, securely transmits it to a central server via ECDSA-signed payloads, and visualizes alerts and status via a mobile application.
 
 ## 🏗 Project Architecture
 
