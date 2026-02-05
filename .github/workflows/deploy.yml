@@ -55,8 +55,6 @@ jobs:
         with:
           # Sets the build context to the backend subdirectory.
           context: "./Backend - Data Elaborator"
-          # Specifies the location of the Dockerfile relative to the root.
-          file: "./Backend - Data Elaborator/Dockerfile"
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
