@@ -1,8 +1,8 @@
 version: '3.8'
 
 services:
+  # --- PERSISTENCE LAYER (PostgreSQL + PostGIS) ---
   postgres:
-    # We use the PostGIS variant to support Geometry types
     image: postgis/postgis:15-3.4-alpine
     environment:
       POSTGRES_DB: monitoraggio_db
@@ -12,37 +12,42 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./init-scripts:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-developer} -d ${POSTGRES_DB:-monitoraggio_db}"]
+      test: ["CMD-SHELL", "pg_isready -U developer -d monitoraggio_db"]
       interval: 5s
       timeout: 3s
       retries: 10
 
-  pgadmin:
-    image: dpage/pgadmin4
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@example.com
-      PGADMIN_DEFAULT_PASSWORD: admin
+  # --- MESSAGE BROKER & CACHING LAYER ---
+  redis:
+    image: redis:7-alpine
     ports:
-      - "8080:80"
-    depends_on:
-      - postgres
+      - "6379:6379"
 
+  # --- INGESTION API (Asynchronous FastAPI) ---
   fastapi-app:
     build: .
     ports:
       - "8000:8000"
     environment:
-      # Ensure this matches the postgres service credentials
       - DATABASE_URL=postgresql://developer:password@postgres:5432/monitoraggio_db
-    env_file:
-      - .env
+      - REDIS_URL=redis://redis:6379/0
     depends_on:
       postgres:
         condition: service_healthy
-    volumes:
-      - .:/app
+      redis:
+        condition: service_started
+
+  # --- BACKGROUND WORKER (Consumer & Alert Logic) ---
+  worker:
+    build: .
+    command: python src/worker.py
+    environment:
+      - DATABASE_URL=postgresql://developer:password@postgres:5432/monitoraggio_db
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - redis
+      - postgres
 
 volumes:
   postgres_data:

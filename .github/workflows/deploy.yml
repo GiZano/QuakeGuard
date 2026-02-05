@@ -1,0 +1,62 @@
+name: Build and Push Backend Service
+
+on:
+  # Trigger the workflow on push events to the 'main' branch,
+  # but only if changes occur within the backend directory.
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'Backend - Data Elaborator/**'
+
+env:
+  # Define the container registry (GitHub Container Registry).
+  REGISTRY: ghcr.io
+  # Define the image name, appending '-backend' to distinguish it within the monorepo.
+  IMAGE_NAME: ${{ github.repository }}-backend
+
+jobs:
+  build-and-push:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+    
+    # Grant necessary permissions to the GITHUB_TOKEN for package publishing.
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      # Step 1: Check out the repository code.
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Authenticate with the GitHub Container Registry using the automatic GITHUB_TOKEN.
+      - name: Log in to the Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Step 3: Extract metadata (tags, labels) for the Docker image.
+      # This generates tags like 'latest' and the git SHA for versioning.
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest
+            type=sha,format=long
+
+      # Step 4: Build the Docker image and push it to GHCR.
+      # Note: The 'context' and 'file' paths include quotes to handle spaces in the directory name.
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          # Sets the build context to the backend subdirectory.
+          context: "./Backend - Data Elaborator"
+          # Specifies the location of the Dockerfile relative to the root.
+          file: "./Backend - Data Elaborator/Dockerfile"
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
