@@ -6,7 +6,7 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - 'Backend - Data Elaborator/**'
+      - 'backend-data-elaborator/**'
       - '.github/workflows/**'
 
 env:
@@ -33,7 +33,7 @@ jobs:
       # Step 2: Rename the backend directory to remove spaces.
       # This prevents path parsing errors in the Docker CLI during the build process.
       - name: Rename backend directory
-        run: mv "Backend - Data Elaborator" backend_app
+        run: mv "backend-data-elaborator" backend_app
 
       # Step 3: Authenticate with the GitHub Container Registry.
       - name: Log in to the Container Registry

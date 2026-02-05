@@ -9,20 +9,20 @@ QuakeFinder is a full-stack IoT solution designed to detect, analyze, and visual
 
 The repository is organized into three distinct modules:
 
-* **📂 Backend - Data Elaborator:** The brain of the system. A FastAPI server with a PostgreSQL/PostGIS database. It handles device registration, cryptographic verification, data ingestion, and seismic alert logic.
-* **📂 Frontend - Mobile App:** The user interface. A React Native (Expo) application for monitoring sensor status, viewing real-time alerts, and managing devices.
-* **📂 IoT - Data Harvester:** The edge layer. Firmware for ESP32-C3 SuperMini connected to ADXL345 accelerometers. It handles sampling, signing, and transmission.
+* **📂 backend-data-elaborator:** The brain of the system. A FastAPI server with a PostgreSQL/PostGIS database. It handles device registration, cryptographic verification, data ingestion, and seismic alert logic.
+* **📂 frontend-mobile-app:** The user interface. A React Native (Expo) application for monitoring sensor status, viewing real-time alerts, and managing devices.
+* **📂 iot-data-harvester:** The edge layer. Firmware for ESP32-C3 SuperMini connected to ADXL345 accelerometers. It handles sampling, signing, and transmission.
 
 ## 🚀 Quick Start Guide
 
 To run the entire ecosystem locally, follow this order of operations:
 
 1.  **Start the Backend:**
-    Navigate to `Backend - Data Elaborator` and launch the Docker containers. The database must be running for the other components to work.
+    Navigate to `backend-data-elaborator` and launch the Docker containers. The database must be running for the other components to work.
 2.  **Flash the Firmware:**
-    Configure and flash the ESP32 devices in `IoT - Data Harvester`. Ensure they have the correct Public/Private keys.
+    Configure and flash the ESP32 devices in `iot-data-harvester`. Ensure they have the correct Public/Private keys.
 3.  **Launch the Mobile App:**
-    Navigate to `Frontend - Mobile App` and start the Expo server to connect via your smartphone.
+    Navigate to `frontend-mobile-app` and start the Expo server to connect via your smartphone.
 
 ## 🔐 Security Architecture
 The system implements **ECDSA (Elliptic Curve Digital Signature Algorithm)** on curve **NIST256p**.

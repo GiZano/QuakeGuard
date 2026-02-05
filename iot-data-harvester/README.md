@@ -1,4 +1,4 @@
-# IoT - Data Harvester 📡
+# iot-data-harvester 📡
 
 Firmware for the edge sensor nodes. These devices capture acceleration data and transmit it securely to the backend.
 

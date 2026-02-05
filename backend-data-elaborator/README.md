@@ -1,4 +1,4 @@
-# Backend - Data Elaborator 🧠
+# backend-data-elaborator 🧠
 
 This is the core API for the EDEAS system. It manages the database, validates incoming IoT data via cryptography, and serves the frontend application.
 

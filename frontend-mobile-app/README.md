@@ -1,4 +1,4 @@
-# Frontend - Mobile App 📱
+# frontend-mobile-app 📱
 
 The mobile interface for the EDEAS system. It allows users to view real-time measurements, manage registered devices, and receive seismic alerts.
 
