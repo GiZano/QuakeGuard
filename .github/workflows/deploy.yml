@@ -2,7 +2,6 @@ name: Build and Push Backend Service
 
 on:
   # Trigger the workflow on push events to the 'main' branch.
-  # Execution is limited to changes in the backend directory or this workflow definition.
   push:
     branches: [ "main" ]
     paths:
@@ -10,9 +9,8 @@ on:
       - '.github/workflows/**'
 
 env:
-  # Define the container registry (GitHub Container Registry).
   REGISTRY: ghcr.io
-  # Define the image name, appending '-backend' to distinguish it within the monorepo.
+  # Define the image name
   IMAGE_NAME: ${{ github.repository }}-backend
 
 jobs:
@@ -20,7 +18,6 @@ jobs:
     name: Build and Push Docker Image
     runs-on: ubuntu-latest
     
-    # Grant necessary permissions to the GITHUB_TOKEN for package publishing.
     permissions:
       contents: read
       packages: write
@@ -30,10 +27,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Step 2: Rename the backend directory to remove spaces.
-      # This prevents path parsing errors in the Docker CLI during the build process.
-      - name: Rename backend directory
-        run: mv "backend-data-elaborator" backend_app
+      # [RIMOSSO] Step 2 non serve più! La cartella backend-data-elaborator è già perfetta.
 
       # Step 3: Authenticate with the GitHub Container Registry.
       - name: Log in to the Container Registry
@@ -43,8 +37,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Step 4: Extract metadata (tags, labels) for the Docker image.
-      # This generates tags like 'latest' and the git SHA for versioning.
+      # Step 4: Extract metadata
       - name: Extract metadata for Docker
         id: meta
         uses: docker/metadata-action@v5
@@ -54,12 +47,12 @@ jobs:
             type=raw,value=latest
             type=sha,format=long
 
-      # Step 5: Build the Docker image and push it to GHCR.
-      # The build context points to the renamed directory 'backend_app'.
+      # Step 5: Build and push
+      # OCCHIO QUI: Il context ora punta alla cartella vera!
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./backend_app
+          context: ./backend-data-elaborator
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
