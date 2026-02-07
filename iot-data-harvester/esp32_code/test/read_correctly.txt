@@ -1,0 +1,287 @@
+/**
+ * Project: QuakeGuard - Distributed Seismic Detection System
+ * Version: 2.9.0-STABLE (Full Fix: Pointer + Noise Gate + Pins 7/8)
+ * Target Hardware: ESP32-C3 SuperMini + ADXL345
+ * Author: GiZano
+ */
+
+#include <Arduino.h>
+#include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_ADXL345_U.h>
+#include <WiFi.h>
+#include <ArduinoJson.h>
+#include <Preferences.h>
+#include <time.h>
+
+// Crypto Libs
+#include "mbedtls/entropy.h"
+#include "mbedtls/ctr_drbg.h"
+#include "mbedtls/ecdsa.h"
+#include "mbedtls/pk.h"
+#include "mbedtls/error.h"
+
+// --------------------------------------------------------------------------
+// HARDWARE DEFINITIONS (ESP32-C3 SuperMini)
+// --------------------------------------------------------------------------
+#define I2C_SDA_PIN 7
+#define I2C_SCL_PIN 8
+
+// PUNTATORE GLOBALE (Inizializzato a NULL)
+Adafruit_ADXL345_Unified *accel = NULL;
+
+// --------------------------------------------------------------------------
+// CONFIGURATION
+// --------------------------------------------------------------------------
+#ifndef WIFI_SSID
+  #define WIFI_SSID "YOUR_WIFI_SSID"
+#endif
+#ifndef WIFI_PASS
+  #define WIFI_PASS "YOUR_WIFI_PASS"
+#endif
+#ifndef SERVER_HOST
+  #define SERVER_HOST "192.168.1.50"
+#endif
+#ifndef SERVER_PORT
+  #define SERVER_PORT 8000
+#endif
+#ifndef SERVER_PATH
+  #define SERVER_PATH "/measurements/"
+#endif
+#ifndef SENSOR_ID
+  #define SENSOR_ID 101
+#endif
+
+const char* WIFI_SSID_CONF     = WIFI_SSID;
+const char* WIFI_PASS_CONF     = WIFI_PASS;
+const char* SERVER_HOST_CONF   = SERVER_HOST;
+const int   SERVER_PORT_CONF   = SERVER_PORT;
+const char* SERVER_PATH_CONF   = SERVER_PATH;
+const int   SENSOR_ID_CONF     = SENSOR_ID;
+
+// --------------------------------------------------------------------------
+// GLOBAL HANDLES
+// --------------------------------------------------------------------------
+QueueHandle_t eventQueue;
+
+struct SeismicEvent {
+    float magnitude;            
+    unsigned long event_millis; 
+};
+
+// PARAMETRI SISMICI
+const float ALPHA_LTA     = 0.05f; 
+const float ALPHA_STA     = 0.40f; 
+const float TRIGGER_RATIO = 1.8f; 
+const float NOISE_FLOOR   = 0.04f; // Ignora movimenti sotto 0.04G
+
+// --------------------------------------------------------------------------
+// CRYPTO
+// --------------------------------------------------------------------------
+Preferences preferences;
+mbedtls_entropy_context entropy;
+mbedtls_ctr_drbg_context ctr_drbg;
+mbedtls_pk_context pk_context;
+
+void initCrypto() {
+    mbedtls_entropy_init(&entropy);
+    mbedtls_ctr_drbg_init(&ctr_drbg);
+    mbedtls_pk_init(&pk_context);
+    const char *pers = "quake_guard_signer";
+    mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, (const unsigned char *)pers, strlen(pers));
+    preferences.begin("quake-keys", false);
+
+    if (!preferences.isKey("priv_key")) {
+        Serial.println("[SEC] Generating Keys...");
+        mbedtls_pk_setup(&pk_context, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY));
+        mbedtls_ecp_gen_key(MBEDTLS_ECP_DP_SECP256R1, mbedtls_pk_ec(pk_context), mbedtls_ctr_drbg_random, &ctr_drbg);
+        unsigned char priv_buf[128];
+        int ret = mbedtls_pk_write_key_der(&pk_context, priv_buf, sizeof(priv_buf));
+        preferences.putBytes("priv_key", priv_buf + sizeof(priv_buf) - ret, ret);
+    } else {
+        Serial.println("[SEC] Loading Keys...");
+        size_t len = preferences.getBytesLength("priv_key");
+        uint8_t buf[len];
+        preferences.getBytes("priv_key", buf, len);
+        mbedtls_pk_parse_key(&pk_context, buf, len, NULL, 0);
+    }
+}
+
+String signMessage(String message) {
+    unsigned char hash[32];
+    unsigned char sig[MBEDTLS_ECDSA_MAX_LEN];
+    size_t sig_len = 0;
+    mbedtls_md_context_t ctx;
+    mbedtls_md_init(&ctx);
+    mbedtls_md_setup(&ctx, mbedtls_md_info_from_type(MBEDTLS_MD_SHA256), 0);
+    mbedtls_md_starts(&ctx);
+    mbedtls_md_update(&ctx, (const unsigned char*)message.c_str(), message.length());
+    mbedtls_md_finish(&ctx, hash);
+    mbedtls_md_free(&ctx);
+    mbedtls_pk_sign(&pk_context, MBEDTLS_MD_SHA256, hash, 0, sig, &sig_len, mbedtls_ctr_drbg_random, &ctr_drbg);
+    String hexSig = "";
+    for(size_t i = 0; i < sig_len; i++) { char buf[3]; sprintf(buf, "%02x", sig[i]); hexSig += buf; }
+    return hexSig;
+}
+
+// --------------------------------------------------------------------------
+// TASK SENSORE (CON NOISE GATE)
+// --------------------------------------------------------------------------
+void sensorTask(void *pvParameters) {
+    float lta = 0.0f, sta = 0.0f, prev_raw_mag = 9.81f, filtered_mag = 0.0f;
+    sensors_event_t event;
+    
+    while (accel == NULL) vTaskDelay(pdMS_TO_TICKS(100));
+
+    Serial.println("[SENSOR] Task Started.");
+
+    // Stabilizzazione
+    for(int i=0; i<20; i++) { 
+        if(accel->getEvent(&event)) { 
+             float mag = sqrt(pow(event.acceleration.x, 2) + pow(event.acceleration.y, 2) + pow(event.acceleration.z, 2));
+             lta = mag; sta = mag; prev_raw_mag = mag;
+        }
+        vTaskDelay(pdMS_TO_TICKS(50)); 
+    }
+    Serial.println("[SENSOR] Stabilization Complete.");
+
+    TickType_t xLastWakeTime = xTaskGetTickCount();
+    const TickType_t xFrequency = pdMS_TO_TICKS(10); 
+    bool inAlarm = false;
+    unsigned long alarmStart = 0;
+
+    for(;;) {
+        vTaskDelayUntil(&xLastWakeTime, xFrequency);
+        
+        // Se la lettura I2C fallisce tecnicamente, salta
+        if (!accel->getEvent(&event)) {
+            // Serial.println("[WARN] I2C Read Failed"); // Scommenta per debug
+            continue; 
+        }
+
+        float raw_mag = sqrt(pow(event.acceleration.x, 2) + pow(event.acceleration.y, 2) + pow(event.acceleration.z, 2));
+
+        // --- PROTEZIONE DROPOUT (Nuova) ---
+        // Sulla Terra la gravità è ~9.81 m/s^2 (1G). 
+        // Se leggiamo meno di 2.0 m/s^2 (~0.2G), il sensore si è scollegato o ha letto zeri.
+        // Ignoriamo questo ciclo per non far impazzire il filtro.
+        if (raw_mag < 2.0f) {
+            continue; 
+        }
+        // ----------------------------------
+        
+        // HPF
+        filtered_mag = 0.9f * (filtered_mag + raw_mag - prev_raw_mag);
+        prev_raw_mag = raw_mag;
+        float abs_signal = abs(filtered_mag);
+
+        // Noise Gate
+        if (abs_signal < NOISE_FLOOR) abs_signal = 0.0f;
+
+        lta = (ALPHA_LTA * abs_signal) + ((1.0f - ALPHA_LTA) * lta);
+        sta = (ALPHA_STA * abs_signal) + ((1.0f - ALPHA_STA) * sta);
+        
+        if (lta < 0.05f) lta = 0.05f; 
+        float ratio = sta / lta;
+
+        if (ratio >= TRIGGER_RATIO && sta > NOISE_FLOOR && !inAlarm) {
+            Serial.printf("[SENSOR] EARTHQUAKE! Ratio: %.2f (Mag: %.3f)\n", ratio, sta);
+            SeismicEvent evt; evt.magnitude = ratio; evt.event_millis = millis();
+            xQueueSend(eventQueue, &evt, 0);
+            inAlarm = true; alarmStart = millis();
+        }
+        if (inAlarm && (millis() - alarmStart > 5000)) inAlarm = false;
+    }
+}
+
+// --------------------------------------------------------------------------
+// TASK RETE
+// --------------------------------------------------------------------------
+void networkTask(void *pvParameters) {
+    WiFiClient client;
+    WiFi.begin(WIFI_SSID_CONF, WIFI_PASS_CONF);
+    while (WiFi.status() != WL_CONNECTED) vTaskDelay(pdMS_TO_TICKS(500));
+    configTime(0, 0, "pool.ntp.org", "time.nist.gov");
+
+    SeismicEvent receivedEvt;
+    for(;;) {
+        if (xQueueReceive(eventQueue, &receivedEvt, portMAX_DELAY) == pdTRUE) {
+            if (WiFi.status() != WL_CONNECTED) { WiFi.reconnect(); continue; }
+            
+            time_t now_unix; time(&now_unix);
+            unsigned long age_ms = millis() - receivedEvt.event_millis;
+            time_t evt_time = now_unix - (age_ms / 1000);
+            
+            int val = (int)(receivedEvt.magnitude * 100);
+            String payload = String(val) + ":" + String(evt_time);
+            String sig = signMessage(payload);
+
+            JsonDocument doc;
+            doc["value"] = val; doc["misurator_id"] = SENSOR_ID_CONF;
+            doc["device_timestamp"] = evt_time; doc["signature_hex"] = sig;
+            String json; serializeJson(doc, json);
+
+            if (client.connect(SERVER_HOST_CONF, SERVER_PORT_CONF)) {
+                client.println(String("POST ") + SERVER_PATH_CONF + " HTTP/1.1");
+                client.println(String("Host: ") + SERVER_HOST_CONF);
+                client.println("Content-Type: application/json");
+                client.print("Content-Length: "); client.println(json.length());
+                client.println("Connection: close"); client.println();
+                client.println(json);
+                while(client.connected() || client.available()) { if(client.available()) client.readStringUntil('\n'); }
+                client.stop();
+            }
+        }
+    }
+}
+
+// --------------------------------------------------------------------------
+// SETUP (L'ordine qui è CRITICO)
+// --------------------------------------------------------------------------
+void setup() {
+    Serial.begin(115200);
+    delay(2000); 
+
+    Serial.println("\n\n[BOOT] QuakeGuard Starting...");
+    Serial.printf("[HARDWARE] Setting I2C Pins: SDA=%d, SCL=%d\n", I2C_SDA_PIN, I2C_SCL_PIN);
+
+    // 1. HARDWARE RESET & CONFIGURAZIONE PIN
+    Wire.end(); 
+    Wire.setPins(I2C_SDA_PIN, I2C_SCL_PIN);
+    Wire.begin();
+    Wire.setClock(10000); // 10kHz (Lento e sicuro)
+    delay(100); 
+
+    // 2. CREAZIONE OGGETTO (ALLOCAZIONE DINAMICA)
+    Serial.println("[HARDWARE] Allocating ADXL345 Object...");
+    accel = new Adafruit_ADXL345_Unified(12345);
+
+    // 3. INIZIALIZZAZIONE SENSORE
+    // Usiamo l'operatore freccia ->
+    if(!accel->begin(0x53)) {
+        Serial.println("[WARN] Not found at 0x53. Trying 0x1D...");
+        if(!accel->begin(0x1D)) {
+            Serial.println("[FATAL] Sensor NOT FOUND. Check wires on 7 and 8!");
+            while(1) {
+                Serial.print("."); 
+                delay(1000);
+            }
+        }
+    }
+    
+    accel->setDataRate(ADXL345_DATARATE_100_HZ);
+    accel->setRange(ADXL345_RANGE_16_G);
+    Serial.println("[SYS] Sensor Initialized OK!");
+
+    initCrypto();
+
+    eventQueue = xQueueCreate(20, sizeof(SeismicEvent));
+    xTaskCreate(sensorTask, "SensorTask", 4096, NULL, 5, NULL);
+    xTaskCreate(networkTask, "NetworkTask", 8192, NULL, 1, NULL);
+
+    Serial.println("[SYS] System Started.");
+}
+
+void loop() {
+    vTaskDelay(pdMS_TO_TICKS(1000));
+}
