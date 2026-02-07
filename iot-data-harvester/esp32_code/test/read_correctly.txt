@@ -1,5 +1,5 @@
 /**
- * Project: QuakeGuard - Distributed Seismic Detection System
+ * Project: QuakeGuard - Electro-Domestic Alarm System
  * Version: 2.9.0-STABLE (Full Fix: Pointer + Noise Gate + Pins 7/8)
  * Target Hardware: ESP32-C3 SuperMini + ADXL345
  * Author: GiZano
