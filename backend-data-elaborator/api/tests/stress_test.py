@@ -1,7 +1,7 @@
 """
-QuakeFinder Stress Test Script
+QuakeGuard Stress Test Script
 ------------------------------
-Performs a load test on the QuakeFinder Ingestion API.
+Performs a load test on the QuakeGuard Ingestion API.
 It simulates concurrent IoT devices generating ECDSA-signed payloads
 to verify the system's throughput and asynchronous processing capabilities.
 
@@ -145,7 +145,7 @@ async def send_measurement(
         return 999, 0.0
 
 async def main():
-    print(f"--- 🌋 QUAKEFINDER LOAD TEST: {NUM_SENSORS} CONCURRENT SENSORS ---")
+    print(f"--- 🌋 QUAKEGUARD LOAD TEST: {NUM_SENSORS} CONCURRENT SENSORS ---")
     
     async with aiohttp.ClientSession() as session:
         # PHASE 1: Setup (Device Registration)

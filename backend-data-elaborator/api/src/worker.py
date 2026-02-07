@@ -1,5 +1,5 @@
 """
-QuakeFinder Background Worker
+QuakeGuard Background Worker
 -----------------------------
 Consumes seismic events from the Redis queue, persists data to PostgreSQL,
 and updates real-time alert counters in the caching layer.

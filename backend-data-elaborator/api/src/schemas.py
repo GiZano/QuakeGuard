@@ -1,8 +1,8 @@
 """
 Pydantic Schemas (Data Transfer Objects)
 ----------------------------------------
-Defines request/response structures.
-Includes validation fields for security signatures.
+Defines request/response structures for API communication.
+Includes validation fields for security signatures and model serialization.
 """
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -95,6 +95,9 @@ class Misuration(MisurationBase):
 # ==========================================
 
 class ZoneStats(BaseModel):
+    """
+    DTO for providing statistical aggregated data about a zone.
+    """
     zone_id: int
     city: str
     active_misurators: int
@@ -102,11 +105,30 @@ class ZoneStats(BaseModel):
     avg_misuration_value: Optional[float] = None
     last_misuration: Optional[datetime] = None
 
-class AlertResponse(BaseModel):
+
+# --- ALERT DEFINITIONS ---
+
+class AlertBase(BaseModel):
+    """
+    Base properties shared between creation and retrieval of Alerts.
+    """
     zone_id: int
-    is_earthquake_detected: bool
-    measurement_count: int
-    threshold: int
-    time_window_seconds: int
+    severity: float
+    message: Optional[str] = None
     timestamp: datetime
+
+class AlertCreate(AlertBase):
+    """
+    Schema for internal creation of alerts (used by the Worker).
+    """
+    pass
+
+class AlertResponse(AlertBase):
+    """
+    Schema for API responses returning Alert data.
+    Includes the database ID.
+    """
+    id: int
+    
+    # Config to allow Pydantic to read data from the SQLAlchemy object
     model_config = ConfigDict(from_attributes=True)

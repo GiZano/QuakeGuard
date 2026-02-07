@@ -2,7 +2,8 @@
 Database Models Definition
 --------------------------
 This module defines the SQLAlchemy ORM models for the Earthquake Monitoring System.
-It integrates PostGIS geometry types for GPS location handling.
+It integrates PostGIS geometry types for GPS location handling and defines
+the schema for Zones, Sensors (Misurators), Measurements, and Alerts.
 """
 
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Float
@@ -14,6 +15,7 @@ from src.database import Base
 class Zone(Base):
     """
     Represents a geographical zone (e.g., a city or district).
+    Acts as the parent entity for sensors and alerts.
     """
     __tablename__ = "zones"
 
@@ -38,12 +40,13 @@ class Misurator(Base):
     zone_id = Column(Integer, ForeignKey("zones.id"), nullable=False)
 
     # --- GPS Configuration ---
-    # We store lat/lon as floats for easy API access/debugging
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
-    
-    # We store the actual spatial point for GIS queries (SRID 4326 = WGS84 Standard)
     location = Column(Geometry('POINT', srid=4326), nullable=True)
+
+    # --- SECURITY (Ecco il pezzo mancante!) ---
+    # Stores the ECDSA Public Key used to verify message signatures
+    public_key_hex = Column(String, nullable=False)
 
     # Relationships
     zone = relationship("Zone", back_populates="misurators")
@@ -57,10 +60,7 @@ class Misuration(Base):
     __tablename__ = "misurations"
 
     id = Column(Integer, primary_key=True, index=True)
-    
-    # Indexed for performance on time-series queries
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, index=True)
-    
     value = Column(Integer, nullable=False)
     
     # Foreign Key
@@ -68,3 +68,19 @@ class Misuration(Base):
 
     # Relationships
     misurator = relationship("Misurator", back_populates="misurations")
+
+
+class Alert(Base):
+    """
+    Represents an aggregated/confirmed seismic event for a specific zone.
+    """
+    __tablename__ = "alerts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    zone_id = Column(Integer, ForeignKey("zones.id"), nullable=False)
+    timestamp = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    severity = Column(Float, nullable=False) 
+    message = Column(String(255), nullable=True)
+
+    # Relationships
+    zone = relationship("Zone")
