@@ -1,46 +1,89 @@
-# frontend-mobile-app 📱
+# QuakeGuard - Mobile Application
 
-The mobile interface for the EDEAS system. It allows users to view real-time measurements, manage registered devices, and receive seismic alerts.
+**QuakeGuard Mobile** is a React Native application built with Expo (SDK 50+), designed to provide real-time monitoring of seismic activity. It interfaces with a custom Python backend and IoT sensor network to visualize system status and sensor locations.
 
-## 🛠 Tech Stack
-* **Framework:** React Native
-* **Platform:** Expo (Managed Workflow)
-* **Navigation:** React Navigation (Native Stack + Bottom Tabs)
-* **Maps:** React Native Maps (Currently disabled for dev stability)
+## 🛠 Technology Stack
 
-## ⚙️ Configuration
+- **Framework:** React Native (Expo Router)
+- **Language:** TypeScript
+- **State Management:** Zustand
+- **Maps:** React Native Maps
+- **UI/Icons:** Lucide React Native
+- **Animations:** React Native Reanimated
 
-1.  Create a `.env` file in the root of this folder:
+## 🚀 Features
 
-    ```ini
-    # REPLACE with your PC's Local IP Address (e.g., 192.168.1.50)
-    # Do NOT use localhost (your phone cannot see localhost)
-    EXPO_PUBLIC_API_URL=http://192.168.1.X:8000
-    EXPO_PUBLIC_API_TIMEOUT=5000
-    ```
+### 1. 🛡️ Monitor Dashboard (Home)
 
-## 🚀 Running the App
+- **Real-time Polling:** Automatically queries the backend (`GET /zones/1/alerts`) every 2 seconds.
+- **Visual Status:** Displays a "System Secure" (Green) or "Seismic Alert" (Red) status based on recent data.
+- **Haptic Feedback:** Triggers device vibration when the system state transitions from Secure to Alert.
+- **Animations:** Uses `react-native-reanimated` for a pulsing shield effect during active alerts.
 
-1.  Install dependencies:
-    ```bash
-    npm install
-    ```
-    *Note: If you encounter authentication errors, run `npm logout` first.*
+### 2. 🗺️ Sensor Map (WIP)
 
-2.  Start the Expo server:
-    ```bash
-    npx expo start -c
-    ```
-    *(The `-c` flag clears the cache, recommended for config changes)*.
+- **Data Visualization:** Fetches sensor coordinates (`GET /misurators/`) and displays them on a map interface.
+- **Status Indicators:** Markers change color based on the active/inactive status of the sensor.
 
-3.  Scan the **QR Code** using the **Expo Go** app on your Android or iOS device.
+## ⚠️ Known Issues
 
-## 🔑 Login Credentials (Dev Bypass)
-For development purposes, you can bypass the standard authentication:
-* **Email:** `admin@example.com`
-* **Password:** `admin`
+- **Map Marker Crash:** navigating to the Map tab currently triggers the error: `Error while updating property 'coordinate' of a view managed by AIRMapMarker`.
+  - _Status:_ Under Investigation.
+  - _Suspected Cause:_ Data type mismatch (string vs number) in the coordinate payload from the backend.
 
-## 🧩 Project Structure
-* `App.js`: Main entry point and Navigation configuration.
-* `src/screens/`: Contains all UI views (Dashboard, Devices, Alerts, Login).
-* `app.json`: Expo configuration.
+## ⚙️ Installation & Setup
+
+### 1. Prerequisites
+
+Ensure you have the following installed:
+
+- Node.js (LTS version recommended)
+- Expo CLI
+- The QuakeGuard Backend running locally.
+
+### 2. Install Dependencies
+
+Navigate to the project root and install the required packages:
+
+```bash
+npm install
+# or
+npx expo install
+```
+
+### 3. Configuration (Critical Step)
+
+Before running the application, you must configure the API endpoint to match your local network environment. The application cannot access `localhost` if running on a physical device or Android Emulator.
+
+Open `constants/config.ts` and update the IP address:
+
+```typescript
+// constants/config.ts
+export const API_BASE_URL = "http://YOUR_LOCAL_IP:8000";
+// Example: 'http://192.168.1.50:8000'
+```
+
+### 4. Running the Application
+
+Start the development server:
+
+```bash
+npx expo start -c
+```
+
+- Press **"a"** to run on Android Emulator.
+- Press **"i"** to run on iOS Simulator (macOS only).
+- Scan the QR code with the **Expo Go** app to run on a physical device (ensure the device is on the same Wi-Fi network).
+
+## 🐛 Troubleshooting
+
+**Network Errors / Backend Unreachable:**
+If the app fails to connect to the backend:
+
+1.  Ensure the backend is running and accessible.
+2.  Verify that your firewall allows connections on port 8000.
+3.  **WSL Users:** If running the backend on WSL2, the network bridge might fail. Try running Expo with the tunnel option:
+
+```bash
+npx expo start --tunnel
+```
