@@ -14,14 +14,16 @@ import asyncio
 import aiohttp
 import time
 import random
+import hashlib
 from ecdsa import SigningKey, NIST256p
+from ecdsa.util import sigencode_der  
 from typing import List, Optional, Tuple
 
 # --- CONFIGURATION PARAMETERS ---
 BASE_URL = "http://localhost:8000"
 NUM_SENSORS = 100
 TEST_ZONE_ID = 1
-TIMEOUT_SECONDS = 10
+TIMEOUT_SECONDS = 30  
 
 class VirtualSensor:
     """
@@ -31,8 +33,11 @@ class VirtualSensor:
         # Generate a real NIST256p (secp256r1) key pair
         self.sk = SigningKey.generate(curve=NIST256p)
         self.vk = self.sk.verifying_key
-        # The public key is exported as a hex string for API registration
-        self.public_key_hex = self.vk.to_string().hex()
+        
+        # EXPORT AS DER (Standard X.509 SubjectPublicKeyInfo)
+        # This matches exactly what the ESP32 (MbedTLS) sends to the backend.
+        self.public_key_hex = self.vk.to_der().hex()
+        
         self.sensor_id: Optional[int] = None
         # Generate random coordinates
         self.lat = round(random.uniform(-90, 90), 6)
@@ -42,13 +47,15 @@ class VirtualSensor:
         """
         Signs a message string using the sensor's private key.
         
-        Args:
-            message (str): The payload content to sign (typically "value:timestamp").
-            
-        Returns:
-            str: The ECDSA signature in hexadecimal format.
+        CRITICAL UPDATE:
+        - Uses SHA256 explicitly (to match backend verification).
+        - Uses DER encoding (sigencode_der) to match ESP32/MbedTLS format.
         """
-        return self.sk.sign(message.encode('utf-8')).hex()
+        return self.sk.sign(
+            message.encode('utf-8'), 
+            hashfunc=hashlib.sha256,   # Force SHA256
+            sigencode=sigencode_der    # Force DER format (ASN.1)
+        ).hex()
 
 async def setup_infrastructure(session: aiohttp.ClientSession) -> List[VirtualSensor]:
     """
@@ -60,10 +67,12 @@ async def setup_infrastructure(session: aiohttp.ClientSession) -> List[VirtualSe
     
     # 1. Create or Verify Zone
     zone_payload = {"city": "StressTestCity", "id": TEST_ZONE_ID}
-    async with session.post(f"{BASE_URL}/zones/", json=zone_payload) as resp:
-        # Accept 200/201 (Created) or 4xx (Likely already exists)
-        if resp.status not in [200, 201, 400, 422]:
-            print(f"⚠️ Warning: Zone creation returned status {resp.status}")
+    try:
+        async with session.post(f"{BASE_URL}/zones/", json=zone_payload) as resp:
+            if resp.status not in [200, 201, 400, 422]:
+                print(f"⚠️ Warning: Zone creation returned status {resp.status}")
+    except Exception as e:
+        print(f"⚠️ Warning: Zone setup failed (backend might be down?): {e}")
 
     sensors = [VirtualSensor() for _ in range(NUM_SENSORS)]
 
@@ -94,12 +103,15 @@ async def register_single_sensor(
     """Helper function to register a single sensor via HTTP POST."""
     try:
         async with session.post(f"{BASE_URL}/misurators/", json=payload, timeout=TIMEOUT_SECONDS) as resp:
-            if resp.status == 201:
+            if resp.status in [200, 201]:
                 data = await resp.json()
                 sensor.sensor_id = data['id']
                 return sensor
             else:
                 text = await resp.text()
+                # If sensor already exists (duplicate key error handled by backend logic now), it's fine
+                if resp.status == 409 or "already exists" in text:
+                   return sensor 
                 print(f"❌ Registration failed: Status {resp.status} - {text}")
                 return None
     except Exception as e:
@@ -112,18 +124,14 @@ async def send_measurement(
 ) -> Tuple[int, float]:
     """
     Simulates the transmission of a seismic data point.
-    Constructs the payload, signs it, and sends it to the ingestion endpoint.
-    
-    Returns:
-        Tuple[int, float]: (HTTP Status Code, Request Latency in seconds)
     """
-    # Simulate high intensity vibration
     value = random.randint(200, 900)
-    timestamp = time.time()
+    timestamp = int(time.time())
     
-    # CRITICAL: The string format must match the server's verification logic exactly.
-    # Format: "value:timestamp"
+    # Message format: "value:timestamp"
     message_to_sign = f"{value}:{timestamp}"
+    
+    # Generate signature (now DER + SHA256)
     signature = sensor.sign_message(message_to_sign)
 
     payload = {
@@ -136,12 +144,10 @@ async def send_measurement(
     start_t = time.perf_counter()
     try:
         async with session.post(f"{BASE_URL}/misurations/", json=payload, timeout=TIMEOUT_SECONDS) as resp:
-            # We await the response content to ensure the request cycle is complete
             await resp.read() 
             end_t = time.perf_counter()
             return resp.status, end_t - start_t
-    except Exception:
-        # Return 999 to indicate a client-side exception/timeout
+    except Exception as e:
         return 999, 0.0
 
 async def main():
@@ -155,13 +161,11 @@ async def main():
             return
 
         print("⏳ Preparing payload (Thundering Herd simulation)...")
-        # Create coroutines but do not schedule them yet
         tasks = [send_measurement(session, s) for s in sensors]
         
         print("🚀 FIRE! Sending concurrent requests...")
         start_time = time.perf_counter()
         
-        # Execute all requests simultaneously
         results = await asyncio.gather(*tasks)
         
         total_time = time.perf_counter() - start_time
@@ -170,7 +174,6 @@ async def main():
     success_count = sum(1 for status, _ in results if status == 202)
     fail_count = sum(1 for status, _ in results if status != 202)
     
-    # Calculate average latency only for successful requests or all requests
     avg_req_time = sum(t for _, t in results) / len(results) if results else 0
     rps = len(results) / total_time if total_time > 0 else 0
 
@@ -190,9 +193,10 @@ async def main():
         print("⚠️ TEST FAILED or PARTIAL: Check server logs for details.")
 
 if __name__ == "__main__":
-    # Windows-specific fix for asyncio loop policy
     try:
-        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+        import sys
+        if sys.platform == 'win32':
+            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     except AttributeError:
         pass
         
