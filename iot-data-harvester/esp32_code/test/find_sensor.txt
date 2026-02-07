@@ -1,0 +1,60 @@
+#include <Arduino.h>
+#include <Wire.h>
+
+// PIN ESP32-C3 SUPERMINI
+#define SDA_PIN 7
+#define SCL_PIN 8
+
+void setup() {
+  Serial.begin(115200);
+  while (!Serial) delay(10);
+  delay(1000);
+
+  Serial.println("\n--- HARDWARE I2C SCANNER ---");
+  
+  // 1. Configurazione Pin
+  Wire.setPins(SDA_PIN, SCL_PIN);
+  
+  // 2. Avvio Bus
+  if (!Wire.begin()) {
+    Serial.println("ERRORE GRAVE: Impossibile avviare il driver I2C (Wire.begin fallito)");
+    while(1);
+  }
+ 
+  // 3. Rallentiamo tutto al minimo per stabilità
+  Wire.setClock(10000); // 10kHz (Bassissima velocità)
+  
+  Serial.println("I2C Inizializzato. Inizio scansione...");
+}
+
+void loop() {
+  byte error, address;
+  int nDevices = 0;
+
+  Serial.print("Scansione... ");
+
+  for(address = 1; address < 127; address++ ) {
+    Wire.beginTransmission(address);
+    error = Wire.endTransmission();
+
+    if (error == 0) {
+      Serial.println("");
+      Serial.print("✅ TROVATO! Indirizzo: 0x");
+      if (address < 16) Serial.print("0");
+      Serial.println(address, HEX);
+      nDevices++;
+    }
+    else if (error == 4) {
+      Serial.print("ERRORE SCONOSCIUTO a 0x");
+      if (address < 16) Serial.print("0");
+      Serial.println(address, HEX);
+    }
+  }
+  
+  if (nDevices == 0)
+    Serial.println("❌ Nessun dispositivo trovato.");
+  else
+    Serial.println("--- Fine Scansione ---\n");
+
+  delay(3000); // Riprova ogni 3 secondi
+}

@@ -1,11 +1,33 @@
+# QuakeGuard - Diagnostic & Test Modules
 
-This directory is intended for PlatformIO Test Runner and project tests.
+## Overview
+This directory contains isolated firmware utilities designed for hardware verification and algorithm tuning of the **QuakeGuard** seismic node. These scripts operate independently of the main production firmware and are intended to troubleshoot physical connection issues or calibrate the detection logic without network dependencies.
 
-Unit Testing is a software testing method by which individual units of
-source code, sets of one or more MCU program modules together with associated
-control data, usage procedures, and operating procedures, are tested to
-determine whether they are fit for use. Unit testing finds problems early
-in the development cycle.
+## Target Hardware
+* **MCU:** ESP32-C3 SuperMini
+* **Sensor:** ADXL345 (I2C)
+* **Pin Configuration:** SDA = GPIO 7, SCL = GPIO 8
 
-More information about PlatformIO Unit Testing:
-- https://docs.platformio.org/en/latest/advanced/unit-testing/index.html
+---
+
+## 1. Hardware I2C Scanner
+**Filename:** `i2c_scanner.cpp`
+
+### Description
+A low-level utility designed to verify the physical integrity of the I2C bus and identifying connected peripherals. It is configured specifically for the non-standard pinout of the ESP32-C3 SuperMini.
+
+### Key Configuration
+* **Bus Speed:** 10 kHz (Conservative speed to rule out signal impedance issues).
+* **Timeout:** High tolerance for unstable connections.
+
+### Usage
+Upload this script if the main firmware reports "Sensor Not Found".
+* **Expected Output (Success):**
+  ```text
+  I2C device found at address 0x53  !
+  ```
+* **Output (Failure):**
+  ```text
+  No I2C devices found
+  ```
+  

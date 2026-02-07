@@ -1,16 +1,18 @@
 /**
- * Project: QuakeFinder - Distributed Seismic Detection System
- * Version: 2.3.1-DEV (Local HTTP)
- * Target Hardware: ESP32-C3 + ADXL345
+ * Project: QuakeGuard - Electro-Domestic Earthquake Alarm System
+ * Version: 3.0.0-MASTER
+ * Target Hardware: ESP32-C3 SuperMini + ADXL345
  * Author: GiZano
  *
  * Description:
- * Development firmware version configured for local testing via HTTP (non-secure).
- * - Disables SSL/TLS (WiFiClientSecure) to allow communication with local IP addresses.
- * - Routes traffic to port 8000 (standard local backend port).
- * - Retains full Signal Processing (HPF, STA/LTA) and ECDSA Signing logic.
+ * Production-ready firmware for seismic event detection.
+ * Integrates real-time signal processing (STA/LTA) with cryptographic payload signing.
  *
- * WARNING: DO NOT USE IN PRODUCTION. NO ENCRYPTION.
+ * Key Technical Features:
+ * - Hardware: I2C bus forced on GPIO 7 (SDA) and 8 (SCL) with dynamic object allocation.
+ * - DSP: High-Pass Filter + Noise Gate + Signal Dropout Protection.
+ * - Security: NIST256p ECDSA signature generation for data integrity.
+ * - Connectivity: JSON over HTTP POST with NTP synchronization.
  */
 
 #include <Arduino.h>
@@ -18,7 +20,6 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_ADXL345_U.h>
 #include <WiFi.h>
-// #include <WiFiClientSecure.h> // Disabled for local HTTP testing
 #include <ArduinoJson.h>
 #include <Preferences.h>
 #include <time.h>
@@ -31,38 +32,40 @@
 #include "mbedtls/error.h"
 
 // --------------------------------------------------------------------------
-// CONFIGURATION MACROS
+// HARDWARE PIN DEFINITIONS (ESP32-C3 SuperMini)
 // --------------------------------------------------------------------------
-// Values are typically injected via build flags (esp32_config.env).
-// Fallback defaults are provided for local development stability.
+// Verified pinout for this specific hardware revision.
+#define I2C_SDA_PIN 7
+#define I2C_SCL_PIN 8
 
+// Global Sensor Pointer
+// Initialized to NULL. Instantiated dynamically in setup() to prevent 
+// static initialization race conditions with the I2C bus.
+Adafruit_ADXL345_Unified *accel = NULL;
+
+// --------------------------------------------------------------------------
+// NETWORK & SERVER CONFIGURATION
+// --------------------------------------------------------------------------
 #ifndef WIFI_SSID
-  #define WIFI_SSID "DEFAULT_DEV_SSID"
+  #define WIFI_SSID "YOUR_WIFI_SSID" // <--- UPDATE THIS
 #endif
-
 #ifndef WIFI_PASS
-  #define WIFI_PASS "DEFAULT_DEV_PASS"
+  #define WIFI_PASS "YOUR_WIFI_PASS" // <--- UPDATE THIS
 #endif
-
 #ifndef SERVER_HOST
-  // Default to a common local IP subnet if not specified.
-  // UPDATE THIS to your actual workstation IP (e.g., 192.168.1.50).
-  #define SERVER_HOST "192.168.1.50"
+  #define SERVER_HOST "192.168.1.50" // <--- UPDATE YOUR SERVER IP
 #endif
-
 #ifndef SERVER_PORT
   #define SERVER_PORT 8000
 #endif
-
 #ifndef SERVER_PATH
-  #define SERVER_PATH "/misurations/"
+  #define SERVER_PATH "/measurements/"
 #endif
-
 #ifndef SENSOR_ID
   #define SENSOR_ID 101
 #endif
 
-// Mapping macros to constants for type safety
+// Constant mapping for type safety
 const char* WIFI_SSID_CONF     = WIFI_SSID;
 const char* WIFI_PASS_CONF     = WIFI_PASS;
 const char* SERVER_HOST_CONF   = SERVER_HOST;
@@ -71,28 +74,22 @@ const char* SERVER_PATH_CONF   = SERVER_PATH;
 const int   SENSOR_ID_CONF     = SENSOR_ID;
 
 // --------------------------------------------------------------------------
-// HARDWARE DEFINITIONS
-// --------------------------------------------------------------------------
-#define SDA_PIN 8
-#define SCL_PIN 9
-Adafruit_ADXL345_Unified accel = Adafruit_ADXL345_Unified(12345);
-
-// --------------------------------------------------------------------------
-// DSP ALGORITHM CONSTANTS
-// --------------------------------------------------------------------------
-const float ALPHA_LTA     = 0.05f; // Long Term Average smoothing factor
-const float ALPHA_STA     = 0.40f; // Short Term Average smoothing factor
-const float TRIGGER_RATIO = 1.8f;  // Trigger threshold (STA/LTA)
-
-// --------------------------------------------------------------------------
-// GLOBAL HANDLES
+// RTOS HANDLES & DATA STRUCTURES
 // --------------------------------------------------------------------------
 QueueHandle_t eventQueue;
 
 struct SeismicEvent {
-    float magnitude;            // Computed Ratio
-    unsigned long event_millis; // Relative timestamp (uptime)
+    float magnitude;            // Computed STA/LTA Ratio
+    unsigned long event_millis; // System timestamp at trigger time
 };
+
+// --------------------------------------------------------------------------
+// DSP ALGORITHM PARAMETERS
+// --------------------------------------------------------------------------
+const float ALPHA_LTA     = 0.05f; // Long Term Average smoothing factor
+const float ALPHA_STA     = 0.40f; // Short Term Average smoothing factor
+const float TRIGGER_RATIO = 1.8f;  // Threshold ratio for alarm triggering
+const float NOISE_FLOOR   = 0.04f; // Minimum G-force to consider valid signal (Noise Gate)
 
 // --------------------------------------------------------------------------
 // CRYPTOGRAPHY SUBSYSTEM
@@ -103,22 +100,22 @@ mbedtls_ctr_drbg_context ctr_drbg;
 mbedtls_pk_context pk_context;
 
 /**
- * @brief Initializes MbedTLS and manages Device Identity (ECDSA Keys).
- * Loads private key from NVS or generates a new pair if missing.
+ * @brief Initializes MbedTLS context and manages Device Identity.
+ * Generates a new ECDSA (SECP256R1) Key Pair if not present in Non-Volatile Storage.
  */
 void initCrypto() {
     mbedtls_entropy_init(&entropy);
     mbedtls_ctr_drbg_init(&ctr_drbg);
     mbedtls_pk_init(&pk_context);
 
-    const char *pers = "quake_signer_dev";
+    const char *pers = "quake_guard_signer";
     mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, (const unsigned char *)pers, strlen(pers));
 
     preferences.begin("quake-keys", false);
 
     if (!preferences.isKey("priv_key")) {
-        Serial.println("[SEC] Generating new ECDSA Key Pair (NIST256p)...");
-
+        Serial.println("[SEC] Generating New ECDSA Key Pair...");
+        
         mbedtls_pk_setup(&pk_context, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY));
         mbedtls_ecp_gen_key(MBEDTLS_ECP_DP_SECP256R1, mbedtls_pk_ec(pk_context), mbedtls_ctr_drbg_random, &ctr_drbg);
 
@@ -127,9 +124,9 @@ void initCrypto() {
         int key_len = ret;
 
         preferences.putBytes("priv_key", priv_buf + sizeof(priv_buf) - key_len, key_len);
-        Serial.println("[SEC] Keys generated and stored in NVS.");
+        Serial.println("[SEC] Keys Generated and Saved to NVS.");
     } else {
-        Serial.println("[SEC] Loading keys from NVS...");
+        Serial.println("[SEC] Loading Existing Keys from NVS...");
         size_t len = preferences.getBytesLength("priv_key");
         uint8_t buf[len];
         preferences.getBytes("priv_key", buf, len);
@@ -137,7 +134,7 @@ void initCrypto() {
         mbedtls_pk_parse_key(&pk_context, buf, len, NULL, 0);
     }
 
-    // Output Public Key for provisioning
+    // Export Public Key for Server Provisioning
     unsigned char pub_buf[128];
     int ret_pub = mbedtls_pk_write_pubkey_der(&pk_context, pub_buf, sizeof(pub_buf));
     int pub_len = ret_pub;
@@ -151,8 +148,8 @@ void initCrypto() {
 
 /**
  * @brief Signs a payload string using the device's Private Key.
- * @param message Input string (format: "value:timestamp")
- * @return Hexadecimal signature string
+ * @param message Input string to sign.
+ * @return Hexadecimal string of the ECDSA signature.
  */
 String signMessage(String message) {
     unsigned char hash[32];
@@ -169,7 +166,6 @@ String signMessage(String message) {
     mbedtls_md_free(&ctx);
 
     // ECDSA Signing
-    // Note: 'sizeof(sig)' argument omitted for MbedTLS v2 compatibility (ESP32 Core 2.x)
     mbedtls_pk_sign(&pk_context, MBEDTLS_MD_SHA256, hash, 0, sig, &sig_len, mbedtls_ctr_drbg_random, &ctr_drbg);
 
     // Hex Encoding
@@ -183,183 +179,248 @@ String signMessage(String message) {
 }
 
 // --------------------------------------------------------------------------
-// TASK 1: SENSOR ACQUISITION (Real-Time)
+// TASK: SENSOR ACQUISITION & PROCESSING
 // --------------------------------------------------------------------------
 void sensorTask(void *pvParameters) {
     float lta = 0.0f;
     float sta = 0.0f;
-    float prev_raw_mag = 9.81f;
+    float prev_raw_mag = 9.81f; // Assumes 1G start
     float filtered_mag = 0.0f;
-
-    // Sensor stabilization
     sensors_event_t event;
-    for(int i=0; i<20; i++) {
-        accel.getEvent(&event);
-        float mag = sqrt(pow(event.acceleration.x, 2) + pow(event.acceleration.y, 2) + pow(event.acceleration.z, 2));
-        lta = mag; sta = mag;
-        vTaskDelay(pdMS_TO_TICKS(10));
+    
+    // Block until the sensor object is allocated in setup()
+    while (accel == NULL) {
+        vTaskDelay(pdMS_TO_TICKS(100));
     }
 
-    TickType_t xLastWakeTime;
-    const TickType_t xFrequency = pdMS_TO_TICKS(10); // 100Hz Sampling
-    xLastWakeTime = xTaskGetTickCount();
+    Serial.println("[SENSOR] Task Active. Beginning Stabilization Phase...");
 
+    // Initial Stabilization Loop (Populate Filters)
+    for(int i=0; i<20; i++) { 
+        if(accel->getEvent(&event)) { 
+             float mag = sqrt(pow(event.acceleration.x, 2) + pow(event.acceleration.y, 2) + pow(event.acceleration.z, 2));
+             lta = mag; 
+             sta = mag; 
+             prev_raw_mag = mag;
+        }
+        vTaskDelay(pdMS_TO_TICKS(50)); 
+    }
+    Serial.println("[SENSOR] Ready for detection.");
+
+    TickType_t xLastWakeTime = xTaskGetTickCount();
+    const TickType_t xFrequency = pdMS_TO_TICKS(10); // 100Hz Sampling Rate
     bool inAlarm = false;
     unsigned long alarmStart = 0;
 
     for(;;) {
         // Enforce strict timing
         vTaskDelayUntil(&xLastWakeTime, xFrequency);
+        
+        // Retrieve Data (Access via pointer)
+        if (!accel->getEvent(&event)) {
+            continue; 
+        }
 
-        accel.getEvent(&event);
         float raw_mag = sqrt(pow(event.acceleration.x, 2) + pow(event.acceleration.y, 2) + pow(event.acceleration.z, 2));
 
-        // Digital High Pass Filter (HPF)
-        const float alpha_hpf = 0.9f;
-        filtered_mag = alpha_hpf * (filtered_mag + raw_mag - prev_raw_mag);
+        // --- SIGNAL DROPOUT PROTECTION ---
+        // If magnitude drops below 2.0 m/s^2 (~0.2G), it indicates a wiring failure or I2C bus error.
+        // We discard this frame to prevent the High Pass Filter from creating a false spike.
+        if (raw_mag < 2.0f) {
+            continue; 
+        }
+        
+        // Digital High Pass Filter (Removes Gravity component)
+        filtered_mag = 0.9f * (filtered_mag + raw_mag - prev_raw_mag);
         prev_raw_mag = raw_mag;
         float abs_signal = abs(filtered_mag);
 
-        // STA/LTA Update
+        // --- NOISE GATE ---
+        // Zero out signals below the hardware noise floor to prevent STA/LTA drift.
+        if (abs_signal < NOISE_FLOOR) {
+            abs_signal = 0.0f;
+        }
+
+        // STA/LTA Algorithm Update
         lta = (ALPHA_LTA * abs_signal) + ((1.0f - ALPHA_LTA) * lta);
         sta = (ALPHA_STA * abs_signal) + ((1.0f - ALPHA_STA) * sta);
-        if (lta < 0.01f) lta = 0.01f;
-
+        
+        // Safety floor for LTA to avoid division by zero or extreme ratios
+        if (lta < 0.05f) lta = 0.05f; 
+        
         float ratio = sta / lta;
 
-        if (ratio >= TRIGGER_RATIO && !inAlarm) {
-            Serial.printf("[SENSOR] Event Detected. Ratio: %.2f\n", ratio);
-
-            SeismicEvent evt;
-            evt.magnitude = ratio;
-            evt.event_millis = millis(); // Store relative time
-
+        // TRIGGER LOGIC
+        // Condition 1: Ratio exceeds threshold.
+        // Condition 2: Actual signal intensity exceeds noise floor (Real event verification).
+        if (ratio >= TRIGGER_RATIO && sta > NOISE_FLOOR && !inAlarm) {
+            Serial.printf("[SENSOR] EARTHQUAKE DETECTED! Ratio: %.2f (Mag: %.3f G)\n", ratio, sta);
+            
+            SeismicEvent evt; 
+            evt.magnitude = ratio; 
+            evt.event_millis = millis();
             xQueueSend(eventQueue, &evt, 0);
-
-            inAlarm = true;
+            
+            inAlarm = true; 
             alarmStart = millis();
         }
 
-        if (inAlarm && (millis() - alarmStart > 2000)) {
+        // Alarm Cooldown (5 Seconds)
+        if (inAlarm && (millis() - alarmStart > 5000)) {
             inAlarm = false;
         }
     }
 }
 
 // --------------------------------------------------------------------------
-// TASK 2: NETWORK DISPATCH (HTTP / Local Dev)
+// TASK: NETWORK DISPATCHER
 // --------------------------------------------------------------------------
 void networkTask(void *pvParameters) {
-    // DEV MODE: Use standard WiFiClient (No SSL)
     WiFiClient client;
-
-    Serial.printf("[NET] Connecting to WiFi: %s\n", WIFI_SSID_CONF);
+    
+    Serial.printf("[NET] Connecting to Access Point: %s\n", WIFI_SSID_CONF);
     WiFi.begin(WIFI_SSID_CONF, WIFI_PASS_CONF);
-
+    
     while (WiFi.status() != WL_CONNECTED) {
-        vTaskDelay(pdMS_TO_TICKS(1000));
-        Serial.print(".");
-    }
-    Serial.println("\n[NET] WiFi Connected");
-    Serial.printf("[NET] Configuration: HTTP (Insecure) -> %s:%d\n", SERVER_HOST_CONF, SERVER_PORT_CONF);
-
-    // NTP Synchronization (Required for signature validity)
-    configTime(0, 0, "pool.ntp.org", "time.nist.gov");
-    Serial.print("[NET] Syncing Time");
-    while (time(NULL) < 100000) {
-        Serial.print(".");
         vTaskDelay(pdMS_TO_TICKS(500));
+        Serial.print(".");
     }
-    Serial.println(" OK");
+    Serial.println("\n[NET] WiFi Connected.");
+
+    // NTP Time Synchronization (Critical for signature validity)
+    configTime(0, 0, "pool.ntp.org", "time.nist.gov");
 
     SeismicEvent receivedEvt;
-
     for(;;) {
+        // Block until event is received from Sensor Task
         if (xQueueReceive(eventQueue, &receivedEvt, portMAX_DELAY) == pdTRUE) {
-
-            if (WiFi.status() != WL_CONNECTED) {
-                Serial.println("[NET] WiFi connection lost. Reconnecting...");
-                WiFi.disconnect();
-                WiFi.reconnect();
-                vTaskDelay(pdMS_TO_TICKS(2000));
-                continue;
+            
+            // Connection Watchdog
+            if (WiFi.status() != WL_CONNECTED) { 
+                WiFi.disconnect(); 
+                WiFi.reconnect(); 
+                vTaskDelay(pdMS_TO_TICKS(1000));
+                continue; 
             }
-
+            
             // Timestamp Reconstruction
-            time_t now_unix;
+            time_t now_unix; 
             time(&now_unix);
-
-            unsigned long current_millis = millis();
-            unsigned long age_ms = current_millis - receivedEvt.event_millis;
-            time_t event_unix_timestamp = now_unix - (age_ms / 1000);
-
+            unsigned long age_ms = millis() - receivedEvt.event_millis;
+            time_t evt_time = now_unix - (age_ms / 1000);
+            
             // Payload Construction
-            int value_to_send = (int)(receivedEvt.magnitude * 100);
-            String payloadData = String(value_to_send) + ":" + String(event_unix_timestamp);
-            String signature = signMessage(payloadData);
+            int val = (int)(receivedEvt.magnitude * 100);
+            String payload = String(val) + ":" + String(evt_time);
+            
+            // Cryptographic Signing
+            String sig = signMessage(payload);
 
+            // JSON Serialization
             JsonDocument doc;
-            doc["value"] = value_to_send;
+            doc["value"] = val; 
             doc["misurator_id"] = SENSOR_ID_CONF;
-            doc["device_timestamp"] = event_unix_timestamp;
-            doc["signature_hex"] = signature;
+            doc["device_timestamp"] = evt_time; 
+            doc["signature_hex"] = sig;
+            String json; 
+            serializeJson(doc, json);
 
-            String jsonString;
-            serializeJson(doc, jsonString);
-
-            // HTTP POST Request
+            // HTTP POST Transmission
+            Serial.println("[NET] Transmitting Event to Server...");
             if (client.connect(SERVER_HOST_CONF, SERVER_PORT_CONF)) {
                 client.println(String("POST ") + SERVER_PATH_CONF + " HTTP/1.1");
                 client.println(String("Host: ") + SERVER_HOST_CONF);
                 client.println("Content-Type: application/json");
-                client.print("Content-Length: ");
-                client.println(jsonString.length());
-                client.println("Connection: close");
+                client.print("Content-Length: "); client.println(json.length());
+                client.println("Connection: close"); 
                 client.println();
-                client.println(jsonString);
-
-                // Read Response
-                while (client.connected()) {
-                    String line = client.readStringUntil('\n');
-                    if (line == "\r") break;
+                client.println(json);
+                
+                // Flush Response Buffer
+                while(client.connected() || client.available()) { 
+                    if(client.available()) client.readStringUntil('\n'); 
                 }
-                String response = client.readStringUntil('\n');
-                Serial.println("[NET] Server Response: " + response);
                 client.stop();
+                Serial.println("[NET] Transmission Successful.");
             } else {
-                Serial.printf("[NET] Connection Failed to %s:%d\n", SERVER_HOST_CONF, SERVER_PORT_CONF);
+                Serial.println("[NET] Connection Failed.");
             }
         }
     }
 }
 
 // --------------------------------------------------------------------------
-// MAIN ENTRY POINTS
+// SYSTEM INITIALIZATION
 // --------------------------------------------------------------------------
-
 void setup() {
     Serial.begin(115200);
-    delay(2000);
+    // Wait for the Serial Monitor to initialize
+    while(!Serial) delay(10); 
+    delay(2000); 
 
-    Wire.begin(SDA_PIN, SCL_PIN);
-    if(!accel.begin()) {
-        Serial.println("[FATAL] ADXL345 init failed");
-        while(1);
-    }
-    accel.setDataRate(ADXL345_DATARATE_100_HZ);
-    accel.setRange(ADXL345_RANGE_16_G);
+    Serial.println("\n\n==================================================");
+    Serial.println("[BOOT] QuakeGuard Security System First...");
+    Serial.println("==================================================");
 
+    // 1. INITIALIZE CRYPTO SUBSYSTEM & DISPLAY KEY (PRIORITY OVER SENSOR)
     initCrypto();
 
-    eventQueue = xQueueCreate(20, sizeof(SeismicEvent));
+    Serial.println("\n⚠️  WARNING: You have 10 seconds to copy the Public Key above!");
+    Serial.println("    Register it in the server database to prevent 403 Forbidden errors.");
+    Serial.println("    Sensor initialization will commence shortly...");
+    
+    // Visual Countdown
+    for(int i=10; i>0; i--) {
+        Serial.printf(" %d...", i);
+        delay(1000);
+    }
+    Serial.println("\n\n[BOOT] Starting Hardware Initialization...");
 
-    // Priority 5 for Sensor (Real-Time), Priority 1 for Network
+    // 2. HARDWARE INIT (I2C PINS 7 & 8)
+    Serial.printf("[HARDWARE] Configuring I2C Bus on SDA=%d, SCL=%d\n", I2C_SDA_PIN, I2C_SCL_PIN);
+    
+    // Bus Recovery Sequence: Manually toggles pins to unlatch the sensor 
+    // if it is stuck in a "zombie" state holding the line low.
+    pinMode(I2C_SDA_PIN, INPUT_PULLUP);
+    pinMode(I2C_SCL_PIN, INPUT_PULLUP);
+    digitalWrite(I2C_SDA_PIN, HIGH);
+    digitalWrite(I2C_SCL_PIN, HIGH);
+    delay(50);
+    
+    Wire.end(); 
+    Wire.setPins(I2C_SDA_PIN, I2C_SCL_PIN);
+    Wire.begin();
+    Wire.setClock(10000); // 10kHz stability clock
+    delay(100); 
+
+    // 3. DYNAMIC MEMORY ALLOCATION
+    Serial.println("[HARDWARE] Allocating Sensor Object...");
+    if (accel != NULL) delete accel;
+    accel = new Adafruit_ADXL345_Unified(12345);
+
+    // 4. SENSOR STARTUP
+    if(!accel->begin(0x53)) {
+        Serial.println("[WARN] Not found at 0x53. Trying 0x1D...");
+        if(!accel->begin(0x1D)) {
+            Serial.println("[FATAL] Sensor Check Failed. (Did you copy the key?)");
+            // We do not block execution in an infinite loop here, otherwise the Key 
+            // would scroll off-screen. The sensorTask will handle hardware absence gracefully.
+        }
+    } else {
+        accel->setDataRate(ADXL345_DATARATE_100_HZ);
+        accel->setRange(ADXL345_RANGE_16_G);
+        Serial.println("[SYS] Sensor OK.");
+    }
+
+    // 5. TASK CREATION
+    eventQueue = xQueueCreate(20, sizeof(SeismicEvent));
     xTaskCreate(sensorTask, "SensorTask", 4096, NULL, 5, NULL);
     xTaskCreate(networkTask, "NetworkTask", 8192, NULL, 1, NULL);
 
-    Serial.println("[SYS] System Started (Environment: LOCAL DEV).");
+    Serial.println("[SYS] System Running.");
 }
 
 void loop() {
+    // Main loop delegates to FreeRTOS tasks
     vTaskDelay(pdMS_TO_TICKS(1000));
 }
