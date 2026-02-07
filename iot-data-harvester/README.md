@@ -1,105 +1,97 @@
-QuakeFinder - IoT Seismic Node Firmware 🌍
+# QuakeGuard - Electro-Domestic Earthquake Alarm System
+### Firmware Version: 3.0.0-MASTER
 
-Welcome to the **IoT Seismic Node** module of the **QuakeFinder** system.
-This service is the "sensory edge" of the operation: it runs on ESP32-C3 hardware, continuously samples the accelerometer at high precision (100Hz), processes the data using digital signal processing filters, and securely triggers alerts to the cloud when seismic activity is detected.
+## 1. Project Overview
+QuakeGuard is an IoT-based seismic detection node designed for the **ESP32-C3 SuperMini** platform. It utilizes an **ADXL345** accelerometer to detect ground vibrations in real-time using the **STA/LTA (Short Term Average / Long Term Average)** algorithm.
 
-## 📂 Project Structure
+Upon detecting a seismic event, the device constructs a JSON payload containing the magnitude and timestamp, cryptographically signs it using **ECDSA (NIST256p)**, and transmits it via HTTP POST to a central server.
 
-The project is organized according to the standard PlatformIO workflow to keep source code, libraries, and configurations clean.
+## 2. Hardware Architecture
 
-```text
-quakefinder-firmware/
-├── include/                # Header files
-├── lib/                    # Private project-specific libraries
-├── src/                    # Main application source code (main.cpp)
-├── test/                   # Unit tests (embedded)
-├── .gitignore              # Git ignore rules
-├── platformio.ini          # Project configuration & dependencies
-└── README.md               # This file
-```
+### Target Platform
+* **Microcontroller:** ESP32-C3 SuperMini (RISC-V)
+* **Sensor:** ADXL345 Digital Accelerometer (I2C Interface)
 
-## 🚀 Tech Stack
+### Pin Configuration (Critical)
+Due to the specific layout of the ESP32-C3 SuperMini, the I2C bus is forced via software to the following GPIOs:
 
-* **Language:** C++ (Arduino Framework)
-* **OS/Kernel:** FreeRTOS (Dual-task architecture)
-* **Hardware:** ESP32-C3 (RISC-V) + ADXL345 (MEMS Accelerometer)
-* **Security:** MbedTLS (ECDSA NIST256p Signing)
-* **Build System:** PlatformIO
+| Component Pin | ESP32-C3 GPIO | Notes |
+| :--- | :--- | :--- |
+| **SDA** | **GPIO 7** | Requires internal Pull-Up (Handled by Firmware) |
+| **SCL** | **GPIO 8** | Requires internal Pull-Up (Handled by Firmware) |
+| **VCC** | **3.3V** | **Do not use 5V** (Risk of sensor damage) |
+| **GND** | **GND** | Common Ground |
 
----
+## 3. Key Features
 
-## 🛠️ Getting Started
+### Signal Processing (DSP)
+* **Dynamic Allocation:** Sensor objects are instantiated dynamically after boot to prevent I2C bus race conditions.
+* **Digital High-Pass Filter (HPF):** Removes the DC component (gravity) to isolate vibration data.
+* **Noise Gate:** Ignores micro-vibrations below **0.04G** to prevent false positives from electrical noise.
+* **Dropout Protection:** Automatically discards invalid frames (0G readings) caused by temporary wiring disconnects.
 
-You can build and flash this firmware using **PlatformIO** (Recommended 🐜) either via the VSCode Extension or the Command Line Interface (CLI).
+### Security Subsystem
+* **Identity:** Unique Device Identity based on a persistent **ECDSA Private Key** stored in NVS (Non-Volatile Storage).
+* **Integrity:** Every payload is hashed (SHA-256) and signed. The server can verify the origin using the device's Public Key.
+* **Replay Protection:** Timestamps are synchronized via NTP (`pool.ntp.org`) to prevent replay attacks.
 
-### Prerequisites
+## 4. Configuration
 
-* **VSCode** with **PlatformIO IDE** extension installed.
-* **ESP32-C3** board connected via USB.
-* **ADXL345** sensor wired to I2C pins (SDA: 8, SCL: 9).
-
-### Configuration
-
-Before flashing, you **must** configure your credentials.
-Open `src/main.cpp` and edit the "USER CONFIGURATION" section:
+Before compiling, ensure the network and server credentials in `src/main.cpp` are updated:
 
 ```cpp
-const char* WIFI_SSID     = "YOUR_WIFI_SSID";
-const char* WIFI_PASS     = "YOUR_WIFI_PASSWORD";
-const char* SERVER_HOST   = "api.quakefinder.io";
-const int   SENSOR_ID     = 101; 
+#ifndef WIFI_SSID
+  #define WIFI_SSID "YOUR_WIFI_NAME"
+#endif
+
+#ifndef SERVER_HOST
+  #define SERVER_HOST "192.168.1.X" // Your Backend IP
+#endif
 ```
 
-### Option 1: Run with VSCode (The "Chill" Way)
+## 5. Installation & Provisioning
 
-This is the preferred method for visual feedback and debugging.
+### Step 1: Upload Firmware
+Connect the ESP32-C3 via USB and upload the firmware using PlatformIO or Arduino IDE.
 
-1.  Open this folder in **VSCode**.
-2.  Wait for PlatformIO to initialize (it will download toolchains automatically).
-3.  Click the **PlatformIO Icon** (Alien face) on the left sidebar.
-4.  Under `esp32-c3-devkitm-1`, click **Upload**.
+### Step 2: Key Extraction (Crucial)
+On the **first boot**, the device will generate a new cryptographic key pair. You must capture the **Public Key** from the Serial Monitor to register the device on the server.
 
-### Option 2: CLI Execution
+1.  Open the Serial Monitor (Baud Rate: **115200**).
+2.  Reset the board.
+3.  Look for the security header:
 
-If you prefer the terminal or are working in a headless environment:
+```text
+[BOOT] QuakeGuard Security System First...
+[SEC] Generating New ECDSA Key Pair...
+[SEC] Keys Generated and Saved to NVS.
+[SEC] DEVICE PUBLIC KEY (HEX): 04a3b2c1... <COPY THIS STRING>
+```
 
-1.  Navigate to the project directory:
-    ```bash
-    cd quakefinder-firmware
-    ```
+4.  **Copy the HEX string.** You have a 10-second window before the sensor initialization begins.
+5.  Register this key in your backend database associated with `SENSOR_ID 101`.
 
-2.  Install dependencies and build:
-    ```bash
-    pio run
-    ```
+**Note:** If the server does not have this key, it will reject data with `403 Forbidden`.
 
-3.  Upload to the device:
-    ```bash
-    pio run --target upload
-    ```
+## 6. LED / Serial Status Codes
 
-4.  Monitor the output:
-    ```bash
-    pio device monitor
-    ```
+* `[SYS] Sensor OK`: Hardware initialization successful.
+* `[SENSOR] Stabilizing...`: Calibrating the accelerometer baseline (do not move the device).
+* `[SENSOR] EARTHQUAKE DETECTED!`: The STA/LTA ratio exceeded **1.8** and intensity exceeded **0.04G**.
+* `[NET] Transmission Successful`: JSON payload accepted by the server.
 
----
+## 7. Troubleshooting
 
-## 🧪 Testing & Verification
+### "Sensor Hardware Failure" / "Fatal Error"
+If the serial monitor displays `[FATAL] Sensor Check Failed`:
+1.  **Cold Boot:** Unplug the USB cable completely for 5 seconds (the ADXL345 must lose power to reset). Reconnect and retry.
+2.  **Check Wiring:** Ensure SDA is on Pin 7 and SCL is on Pin 8.
+3.  **Voltage:** Verify the sensor is receiving 3.3V.
 
-We believe in data integrity. Since this is an embedded system, "testing" involves verifying the sensor calibration and security handshake.
+### "403 Forbidden" from Server
+The device is connected to WiFi but the server rejected the signature.
+* **Solution:** Re-connect to Serial Monitor, reset the board, copy the **Public Key**, and update the server's authorized devices list.
 
-1.  **Open the Serial Monitor** (115200 baud).
-2.  **Key Registration:** On the first boot, the device will generate cryptographic keys.
-    ```text
-    [SEC] Generazione nuova coppia di chiavi ECDSA...
-    [SEC] DEVICE PUBLIC KEY (HEX): 04a23b...
-    ```
-    > **Note:** You must copy this Public Key and register it in your backend database, otherwise the server will reject the signed payloads.
-
-3.  **Earthquake Simulation:** Shake the sensor gently. You should see:
-    ```text
-    [SENSOR] Event detected! Ratio: 2.15
-    [NET] Dispatching alert to server...
-    [NET] Response: {"status": "ok"}
-    ```
+## 8. License
+Copyright (c) 2026 GiZano. All rights reserved.
+intended for educational and research purposes.
