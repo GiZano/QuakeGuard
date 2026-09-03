@@ -3,6 +3,7 @@
 ## a. Event Ingestion
 
 ```mermaid
+%%{init: {"sequence": {"actorFontSize": 20, "messageFontSize": 18, "noteFontSize": 18}}}%%
 sequenceDiagram
     participant ADXL as ADXL345<br/>Sensor
     participant ESP as ESP32-C3<br/>Node
@@ -38,6 +39,7 @@ sequenceDiagram
 ## b. Alert Delivery & AI Report
 
 ```mermaid
+%%{init: {"sequence": {"actorFontSize": 20, "messageFontSize": 18, "noteFontSize": 18}}}%%
 sequenceDiagram
     participant Worker as Background<br/>Worker
     participant Redis as Redis
@@ -68,7 +70,7 @@ sequenceDiagram
                 AI->>Redis: BRPOP ai_report_queue
                 AI->>Ollama: POST /api/generate<br/>(structured prompt + telemetry)
                 Ollama-->>AI: Emergency report text
-                AI->>DB: UPDATE EmergencyReport (COMPLETED)
+                AI->>DB: UPDATE EmergencyReport<br/>(COMPLETED)
                 AI->>Redis: PUBLISH ai_reports
                 Redis->>WS: Broadcast report
                 WS->>App: EMERGENCY_REPORT message

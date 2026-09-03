@@ -3,6 +3,7 @@
 ## a. Local Network Setup
 
 ```mermaid
+%%{init: {"sequence": {"actorFontSize": 32, "messageFontSize": 26, "noteFontSize": 26}}}%%
 sequenceDiagram
     participant ESP as ESP32-C3<br/>Node
     participant WM as WiFiManager
@@ -26,6 +27,7 @@ sequenceDiagram
 ## b. Backend Registration
 
 ```mermaid
+%%{init: {"sequence": {"actorFontSize": 32, "messageFontSize": 26, "noteFontSize": 26}}}%%
 sequenceDiagram
     participant API as FastAPI<br/>Gateway
     participant DB as PostgreSQL<br/>+ PostGIS

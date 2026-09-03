@@ -3,16 +3,19 @@
 > Level 1 (System Context): shows the QuakeGuard system and the external actors/systems that interact with it.
 
 ```mermaid
+%%{init: {"themeVariables": {"fontSize": "26px"}}}%%
 flowchart TD
     user(("End User\n(Mobile)"))
     maintainer(("Maintainer\n(DevOps)"))
     mobile["Mobile App"]
     sensor["IoT Sensor\n(ESP32-C3)"]
 
-    subgraph sys [QuakeGuard System]
-        quakeguard["QuakeGuard Platform"]
+    subgraph sys [ ]
+        direction LR
+        quakeguard["QuakeGuard Platform"] ~~~ label["QuakeGuard System"]
     end
-    style sys fill:none,stroke:#0b4884,stroke-width:2px,stroke-dasharray: 5 5
+    style sys fill:#fefce8,stroke:#d4af37,stroke-width:2px,stroke-dasharray: 5 5
+    style label fill:none,stroke:none,color:#000,font-weight:bold,font-size:24px
 
     mosquitto["Eclipse Mosquitto\n(Local MQTT)"]
     ollama["Ollama (Host)\n(LLM Inference)"]
@@ -26,7 +29,7 @@ flowchart TD
     quakeguard -- "Request" --> ollama
     ollama -- "AI Report" --> quakeguard
     
-    quakeguard -- "HTTP & WSS (Alerts, Reports)" --> cloudflare
+    quakeguard -- "HTTP & WSS\n(Alerts, Reports)" --> cloudflare
     cloudflare -- "HTTP & WSS" --> mobile
     mobile -- "UI / Alerts" --> user
     
@@ -39,6 +42,7 @@ flowchart TD
 ## Container-Level Breakdown (a. Data Ingestion)
 
 ```mermaid
+%%{init: {"themeVariables": {"fontSize": "20px"}}}%%
 flowchart TD
     subgraph edge["IoT Edge Layer"]
         direction TB
@@ -49,32 +53,31 @@ flowchart TD
         gnss -- "UART" --> esp32
     end
 
+    mosquitto["Eclipse Mosquitto"]
+
     subgraph backend["Backend Layer (Docker)"]
         direction TB
-        api["FastAPI Gateway"]
         mqtt_bridge["MQTT Bridge"]
+        api["FastAPI Gateway"]
         redis[("Redis")]
         worker["Background Worker"]
         ai_worker["AI Report Worker"]
         postgres[("TimescaleDB")]
+        
+        mqtt_bridge -- "HTTP" --> api
+        api -- "XADD" --> redis
+        worker -- "XREAD" --> redis
+        worker -- "INSERT" --> postgres
+        worker -- "PUB alerts" --> redis
+        ai_worker -- "POP queue" --> redis
     end
 
-    %% Collegamento diretto tra i layer per forzare l'impaginazione in verticale dritta
-    esp32 -- "Register" --> api
-
-    mosquitto["Eclipse Mosquitto"]
     ollama["Ollama (Host)"]
 
+    esp32 -- "Register" --> api
     esp32 -- "MQTT" --> mosquitto
-    mqtt_bridge -- "Sub" --> mosquitto
-    mqtt_bridge -- "HTTP" --> api
+    mosquitto -- "Sub" --> mqtt_bridge
     
-    api -- "XADD" --> redis
-    worker -- "XREAD" --> redis
-    worker -- "INSERT" --> postgres
-    worker -- "PUB alerts" --> redis
-    
-    ai_worker -- "POP queue" --> redis
     ai_worker -- "POST" --> ollama
     ai_worker -. "PUB reports" .-> redis
 
@@ -85,6 +88,7 @@ flowchart TD
 ## Container-Level Breakdown (b. Mobile Interaction)
 
 ```mermaid
+%%{init: {"themeVariables": {"fontSize": "20px"}}}%%
 flowchart TD
     user(("End User"))
 

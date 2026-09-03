@@ -3,6 +3,7 @@
 ## a. Event Correlation
 
 ```mermaid
+%%{init: {"sequence": {"actorFontSize": 20, "messageFontSize": 18, "noteFontSize": 18}}}%%
 sequenceDiagram
     participant N1 as Node A<br/>(ESP32)
     participant N2 as Node B<br/>(ESP32)
@@ -14,13 +15,13 @@ sequenceDiagram
 
     Note over N1,N3: Earthquake P-wave propagates<br/>outward from epicenter
 
-    N1->>API: POST /readings/ (t₁, lat₁, lon₁, sig₁)
+    N1->>API: POST /readings/<br/>(t₁, lat₁, lon₁, sig₁)
     Note over N1: First node triggered (closest to epicenter)
 
-    N2->>API: POST /readings/ (t₂, lat₂, lon₂, sig₂)
+    N2->>API: POST /readings/<br/>(t₂, lat₂, lon₂, sig₂)
     Note over N2: Second node triggered (Δt later)
 
-    N3->>API: POST /readings/ (t₃, lat₃, lon₃, sig₃)
+    N3->>API: POST /readings/<br/>(t₃, lat₃, lon₃, sig₃)
     Note over N3: Third node triggered (Δt later)
 
     API->>Redis: XADD readings:stream (×3)
@@ -32,6 +33,7 @@ sequenceDiagram
 ## b. Triangulation & Broadcasting
 
 ```mermaid
+%%{init: {"sequence": {"actorFontSize": 20, "messageFontSize": 18, "noteFontSize": 18}}}%%
 sequenceDiagram
     participant Worker as Background<br/>Worker
     participant Tri as Triangulation<br/>Engine
@@ -51,7 +53,7 @@ sequenceDiagram
 
         Tri-->>Worker: TriangulationResult<br/>{epicenter, origin_time, confidence}
 
-        Worker->>DB: INSERT alert (is_triangulated=True,<br/>epicenter_lat, epicenter_lon)
+        Worker->>DB: INSERT alert<br/>(is_triangulated=True)
 
         Worker->>Redis: PUBLISH quake_alerts<br/>{type: TRIANGULATED, epicenter, ETA}
 
