@@ -10,12 +10,10 @@ flowchart TD
     mobile["Mobile App"]
     sensor["IoT Sensor\n(ESP32-C3)"]
 
-    subgraph sys [ ]
-        direction LR
-        quakeguard["QuakeGuard Platform"] ~~~ label["QuakeGuard System"]
+    subgraph sys [QuakeGuard System]
+        quakeguard["QuakeGuard Platform"]
     end
-    style sys fill:#fefce8,stroke:#d4af37,stroke-width:2px,stroke-dasharray: 5 5
-    style label fill:none,stroke:none,color:#000,font-weight:bold,font-size:24px
+    style sys fill:none,stroke:#0b4884,stroke-width:2px,stroke-dasharray: 5 5
 
     mosquitto["Eclipse Mosquitto\n(Local MQTT)"]
     ollama["Ollama (Host)\n(LLM Inference)"]
