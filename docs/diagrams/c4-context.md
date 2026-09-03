@@ -58,7 +58,7 @@ FIX (Figure 2):
 -->
 ```mermaid
 %%{init: {"themeVariables": {"fontSize": "20px"}}}%%
-flowchart TD
+flowchart LR
     subgraph edge["IoT Edge Layer"]
         direction TB
         adxl["ADXL345"]
