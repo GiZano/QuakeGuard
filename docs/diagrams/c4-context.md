@@ -10,16 +10,22 @@ flowchart TD
     mobile["Mobile App"]
     sensor["IoT Sensor\n(ESP32-C3)"]
 
-    subgraph sys [QuakeGuard System]
-        quakeguard["QuakeGuard Platform"]
+    subgraph sys [ ]
+        direction LR
+        quakeguard["QuakeGuard Platform"] ~~~ label["QuakeGuard System"]
     end
-    style sys fill:none,stroke:#0b4884,stroke-width:2px,stroke-dasharray: 5 5
+    style sys fill:#fefce8,stroke:#d4af37,stroke-width:2px,stroke-dasharray: 5 5
+    style label fill:none,stroke:none,color:#000,font-weight:bold,font-size:24px
 
     mosquitto["Eclipse Mosquitto\n(Local MQTT)"]
     ollama["Ollama (Host)\n(LLM Inference)"]
     cloudflare["Cloudflare Tunnel\n(HTTPS)"]
     expo["Expo Push Service\n(iOS/Android)"]
     grafana["Grafana\n(Observability)"]
+
+    sensor -- "MQTT" --> mosquitto
+    mosquitto -- "MQTT" --> quakeguard
+    sensor -- "Register" --> quakeguard
 
     quakeguard -- "Metrics" --> grafana
     grafana -- "Views" --> maintainer
@@ -31,7 +37,7 @@ flowchart TD
     cloudflare -- "HTTP & WSS" --> mobile
     mobile -- "UI / Alerts" --> user
     
-    quakeguard -- "Push" --> expo
+    quakeguard -- "Push" ---> expo
     expo -- "Push" --> user
 
     style quakeguard fill:#1168bd,stroke:#0b4884,color:#ffffff,stroke-width:2px
