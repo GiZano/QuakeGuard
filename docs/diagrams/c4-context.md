@@ -52,7 +52,7 @@ config:
     fontSize: 36px
     lineColor: '#343a40'
   flowchart:
-    padding: 40
+    padding: 60
   layout: fixed
 ---
 flowchart TB
@@ -89,7 +89,7 @@ flowchart TB
     mosquitto -- Sub --> mqtt_bridge
     ai_worker -- POST --> ollama["Ollama (Host)"]
     ai_worker -- PUB reports --> redis
-    api -- WSS --> app
+    api -. WSS .-> app
     app -- REST --> api
     app -- UI --> user(("End User"))
     ollama -- AI Report --> ai_worker
