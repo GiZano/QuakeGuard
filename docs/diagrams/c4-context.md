@@ -43,19 +43,8 @@ flowchart TD
     style quakeguard fill:#1168bd,stroke:#0b4884,color:#ffffff,stroke-width:2px
 ```
 
-## Container-Level Breakdown (a. Data Ingestion)
+## Container-Level Breakdown
 
-<!--
-FIX (Figure 2):
-- "PUB reports" was overlapping "POP queue" because both edges ran between
-  ai_worker and redis in the same direction. Reversed the POP queue edge
-  (redis -> ai_worker, since the worker is the one popping/reading) which
-  gives dagre two distinct paths instead of two parallel ones on top of
-  each other.
-- Reordered node declarations inside the backend subgraph (worker declared
-  before mqtt_bridge/api) so the "Register" edge from the ESP32 node no
-  longer crosses the "HTTP" edge from the MQTT Bridge to FastAPI Gateway.
--->
 ```mermaid
 %%{init: {"themeVariables": {"fontSize": "36px"}}}%%
 flowchart TD
@@ -87,6 +76,13 @@ flowchart TD
         redis -- "POP queue" --> ai_worker
     end
 
+    subgraph mobile["Mobile Layer"]
+        direction TB
+        app["React Native App"]
+    end
+    
+    user(("End User"))
+
     ollama["Ollama (Host)"]
 
     esp32 -- "Register" --> api
@@ -96,41 +92,11 @@ flowchart TD
     ai_worker -- "POST" --> ollama
     ai_worker -. "PUB reports" .-> redis
 
-    style edge fill:#f8f9fa,stroke:#6c757d,stroke-width:6px,color:#000
-    style backend fill:#f8f9fa,stroke:#343a40,stroke-width:6px,color:#000
-```
-
-## Container-Level Breakdown (b. Mobile Interaction)
-
-<!--
-FIX (Figure 3):
-- Only content changed: direction TD -> LR. The old top-down layout was
-  tall and narrow (aspect ~0.6:1); at `width: 100%` on the page it had to
-  be blown up a lot to fill the column, which is what made it look
-  "enormous" and pixelated. The wide/short LR layout needs far less
-  upscaling to fill the same width, so it stays crisp and looks
-  proportionate. Rendered at a higher raster scale (see notes.md) for
-  extra sharpness on top of that.
--->
-```mermaid
-%%{init: {"themeVariables": {"fontSize": "20px"}}}%%
-flowchart LR
-    user(("End User"))
-
-    subgraph backend["Backend Layer (Docker)"]
-        direction TB
-        api["FastAPI Gateway"]
-    end
-
-    subgraph mobile["Mobile Layer"]
-        direction TB
-        app["React Native App"]
-    end
-
     api -- "WSS" --> app
     app -- "REST" --> api
     app -- "UI" --> user
 
-    style backend fill:#f8f9fa,stroke:#ced4da,stroke-width:2px,color:#000
-    style mobile fill:#f8f9fa,stroke:#ced4da,stroke-width:2px,color:#000
+    style edge fill:#f8f9fa,stroke:#6c757d,stroke-width:6px,color:#000
+    style backend fill:#f8f9fa,stroke:#343a40,stroke-width:6px,color:#000
+    style mobile fill:#f8f9fa,stroke:#ced4da,stroke-width:6px,color:#000
 ```
