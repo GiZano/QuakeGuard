@@ -57,7 +57,7 @@ FIX (Figure 2):
   longer crosses the "HTTP" edge from the MQTT Bridge to FastAPI Gateway.
 -->
 ```mermaid
-%%{init: {"themeVariables": {"fontSize": "20px"}}}%%
+%%{init: {"themeVariables": {"fontSize": "36px"}}}%%
 flowchart TD
     subgraph edge["IoT Edge Layer"]
         direction LR
@@ -96,8 +96,8 @@ flowchart TD
     ai_worker -- "POST" --> ollama
     ai_worker -. "PUB reports" .-> redis
 
-    style edge fill:#f8f9fa,stroke:#ced4da,stroke-width:2px,color:#000
-    style backend fill:#f8f9fa,stroke:#ced4da,stroke-width:2px,color:#000
+    style edge fill:#f8f9fa,stroke:#6c757d,stroke-width:6px,color:#000
+    style backend fill:#f8f9fa,stroke:#343a40,stroke-width:6px,color:#000
 ```
 
 ## Container-Level Breakdown (b. Mobile Interaction)
