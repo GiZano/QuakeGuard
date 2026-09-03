@@ -12,11 +12,11 @@ Before calculating the physical epicenter, the ingestion worker (`backend/src/wo
 
 #page(flipped: true, margin: 1cm)[
   #figure(
-    image("assets/sequence-triangulation_1.png", width: 100%, fit: "contain"),
+    image("assets/sequence-triangulation_1.svg", width: 100%, fit: "contain"),
     caption: [_Epicenter Triangulation & Correlation Sequence (Part A)_]
   )
   #figure(
-    image("assets/sequence-triangulation_2.png", width: 100%, fit: "contain"),
+    image("assets/sequence-triangulation_2.svg", width: 100%, fit: "contain"),
     caption: [_Epicenter Triangulation & Correlation Sequence (Part B)_]
   )
 ]
