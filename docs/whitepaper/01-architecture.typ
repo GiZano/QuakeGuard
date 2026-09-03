@@ -4,28 +4,30 @@ QuakeGuard is a distributed, high-throughput backend system designed for the rea
 
 == High-Level Topology
 
-The infrastructure is decoupled into three primary tiers:
+The infrastructure is decoupled into three primary tiers (illustrated in @fig-context):
 
 - *Edge Layer (IoT):* Composed of ESP32-C3 SuperMini microcontrollers interfaced with ADXL345 digital accelerometers. These nodes execute on-device Digital Signal Processing (DSP) using the STA/LTA (Short Term Average / Long Term Average) algorithm. 
 - *Core Backend & Processing:* A polyglot backend architecture utilizing FastAPI (Python) as the API gateway. Validated data is asynchronously offloaded to a Redis Stream (`readings:stream`) and consumed by horizontally-scalable background workers via consumer groups. The workers persist time-series data into a PostgreSQL/PostGIS database (provisioned as a TimescaleDB hypertable) and trigger area-scoped alerts via Redis Pub/Sub.
 - *Client Presentation Layer:* A React Native (Expo) mobile application providing users with real-time seismograph telemetry and instantaneous critical event notifications delivered through WebSockets and native push notifications.
 
 #figure(
-  image("assets/c4-context_1.png", width: 100%),
-  caption: [_High-Level Architecture Context Diagram_]
-)
-
-#figure(
-  image("assets/c4-context_2.png", width: 100%),
-  caption: [_High-Level Architecture Container Diagram_]
-)
+  image("assets/c4-context.png", width: 115%, height: 105%, fit: "contain"),
+  caption: [_High-Level Architecture Context Diagram_],
+  placement: auto
+) <fig-context>
 
 == Data Plane and Control Plane
 
-Following the v1.1.0 cloud migration, the architecture strictly separates the data and control pipelines:
+Following the v1.1.0 cloud migration, the architecture strictly separates the data and control pipelines, mapping directly to the containerized deployment shown in @fig-container:
 
 - *Data Plane (Telemetry):* Flows exclusively through a local Eclipse Mosquitto broker on port 1883. A Python-based MQTT bridge (`mqtt_subscriber.py`) subscribes to the `quakeguard/telemetry` topic and forwards payloads to the internal FastAPI ingestion pipeline via HTTP POST.
 - *Control Plane (Provisioning & Management):* Device onboarding, cryptographic handshakes, and REST retrieval operations are routed through an HTTPS tunnel to the FastAPI endpoints (e.g., `/devices/register`). In development the tunnel is a *Cloudflare quick tunnel* (`cloudflared tunnel --url http://localhost:8000`); production should use a real HTTPS domain. The ngrok free-tier edge is not used because its bot-protection terminates ESP-IDF (mbedTLS) TLS handshakes via JA3 fingerprinting *before* any HTTP header can be read, so IoT clients never reach the backend.
+
+#figure(
+  image("assets/c4-context-2.svg", width: 115%, height: 105%, fit: "contain"),
+  caption: [_High-Level Architecture Container Diagram_],
+  placement: auto
+) <fig-container>
 
 == Key Design Principles
 

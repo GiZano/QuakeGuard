@@ -46,17 +46,17 @@ Where $"PGA"_"calib"$ accounts for the ADXL345 scale and hardware calibration co
 
 - *Thresholding:* If the estimated magnitude reaches or exceeds the critical threshold of $4.5$, the worker triggers an `Alert` entity.
 - *Per-Area Cooldown:* During a real earthquake, dozens of sensors in the same region will breach the threshold simultaneously. To prevent notification spam, the worker uses a Redis atomic check-and-set operation (`SET nx=True, ex=60`) keyed by the *area* — the reading's geohash region (precision 4, ~39 x 19 km) when coordinates are present, else the zone — enforcing a strict 60-second cooldown per geographic area rather than globally. `Reading.lat/lon` are captured at ingestion precisely to enable this fragmentation and future spatial correlation.
-- *Outbox Pattern:* Only the first worker process that successfully acquires the Redis lock will persist the `Alert` to PostgreSQL and publish the JSON payload to the `quake_alerts` Redis Pub/Sub channel.
+- *Outbox Pattern:* Only the first worker process that successfully acquires the Redis lock will persist the `Alert` to PostgreSQL and publish the JSON payload to the `quake_alerts` Redis Pub/Sub channel (see @fig-alert-a and @fig-alert-b for the complete delivery sequence).
 
 #page(flipped: true, margin: 1cm)[
   #figure(
     block(height: 47%, image("assets/sequence-alert-delivery_1.png", height: 100%, fit: "contain")),
     caption: [_End-to-End Alert Delivery Sequence (Part A)_]
-  )
+  ) <fig-alert-a>
   #figure(
     block(height: 47%, image("assets/sequence-alert-delivery_2.png", height: 100%, fit: "contain")),
     caption: [_End-to-End Alert Delivery Sequence (Part B)_]
-  )
+  ) <fig-alert-b>
 ]
 
 == System Telemetry & Grafana Observability (v2.1.0)

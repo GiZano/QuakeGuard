@@ -10,7 +10,7 @@ Upon its first boot, the ESP32-C3 utilizes the `mbedtls` library to generate a u
 
 == Automated Provisioning Handshake
 
-Before transmitting any seismic data, an unregistered sensor must complete an automated handshake with the Control Plane:
+Before transmitting any seismic data, an unregistered sensor must complete an automated handshake with the Control Plane (detailed in @fig-provisioning-a and @fig-provisioning-b):
 + The device sends a POST request to the `/devices/register` endpoint, providing its generated `public_key_hex`, MAC address, GPS coordinates, and a hardcoded `ENROLLMENT_TOKEN`.
 + The backend validates the factory enrollment token to ensure the device is authorized to join the network.
 + Using a geohash-based Redis fast-path index with an authoritative PostGIS fallback (`ST_Contains`), the backend spatially evaluates the provided GPS coordinates against the predefined zones and assigns the sensor to the smallest containing geographic polygon. When a GNSS module is attached, the coordinates are the live fix (or the last-known fix persisted in NVS); otherwise the node reports a hardcoded placeholder until provisioned in place.
@@ -18,13 +18,15 @@ Before transmitting any seismic data, an unregistered sensor must complete an au
 
 #figure(
   image("assets/sequence-provisioning_1.png", width: 100%),
-  caption: [_Provisioning Handshake Sequence (Part A)_]
-)
+  caption: [_Provisioning Handshake Sequence (Part A)_],
+  placement: auto
+) <fig-provisioning-a>
 
 #figure(
   image("assets/sequence-provisioning_2.png", width: 100%),
-  caption: [_Provisioning Handshake Sequence (Part B)_]
-)
+  caption: [_Provisioning Handshake Sequence (Part B)_],
+  placement: auto
+) <fig-provisioning-b>
 
 == Payload Authentication & Integrity
 

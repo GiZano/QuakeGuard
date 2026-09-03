@@ -59,15 +59,16 @@ With the v2.0.0 milestone, the QuakeGuard hardware has matured from a breadboard
 - *Layout Integration:* The PCB provides dedicated footprints for the ESP32-C3 SuperMini (designed with footprint headroom to support a future ESP32-S3 variant for edge AI), the ADXL345 accelerometer (powered correctly at 3.3V), and the optional u-blox GNSS receiver.
 - *Signal Integrity:* The I2C lines (SDA on GPIO 7, SCL on GPIO 8) include proper hardware pull-up resistors on the PCB to guarantee stable communication at 100Hz without relying on the weak internal MCU pull-ups.
 - *External Interfacing:* A J4 header exposes the GNSS UART lines (RX GPIO 5, TX GPIO 4, PPS GPIO 2) and power rails, allowing modular connection of the GPS antenna for accurate time synchronization and epicentral triangulation.
-- *Bill of Materials (BOM):* The exact hardware components required to assemble the QuakeGuard PCB (including the ESP32-C3, ADXL345, optional GNSS, and THT passives) are exported from KiCad and documented in the official project Wiki under the `Bill of Materials` page.
+- *Bill of Materials (BOM):* The exact hardware components required to assemble the QuakeGuard PCB (including the ESP32-C3, ADXL345, optional GNSS, and THT passives) are exported from KiCad and documented in the official project Wiki under the `Bill of Materials` page (see @fig-pcb).
 
 #figure(
   image("assets/pcb_assembled.jpg", width: 90%),
   caption: [
     _The QuakeGuard v2.0.0 fully assembled PCB, featuring the ESP32-C3 SuperMini, the ADXL345 
     accelerometer, and the u-blox GNSS module soldered into their dedicated footprints._
-  ]
-)
+  ],
+  placement: auto
+) <fig-pcb>
 
 == GNSS Subsystem & NTP Discipline (v2.0.0)
 
@@ -83,7 +84,7 @@ The firmware features an optional GNSS module: an optional module parses NMEA da
 To ensure the theoretical STA/LTA model translates correctly to the real world, the QuakeGuard firmware edge core (`DetectionCore.h`) is tested headlessly against a Python-based Software-in-the-Loop pipeline.
 - *Open Data Integration:* The pipeline dynamically queries the public INGV FDSN web service via ObsPy, fetching raw waveforms from the `IV` and `MN` open networks for specific historical baselines (e.g., L'Aquila 2009, Amatrice 2016, Emilia 2012).
 - *DSP Simulation:* Raw data is deconvolved to physical acceleration ($m/s^2$), causal bandpass-filtered (1-20 Hz), and resampled to exactly 100 Hz to simulate the ADXL345 physical output.
-- *Algorithmic Certification:* The multidimensional calibration sweep proves the current STA/LTA threshold (`ratio=2.4`, `floor=0.02G`) yields a theoretical 80% True Positive Rate with a 0.0% False Alarm Rate against the validation dataset, demonstrating maximal rejection of distant micro-seismicity (like Salizzole at 100km) while triggering on near-fault impulses within 3 seconds of the P-wave arrival. (Note: The firmware deployed on edge nodes uses a more sensitive operational threshold of `1.8f` to ensure no P-waves are missed in the field, whereas the stricter ratio of `2.4` is used specifically in the offline SIL calibration to certify a theoretical 0% False Alarm Rate bound.)
+- *Algorithmic Certification:* The multidimensional calibration sweep proves the current STA/LTA threshold (`ratio=2.4`, `floor=0.02G`) yields a theoretical 80% True Positive Rate with a 0.0% False Alarm Rate against the validation dataset, demonstrating maximal rejection of distant micro-seismicity (like Salizzole at 100km) while triggering on near-fault impulses within 3 seconds of the P-wave arrival. (Note: The firmware deployed on edge nodes uses a more sensitive operational threshold of `1.8f` to ensure no P-waves are missed in the field, whereas the stricter ratio of `2.4` is used specifically in the offline SIL calibration to certify a theoretical 0% False Alarm Rate bound, as shown in @fig-roc.)
 
 #figure(
   image("assets/roc.png", width: 80%),
@@ -95,5 +96,6 @@ To ensure the theoretical STA/LTA model translates correctly to the real world, 
     events are perfectly identified without any false alarms (FAR = 0.0), while the 5th 
     event (a weak micro-seismicity recorded at >100km distance) correctly fails to 
     trigger the algorithm, proving the firmware's robustness against distant noise._
-  ]
-)
+  ],
+  placement: auto
+) <fig-roc>

@@ -35,9 +35,6 @@
   #v(3cm)
 ]
 
-// --- EXECUTIVE SUMMARY ---
-#include "00-executive-summary.typ"
-
 #pagebreak()
 
 // --- TABLE OF CONTENTS ---
@@ -46,6 +43,11 @@
   depth: 3,
   indent: auto
 )
+
+#pagebreak()
+
+// --- EXECUTIVE SUMMARY ---
+#include "00-executive-summary.typ"
 
 #pagebreak()
 
