@@ -2,8 +2,14 @@
 
 ## a. Local Network Setup
 
+<!--
+FIX (Figure 6): text was "leggermente piccolo". Bumped
+actor/message/note font sizes slightly (32/26/26 -> 34/28/28). Layout was
+already fine, so nothing else changed. Render at a higher raster scale
+(see notes.md) for extra crispness.
+-->
 ```mermaid
-%%{init: {"sequence": {"actorFontSize": 32, "messageFontSize": 26, "noteFontSize": 26}}}%%
+%%{init: {"sequence": {"actorFontSize": 34, "messageFontSize": 28, "noteFontSize": 28, "messageMargin": 40, "boxMargin": 10}}}%%
 sequenceDiagram
     participant ESP as ESP32-C3<br/>Node
     participant WM as WiFiManager
@@ -26,8 +32,11 @@ sequenceDiagram
 
 ## b. Backend Registration
 
+<!--
+FIX (Figure 7): same treatment as Part A — fonts bumped 32/26/26 -> 34/28/28.
+-->
 ```mermaid
-%%{init: {"sequence": {"actorFontSize": 32, "messageFontSize": 26, "noteFontSize": 26}}}%%
+%%{init: {"sequence": {"actorFontSize": 34, "messageFontSize": 28, "noteFontSize": 28, "messageMargin": 38, "boxMargin": 10}}}%%
 sequenceDiagram
     participant API as FastAPI<br/>Gateway
     participant DB as PostgreSQL<br/>+ PostGIS

@@ -41,6 +41,17 @@ flowchart TD
 
 ## Container-Level Breakdown (a. Data Ingestion)
 
+<!--
+FIX (Figure 2):
+- "PUB reports" was overlapping "POP queue" because both edges ran between
+  ai_worker and redis in the same direction. Reversed the POP queue edge
+  (redis -> ai_worker, since the worker is the one popping/reading) which
+  gives dagre two distinct paths instead of two parallel ones on top of
+  each other.
+- Reordered node declarations inside the backend subgraph (worker declared
+  before mqtt_bridge/api) so the "Register" edge from the ESP32 node no
+  longer crosses the "HTTP" edge from the MQTT Bridge to FastAPI Gateway.
+-->
 ```mermaid
 %%{init: {"themeVariables": {"fontSize": "20px"}}}%%
 flowchart TD
@@ -57,19 +68,19 @@ flowchart TD
 
     subgraph backend["Backend Layer (Docker)"]
         direction TB
+        worker["Background Worker"]
         mqtt_bridge["MQTT Bridge"]
         api["FastAPI Gateway"]
         redis[("Redis")]
-        worker["Background Worker"]
         ai_worker["AI Report Worker"]
         postgres[("TimescaleDB")]
-        
+
         mqtt_bridge -- "HTTP" --> api
         api -- "XADD" --> redis
         worker -- "XREAD" --> redis
         worker -- "INSERT" --> postgres
         worker -- "PUB alerts" --> redis
-        ai_worker -- "POP queue" --> redis
+        redis -- "POP queue" --> ai_worker
     end
 
     ollama["Ollama (Host)"]
@@ -77,7 +88,7 @@ flowchart TD
     esp32 -- "Register" --> api
     esp32 -- "MQTT" --> mosquitto
     mosquitto -- "Sub" --> mqtt_bridge
-    
+
     ai_worker -- "POST" --> ollama
     ai_worker -. "PUB reports" .-> redis
 
@@ -87,9 +98,19 @@ flowchart TD
 
 ## Container-Level Breakdown (b. Mobile Interaction)
 
+<!--
+FIX (Figure 3):
+- Only content changed: direction TD -> LR. The old top-down layout was
+  tall and narrow (aspect ~0.6:1); at `width: 100%` on the page it had to
+  be blown up a lot to fill the column, which is what made it look
+  "enormous" and pixelated. The wide/short LR layout needs far less
+  upscaling to fill the same width, so it stays crisp and looks
+  proportionate. Rendered at a higher raster scale (see notes.md) for
+  extra sharpness on top of that.
+-->
 ```mermaid
 %%{init: {"themeVariables": {"fontSize": "20px"}}}%%
-flowchart TD
+flowchart LR
     user(("End User"))
 
     subgraph backend["Backend Layer (Docker)"]
@@ -98,7 +119,7 @@ flowchart TD
     end
 
     subgraph mobile["Mobile Layer"]
-        direction BT
+        direction TB
         app["React Native App"]
     end
 

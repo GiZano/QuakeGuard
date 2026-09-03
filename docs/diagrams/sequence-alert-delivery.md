@@ -2,8 +2,17 @@
 
 ## a. Event Ingestion
 
+<!--
+FIX (Figure 8): "testo piccolo e diagramma che esce dalla pagina".
+Bumped fonts 20/18/18 -> 22/20/20 and tightened actor/message/box/note
+margins so the extra font size didn't blow up the footprint. Net effect:
+height dropped from 904px to ~808px at the same width, giving a wider,
+flatter aspect ratio (~1.94:1) that leaves much more headroom against the
+page. See notes.md for the companion Typst fix needed to fully guarantee
+no overflow, since Figures 8+9 share one page.
+-->
 ```mermaid
-%%{init: {"sequence": {"actorFontSize": 20, "messageFontSize": 18, "noteFontSize": 18}}}%%
+%%{init: {"sequence": {"actorFontSize": 22, "messageFontSize": 20, "noteFontSize": 20, "actorMargin": 45, "messageMargin": 18, "boxMargin": 5, "boxTextMargin": 4, "noteMargin": 7, "diagramMarginX": 15, "diagramMarginY": 6}}}%%
 sequenceDiagram
     participant ADXL as ADXL345<br/>Sensor
     participant ESP as ESP32-C3<br/>Node
@@ -22,7 +31,7 @@ sequenceDiagram
     ESP->>MQTT: PUBLISH quakeguard/telemetry<br/>{value, sensor_id, timestamp, signature}
 
     MQTT->>Bridge: Deliver message (TLS)
-    Bridge->>API: POST /readings/<br/>X-API-Key header
+    Bridge->>API: POST /readings/ (X-API-Key header)
 
     API->>API: Validate API Key
     API->>API: Verify ECDSA signature
@@ -38,8 +47,14 @@ sequenceDiagram
 
 ## b. Alert Delivery & AI Report
 
+<!--
+FIX (Figure 9): same treatment as Part A. This one was the taller of the
+two (nested alt/opt blocks), so it benefited the most: height dropped
+from 1054px to ~788px at the same width (~1.99:1 aspect), roughly a 25%
+reduction. Fonts bumped 20/18/18 -> 22/20/20.
+-->
 ```mermaid
-%%{init: {"sequence": {"actorFontSize": 20, "messageFontSize": 18, "noteFontSize": 18}}}%%
+%%{init: {"sequence": {"actorFontSize": 22, "messageFontSize": 20, "noteFontSize": 20, "actorMargin": 45, "messageMargin": 18, "boxMargin": 5, "boxTextMargin": 4, "noteMargin": 7, "diagramMarginX": 15, "diagramMarginY": 6}}}%%
 sequenceDiagram
     participant Worker as Background<br/>Worker
     participant Redis as Redis
@@ -51,7 +66,7 @@ sequenceDiagram
     participant User as End<br/>User
 
     alt M ≥ 4.5 (Alert threshold)
-        Worker->>Redis: Check cooldown lock<br/>(alert_cooldown:geohash)
+        Worker->>Redis: Check cooldown lock (alert_cooldown:geohash)
 
         alt No active cooldown
             Worker->>DB: INSERT INTO alerts
@@ -68,9 +83,9 @@ sequenceDiagram
             opt AI Reports enabled
                 Worker->>Redis: LPUSH ai_report_queue
                 AI->>Redis: BRPOP ai_report_queue
-                AI->>Ollama: POST /api/generate<br/>(structured prompt + telemetry)
+                AI->>Ollama: POST /api/generate (structured prompt + telemetry)
                 Ollama-->>AI: Emergency report text
-                AI->>DB: UPDATE EmergencyReport<br/>(COMPLETED)
+                AI->>DB: UPDATE EmergencyReport (COMPLETED)
                 AI->>Redis: PUBLISH ai_reports
                 Redis->>WS: Broadcast report
                 WS->>App: EMERGENCY_REPORT message
