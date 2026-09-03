@@ -72,7 +72,13 @@ class ReadingCreate(BaseModel):
     )
     sensor_id: int = Field(..., gt=0, description="The ID of the registered sensor")
     device_timestamp: int = Field(..., gt=1600000000, description="Unix timestamp of the event")
+    device_timestamp_ms: Optional[int] = Field(default=None, description="Exact UTC millisecond timestamp for latency calculation")
     signature_hex: str = Field(..., min_length=128, description="ECDSA NIST256p Signature")
+
+    # System Telemetry (v2.1.0 Grafana Observability)
+    free_heap: Optional[int] = None
+    rssi: Optional[int] = None
+    gnss_satellites: Optional[int] = None
 
 class Reading(BaseModel):
     id: int
@@ -81,6 +87,12 @@ class Reading(BaseModel):
     recorded_at: datetime
     latitude: Optional[float] = None
     longitude: Optional[float] = None
+    
+    # System Telemetry
+    latency_ms: Optional[int] = None
+    free_heap: Optional[int] = None
+    rssi: Optional[int] = None
+    gnss_satellites: Optional[int] = None
 
     model_config = ConfigDict(from_attributes=True)
 

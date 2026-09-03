@@ -1,7 +1,7 @@
 # ADR-0001: Redis Streams as the Ingestion Transport
 
 ## Status
-Accepted (v2.3.0)
+Accepted
 
 ## Context
 QuakeGuard's original ingestion pipeline used a Redis `LPUSH`/`BRPOP` list queue with a single-consumer worker. While simple, this design has inherent scaling limitations:

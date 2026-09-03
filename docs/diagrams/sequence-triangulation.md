@@ -1,17 +1,16 @@
 # Sequence Diagram — Multi-Node Triangulation
 
+## a. Event Correlation
+
 ```mermaid
 sequenceDiagram
-    participant N1 as Node A (ESP32)
-    participant N2 as Node B (ESP32)
-    participant N3 as Node C (ESP32)
-    participant API as FastAPI Gateway
-    participant Redis as Redis Stream
-    participant Worker as Background Worker
-    participant Tri as Triangulation Engine
-    participant DB as PostgreSQL + PostGIS
-    participant WS as WebSocket
-    participant App as Mobile App
+    participant N1 as Node A<br/>(ESP32)
+    participant N2 as Node B<br/>(ESP32)
+    participant N3 as Node C<br/>(ESP32)
+    participant API as FastAPI<br/>Gateway
+    participant Redis as Redis<br/>Stream
+    participant Worker as Background<br/>Worker
+    participant Tri as Triangulation<br/>Engine
 
     Note over N1,N3: Earthquake P-wave propagates<br/>outward from epicenter
 
@@ -28,6 +27,18 @@ sequenceDiagram
 
     Worker->>Redis: XREADGROUP batch
     Worker->>Worker: Detect concurrent triggers<br/>(temporal window + spatial proximity)
+```
+
+## b. Triangulation & Broadcasting
+
+```mermaid
+sequenceDiagram
+    participant Worker as Background<br/>Worker
+    participant Tri as Triangulation<br/>Engine
+    participant DB as PostgreSQL<br/>+ PostGIS
+    participant Redis as Redis<br/>Stream
+    participant WS as WebSocket
+    participant App as Mobile<br/>App
 
     alt ≥ 3 nodes triggered in window
         Worker->>Tri: correlate_events(triggers[])

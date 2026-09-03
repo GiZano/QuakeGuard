@@ -133,6 +133,18 @@ def _run_extension_step(db: Session, report: dict) -> bool:
     report["timescaledb"] = True
     return True
 
+def _add_telemetry_columns(db: Session) -> None:
+    """Step 1.5: Add Grafana telemetry columns to the hypertable."""
+    try:
+        db.execute(text("ALTER TABLE readings ADD COLUMN IF NOT EXISTS latency_ms INTEGER"))
+        db.execute(text("ALTER TABLE readings ADD COLUMN IF NOT EXISTS free_heap INTEGER"))
+        db.execute(text("ALTER TABLE readings ADD COLUMN IF NOT EXISTS rssi INTEGER"))
+        db.execute(text("ALTER TABLE readings ADD COLUMN IF NOT EXISTS gnss_satellites INTEGER"))
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        print(f"⚠️ Failed to add telemetry columns: {e}", flush=True)
+
 
 def _run_hypertable_step(db: Session, report: dict) -> None:
     """Step 2: Create hypertable."""
@@ -168,6 +180,7 @@ def apply_timescale(db: Session) -> dict:
     if not _run_extension_step(db, report):
         return report
 
+    _add_telemetry_columns(db)
     _run_hypertable_step(db, report)
     _run_aggregate_step(db, report)
     _run_compression_retention_steps(db, report)

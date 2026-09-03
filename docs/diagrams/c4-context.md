@@ -1,73 +1,107 @@
-# C4 Context Diagram — QuakeGuard
+# System Context Diagram — QuakeGuard
 
 > Level 1 (System Context): shows the QuakeGuard system and the external actors/systems that interact with it.
 
 ```mermaid
-C4Context
-    title QuakeGuard — System Context Diagram
+flowchart TD
+    user(("End User\n(Mobile)"))
+    maintainer(("Maintainer\n(DevOps)"))
+    mobile["Mobile App"]
+    sensor["IoT Sensor\n(ESP32-C3)"]
 
-    Person(user, "End User", "Receives earthquake alerts on mobile device")
-    Person(maintainer, "Maintainer", "Deploys, configures, and monitors the system")
+    subgraph sys [QuakeGuard System]
+        quakeguard["QuakeGuard Platform"]
+    end
+    style sys fill:none,stroke:#0b4884,stroke-width:2px,stroke-dasharray: 5 5
 
-    System(quakeguard, "QuakeGuard System", "Distributed IoT EEW platform: edge sensors, backend, mobile app")
+    mosquitto["Eclipse Mosquitto\n(Local MQTT)"]
+    ollama["Ollama (Host)\n(LLM Inference)"]
+    cloudflare["Cloudflare Tunnel\n(HTTPS)"]
+    expo["Expo Push Service\n(iOS/Android)"]
+    grafana["Grafana\n(Observability)"]
 
-    System_Ext(hivemq, "HiveMQ Cloud", "Managed MQTT broker (TLS, port 8883)")
-    System_Ext(ollama, "Ollama (Host)", "Local LLM inference engine (Llama 3.2)")
-    System_Ext(cloudflare, "Cloudflare Tunnel", "HTTPS tunnel for remote control plane access")
-    System_Ext(expo, "Expo Push Service", "Delivers push notifications to iOS/Android")
+    quakeguard -- "Metrics" --> grafana
+    grafana -- "Views" --> maintainer
+    
+    quakeguard -- "Request" --> ollama
+    ollama -- "AI Report" --> quakeguard
+    
+    quakeguard -- "HTTP & WSS (Alerts, Reports)" --> cloudflare
+    cloudflare -- "HTTP & WSS" --> mobile
+    mobile -- "UI / Alerts" --> user
+    
+    quakeguard -- "Push" --> expo
+    expo -- "Push" --> user
 
-    Rel(user, quakeguard, "Receives alerts, views sensor map", "WebSocket / Push Notification")
-    Rel(maintainer, quakeguard, "Deploys stack, flashes firmware", "Docker / PlatformIO / SSH")
-    Rel(quakeguard, hivemq, "Publishes/subscribes telemetry", "MQTT over TLS")
-    Rel(quakeguard, ollama, "Requests AI emergency reports", "HTTP (localhost)")
-    Rel(quakeguard, cloudflare, "Exposes control plane", "HTTPS tunnel")
-    Rel(quakeguard, expo, "Sends push notifications", "HTTPS")
+    style quakeguard fill:#1168bd,stroke:#0b4884,color:#ffffff,stroke-width:2px
 ```
 
-## Container-Level Breakdown
+## Container-Level Breakdown (a. Data Ingestion)
 
 ```mermaid
-C4Container
-    title QuakeGuard — Container Diagram
+flowchart TD
+    subgraph edge["IoT Edge Layer"]
+        direction TB
+        adxl["ADXL345"]
+        gnss["NEO-6M GNSS"]
+        esp32["ESP32-C3 Node"]
+        adxl -- "I2C" --> esp32
+        gnss -- "UART" --> esp32
+    end
 
-    Person(user, "End User")
+    subgraph backend["Backend Layer (Docker)"]
+        direction TB
+        api["FastAPI Gateway"]
+        mqtt_bridge["MQTT Bridge"]
+        redis[("Redis")]
+        worker["Background Worker"]
+        ai_worker["AI Report Worker"]
+        postgres[("TimescaleDB")]
+    end
 
-    System_Boundary(edge, "IoT Edge Layer") {
-        Container(esp32, "ESP32-C3 Node", "C++/FreeRTOS", "STA/LTA detection, ECDSA signing, MQTT publish")
-        Container(adxl, "ADXL345", "I2C Sensor", "3-axis accelerometer @ 100 Hz")
-        Container(gnss, "NEO-6M GNSS", "UART", "GPS coordinates + PPS time sync")
-    }
+    %% Collegamento diretto tra i layer per forzare l'impaginazione in verticale dritta
+    esp32 -- "Register" --> api
 
-    System_Boundary(backend, "Backend Layer (Docker)") {
-        Container(api, "FastAPI Gateway", "Python 3.11", "REST API, ECDSA verification, WebSocket")
-        Container(worker, "Background Worker", "Python", "Magnitude calc, alert engine, triangulation")
-        Container(ai_worker, "AI Report Worker", "Python", "Consumes ai_report_queue, generates reports via Ollama")
-        Container(mqtt_bridge, "MQTT Bridge", "Python/Paho", "Subscribes to HiveMQ, forwards to HTTP pipeline")
-        ContainerDb(postgres, "PostgreSQL + PostGIS", "TimescaleDB", "Sensors, readings, zones, alerts")
-        ContainerDb(redis, "Redis", "Streams + Pub/Sub", "Ingestion queue, alert broadcast, zone cache")
-    }
+    mosquitto["Eclipse Mosquitto"]
+    ollama["Ollama (Host)"]
 
-    System_Boundary(mobile, "Mobile Layer") {
-        Container(app, "React Native App", "Expo/TypeScript", "Dashboard, sensor map, alert feed")
-    }
+    esp32 -- "MQTT" --> mosquitto
+    mqtt_bridge -- "Sub" --> mosquitto
+    mqtt_bridge -- "HTTP" --> api
+    
+    api -- "XADD" --> redis
+    worker -- "XREAD" --> redis
+    worker -- "INSERT" --> postgres
+    worker -- "PUB alerts" --> redis
+    
+    ai_worker -- "POP queue" --> redis
+    ai_worker -- "POST" --> ollama
+    ai_worker -. "PUB reports" .-> redis
 
-    System_Ext(hivemq, "HiveMQ Cloud")
-    System_Ext(ollama, "Ollama (Host)")
+    style edge fill:#f8f9fa,stroke:#ced4da,stroke-width:2px,color:#000
+    style backend fill:#f8f9fa,stroke:#ced4da,stroke-width:2px,color:#000
+```
 
-    Rel(esp32, hivemq, "MQTT publish", "TLS 8883")
-    Rel(mqtt_bridge, hivemq, "MQTT subscribe", "TLS 8883")
-    Rel(mqtt_bridge, api, "POST /readings/", "HTTP")
-    Rel(esp32, api, "POST /devices/register", "HTTP/HTTPS")
-    Rel(api, redis, "XADD readings:stream")
-    Rel(worker, redis, "XREADGROUP")
-    Rel(worker, postgres, "INSERT readings, alerts")
-    Rel(worker, redis, "PUBLISH quake_alerts")
-    Rel(ai_worker, redis, "BRPOP ai_report_queue")
-    Rel(ai_worker, ollama, "POST /api/generate", "HTTP")
-    Rel(ai_worker, redis, "PUBLISH ai_reports")
-    Rel(api, app, "WebSocket broadcast", "WSS")
-    Rel(app, api, "REST queries", "HTTPS")
-    Rel(user, app, "Views alerts")
-    Rel(adxl, esp32, "I2C data")
-    Rel(gnss, esp32, "UART + PPS")
+## Container-Level Breakdown (b. Mobile Interaction)
+
+```mermaid
+flowchart TD
+    user(("End User"))
+
+    subgraph backend["Backend Layer (Docker)"]
+        direction TB
+        api["FastAPI Gateway"]
+    end
+
+    subgraph mobile["Mobile Layer"]
+        direction BT
+        app["React Native App"]
+    end
+
+    api -- "WSS" --> app
+    app -- "REST" --> api
+    app -- "UI" --> user
+
+    style backend fill:#f8f9fa,stroke:#ced4da,stroke-width:2px,color:#000
+    style mobile fill:#f8f9fa,stroke:#ced4da,stroke-width:2px,color:#000
 ```

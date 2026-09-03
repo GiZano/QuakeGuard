@@ -42,8 +42,27 @@ The raw Peak Ground Acceleration (PGA) is converted using the formula:
 
 $ M_"IoT" = log_10("PGA"_"calib") + b $
 
-Where $"PGA"_"calib"$ accounts for the ADXL345 scale and hardware calibration constant (`K_CALIBRATION = 1.6`), and $b$ is an empirical offset (`B_OFFSET = 3.0`). The same normalization is shared with the mobile client so the app and the backend report identical magnitudes.
+Where $"PGA"_"calib"$ accounts for the ADXL345 scale and hardware calibration constant (`K_CALIBRATION = 1.6`, applied as division), and $b$ is an empirical offset (`B_OFFSET = 3.0`). The same normalization is shared with the mobile client so the app and the backend report identical magnitudes.
 
 - *Thresholding:* If the estimated magnitude reaches or exceeds the critical threshold of $4.5$, the worker triggers an `Alert` entity.
 - *Per-Area Cooldown:* During a real earthquake, dozens of sensors in the same region will breach the threshold simultaneously. To prevent notification spam, the worker uses a Redis atomic check-and-set operation (`SET nx=True, ex=60`) keyed by the *area* — the reading's geohash region (precision 4, ~39 x 19 km) when coordinates are present, else the zone — enforcing a strict 60-second cooldown per geographic area rather than globally. `Reading.lat/lon` are captured at ingestion precisely to enable this fragmentation and future spatial correlation.
 - *Outbox Pattern:* Only the first worker process that successfully acquires the Redis lock will persist the `Alert` to PostgreSQL and publish the JSON payload to the `quake_alerts` Redis Pub/Sub channel.
+
+#page(flipped: true, margin: 1cm)[
+  #figure(
+    image("assets/sequence-alert-delivery_1.png", width: 100%, fit: "contain"),
+    caption: [_End-to-End Alert Delivery Sequence (Part A)_]
+  )
+  #figure(
+    image("assets/sequence-alert-delivery_2.png", width: 100%, fit: "contain"),
+    caption: [_End-to-End Alert Delivery Sequence (Part B)_]
+  )
+]
+
+== System Telemetry & Grafana Observability (v2.1.0)
+
+To ensure the physical and network infrastructure operates with absolute reliability, the backend seamlessly integrates with *Grafana* for real-time observability of the sensor fleet. This stack allows Systems Engineers to strictly distinguish between consumer-facing alarms (handled by the mobile app) and critical diagnostic telemetry.
+
+- *Data Injection:* The edge nodes append their current ESP32 `free_heap` (monitoring for memory leaks), Wi-Fi `rssi` (monitoring radio health), GNSS `satellites` count, and a precise millisecond epoch `device_timestamp_ms` to the JSON payload without affecting the cryptographic signature.
+- *End-to-End Latency Calculation:* The API Gateway calculates the `latency_ms` by subtracting the hardware epoch from its own UTC ingestion time. This generates the core Proof of Rigor metric for the EEW pipeline.
+- *Zero-Config Provisioning:* The system automatically alters the TimescaleDB hypertable at startup to store these columns. The `docker-compose.yml` launches Grafana, utilizing a pre-injected `postgres.yml` datasource to connect natively to TimescaleDB, rendering time-series diagnostics instantly.

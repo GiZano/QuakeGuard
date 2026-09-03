@@ -1,7 +1,7 @@
 # ADR-0002: HiveMQ Cloud as the MQTT Broker
 
 ## Status
-Accepted (v1.1.0)
+Deprecated (Superseded by [ADR-0005](0005-local-mosquitto-migration.md) in v2.1.0)
 
 ## Context
 The ESP32-C3 firmware transmits cryptographically signed seismic telemetry via MQTT. The system requires a broker that:

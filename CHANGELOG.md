@@ -5,13 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.2] - 2026-09-03
+## [2.1.0] - 2026-09-03
 ### Added
+- **Grafana Observability Stack:** Full integration with TimescaleDB for system telemetry, providing real-time diagnostics of the sensor fleet (end-to-end latency, free heap, RSSI, GNSS satellites).
+- **System Telemetry Injection:** ESP32-C3 firmware now appends `free_heap`, `rssi`, `gnss_satellites`, and `device_timestamp_ms` to the payload without breaking the cryptographic signature.
+- **End-to-End Latency Tracking:** FastAPI Gateway calculates exact latency between the hardware timestamp and UTC ingestion time, powering the core Proof of Rigor metric in Grafana.
 - **Dependabot Configuration:** Automated dependency updates for pip (backend), npm (mobile), and GitHub Actions (`.github/dependabot.yml`).
-- **Gitleaks Secret Scanning:** CI workflow (`.github/workflows/gitleaks.yml`) to prevent accidental credential leaks in commits — critical for a project handling ECDSA keys and MQTT credentials.
-- **Architecture Decision Records (ADRs):** Created `docs/adr/` with 4 initial ADRs documenting key architectural decisions: Redis Streams (0001), HiveMQ Cloud (0002), Hybrid Edge AI (0003), CERN-OHL licensing (0004).
-- **C4 and Sequence Diagrams:** Created `docs/diagrams/` with Mermaid diagrams: C4 Context/Container, provisioning sequence, alert delivery sequence, and triangulation sequence — versionable independently from the Typst whitepaper.
-- **Firmware Versioning:** Added `#define FIRMWARE_VERSION "2.0.2"` printed at boot via serial for field identification and remote debugging.
+- **Gitleaks Secret Scanning:** CI workflow (`.github/workflows/gitleaks.yml`) to prevent accidental credential leaks in commits.
+- **Architecture Decision Records (ADRs):** Created `docs/adr/` with 5 initial ADRs documenting key architectural decisions (including the migration to local Mosquitto).
+- **C4 and Sequence Diagrams:** Created `docs/diagrams/` with comprehensive Mermaid diagrams (C4 Context/Container, provisioning, alert delivery, triangulation), now fully compiled and embedded inside the Typst whitepaper.
+- **Firmware Versioning:** Added `#define FIRMWARE_VERSION "2.1.0"` printed at boot via serial for field identification.
 - **Pinout Reference:** Created `firmware/PINOUT.md` — unified GPIO mapping, LED behavior table, connector pinout, and passive component reference.
 - **Flashing Guide:** Created `firmware/FLASHING.md` — standalone step-by-step flashing instructions for users without VS Code/PlatformIO IDE.
 - **Privacy Policy:** Created `mobile/PRIVACY_POLICY.md` — documents data collection, storage, and third-party services for App Store/Play Store compliance.
@@ -20,10 +23,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Docker Compose Override Example:** `backend/docker-compose.override.yml.example` for local development customization.
 
 ### Changed
-- **Dockerfile Multi-Stage Build:** Refactored `backend/Dockerfile` to a two-stage build (builder + runtime), reducing final image size by excluding build toolchain (gcc, python3-dev).
-- **BOM Enrichment:** Expanded `hardware/QuakeGuard_PCB/output/BOM.csv` with manufacturer, part number, unit cost, distributor links (LCSC/DigiKey), and socketable modules (ESP32-C3, ADXL345, NEO-6M).
-- **README Enhancements:** Added "PRs welcome" badge, prominent landing page link, CERN-OHL license reference, hardware compliance disclaimer, and v2.0.2 roadmap entry.
-- **Version artifacts bumped to v2.0.2** (CITATION.cff, firmware header, README roadmap, SECURITY.md).
+- **Zero-Config Local Architecture:** Completely replaced HiveMQ Cloud with an on-premise Eclipse Mosquitto broker (port 1883) via `docker-compose`, guaranteeing Zero-Config offline resilience and full WAN independence.
+- **Magnitude Formula Alignment:** Corrected a critical documentation mathematical discrepancy; the frontend UI and whitepaper now correctly apply the ADXL345 calibration factor via division (`M = log10(PGA / 1.6) + 3.0`) in sync with the Python backend.
+- **Dockerfile Multi-Stage Build:** Refactored `backend/Dockerfile` to a two-stage build (builder + runtime), reducing final image size.
+- **BOM Enrichment:** Expanded `hardware/QuakeGuard_PCB/output/BOM.csv` with distributor links and socketable modules.
+- **README Enhancements:** Added "PRs welcome" badge, prominent landing page link, CERN-OHL-S license reference, and v2.1.0 roadmap entry.
+- **Version artifacts bumped to v2.1.0** (CITATION.cff, firmware header, README roadmap, SECURITY.md, Web Docs).
 
 ## [2.0.1] - 2026-09-01
 ### Changed
@@ -69,6 +74,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.2.1] - 2026-08-14
 ### Added
+- **Redis Streams Ingestion:** Transitioned from `LPUSH`/`BRPOP` to Redis Streams (`XADD`/`XREADGROUP`) enabling horizontal worker scaling and at-least-once delivery (`XAUTOCLAIM`).
+- **TimescaleDB Hypertable:** Provisioned the `readings` table as a TimescaleDB hypertable for efficient time-series chunking and fast statistical rollups.
+- **Batched DB Commits:** `worker.py` now processes and commits stream batches in a single atomic transaction for massive throughput under firehosing.
 - **Geo-Zoning:** PostGIS zones as the source of truth (`Zone` model, `GET /zones`, `POST /zones/`), with a geohash-based Redis fast path for coordinate→zone lookup.
 - **Zone Detection:** `GET /zones/locate` resolves a device's GPS position into a monitored polygon; Settings now ships "Detect my zone via GPS".
 - **Per-Zone Seismograph:** `GET /zones/{zone_id}/readings` + `DELETE /zones/{zone_id}/readings`; the mobile dashboard renders a live seismograph per zone (horizontal zone strip) instead of mixing network-wide telemetry.

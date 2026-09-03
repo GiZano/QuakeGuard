@@ -1,6 +1,8 @@
 import base64
 import requests
 import os
+import glob
+import re
 
 def get_mermaid_png(mermaid_code, output_path):
     encoded = base64.b64encode(mermaid_code.encode('utf-8')).decode('utf-8')
@@ -14,35 +16,10 @@ def get_mermaid_png(mermaid_code, output_path):
     else:
         print(f"Failed to generate {output_path}: {response.status_code}")
 
-diagrams = {
-    "01-architecture": """%%{init: {'themeVariables': { 'fontSize': '24px'}}}%%
-flowchart LR
-    EN["Edge Node\n(ESP32-C3)"]
-    HMQ["HiveMQ\nBroker"]
-    FB["FastAPI\nBackend"]
-    MA["Mobile App\n(React Native)"]
+os.makedirs("assets", exist_ok=True)
 
-    EN -- "MQTT\n(TLS)" --> HMQ
-    EN == "USB CDC\nFallback" ==> FB
-    
-    HMQ -- "HTTP POST\n(Bridge)" --> FB
-    
-    FB -- "WebSocket" --> MA
-    
-    style EN fill:#f9f,stroke:#333,stroke-width:2px
-    style HMQ fill:#bbf,stroke:#333,stroke-width:2px
-    style MA fill:#bfb,stroke:#333,stroke-width:2px
-    style FB fill:#fbb,stroke:#333,stroke-width:2px
-""",
-    "03-security": """sequenceDiagram
-    participant EN as Edge Node (ESP32)
-    participant FB as FastAPI Backend
-
-    EN->>FB: POST /devices/register<br>{ pubKey, mac, enrollment_token }
-    FB-->>EN: 201 Created<br>{ sensor_id: 42, zone: "Rome" }
-    Note over EN: Store sensor_id in NVS
-""",
-    "08-ai": """flowchart TD
+# Also fetch hardcoded AI flowchart
+ai_code = """flowchart LR
     Start(("Alert Triggered"))
     Start --> PENDING["PENDING"]
     PENDING -- "Ollama Processing" --> Split{" "}
@@ -55,8 +32,26 @@ flowchart LR
     style COMPLETED fill:#bfb,stroke:#333,stroke-width:2px
     style FAILED fill:#f9f,stroke:#333,stroke-width:2px
 """
-}
+get_mermaid_png(ai_code, "assets/08-ai.png")
 
-os.makedirs("assets", exist_ok=True)
-for name, code in diagrams.items():
-    get_mermaid_png(code, f"assets/{name}.png")
+# Fetch diagrams from docs/diagrams/
+diagram_files = glob.glob("../diagrams/*.md")
+for df in diagram_files:
+    basename = os.path.basename(df).replace(".md", "")
+    if basename == "README":
+        continue
+    with open(df, "r") as f:
+        content = f.read()
+    
+    match = re.search(r'```mermaid(.*?)```', content, re.DOTALL)
+    if match:
+        code = match.group(1).strip()
+        # For C4 we just need the C4Context or C4Container. 
+        # But mermaid.ink handles C4 well if we just pass the block.
+        # Actually in c4-context.md there are two mermaid blocks. Let's get both!
+        blocks = re.findall(r'```mermaid(.*?)```', content, re.DOTALL)
+        if len(blocks) == 1:
+            get_mermaid_png(blocks[0].strip(), f"assets/{basename}.png")
+        else:
+            for i, block in enumerate(blocks):
+                get_mermaid_png(block.strip(), f"assets/{basename}_{i+1}.png")

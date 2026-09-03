@@ -18,5 +18,5 @@ The QuakeGuard Control Plane exposes a REST API via FastAPI. The full OpenAPI 3.
 = Appendix B: Project & Licensing Information
 
 - *Software License:* QuakeGuard software (backend, mobile, firmware) is open-source and released under the GNU Affero General Public License v3.0 (AGPL-3.0). This ensures that any modifications or network use of the software remain freely available to the public.
-- *Hardware License:* The QuakeGuard Printed Circuit Board (PCB) and related hardware designs are released under the CERN Open Hardware Licence (CERN-OHL).
+- *Hardware License:* The QuakeGuard Printed Circuit Board (PCB) and related hardware designs are released under the CERN Open Hardware Licence (CERN-OHL-S).
 - *Data Availability & Archival:* Stable releases of the project, including this whitepaper and the associated source code, are permanently archived on Zenodo and citable via the authoritative DOI identifier.

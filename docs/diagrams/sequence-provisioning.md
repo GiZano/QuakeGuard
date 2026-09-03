@@ -1,17 +1,17 @@
 # Sequence Diagram — Device Provisioning (First Boot)
 
+## a. Local Network Setup
+
 ```mermaid
 sequenceDiagram
-    participant ESP as ESP32-C3 Node
+    participant ESP as ESP32-C3<br/>Node
     participant WM as WiFiManager
-    participant User as User (Phone/Laptop)
-    participant API as FastAPI Gateway
-    participant DB as PostgreSQL + PostGIS
-    participant NVS as ESP32 NVS Storage
+    participant User as User<br/>(Phone/Laptop)
+    participant API as FastAPI<br/>Gateway
 
     Note over ESP: Power-on → LED boot test (2x blink)
     ESP->>ESP: Generate ECDSA key pair (if first boot)
-    ESP->>NVS: Store private key in NVS
+    ESP->>ESP: Store private key in NVS
 
     ESP->>WM: Start captive portal "QuakeGuard-Setup"
     User->>WM: Connect to AP, enter WiFi credentials
@@ -21,6 +21,16 @@ sequenceDiagram
     Note over ESP: sensor_id == 0 → Unregistered
 
     ESP->>API: POST /devices/register<br/>{public_key_hex, mac_address,<br/>enrollment_token, latitude?, longitude?}
+```
+
+## b. Backend Registration
+
+```mermaid
+sequenceDiagram
+    participant API as FastAPI<br/>Gateway
+    participant DB as PostgreSQL<br/>+ PostGIS
+    participant ESP as ESP32-C3<br/>Node
+    participant NVS as ESP32 NVS<br/>Storage
 
     API->>API: Validate enrollment_token
     API->>DB: Check for existing device (MAC or public key)

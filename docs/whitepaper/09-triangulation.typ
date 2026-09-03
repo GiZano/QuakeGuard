@@ -10,6 +10,17 @@ Before calculating the physical epicenter, the ingestion worker (`backend/src/wo
 2. *Quorum Consensus:* To eliminate isolated false positives (e.g., localized heavy impacts or tampering), the correlation engine requires a minimum quorum of 3 independent sensors (`llen(buffer_key) == 3`).
 3. *Execution:* The moment the quorum is reached within the 60-second window, the worker flushes the payload cluster to the triangulation function to compute the unified epicenter and trigger the downstream AI reporting services.
 
+#page(flipped: true, margin: 1cm)[
+  #figure(
+    image("assets/sequence-triangulation_1.png", width: 100%, fit: "contain"),
+    caption: [_Epicenter Triangulation & Correlation Sequence (Part A)_]
+  )
+  #figure(
+    image("assets/sequence-triangulation_2.png", width: 100%, fit: "contain"),
+    caption: [_Epicenter Triangulation & Correlation Sequence (Part B)_]
+  )
+]
+
 == Mathematical Model (v2.0 MVP)
 
 The current release implements a deterministic, magnitude-weighted spatial centroid (Barycenter approximation) coupled with an empirical P-wave travel time estimator. While future iterations may introduce a non-linear Least Squares solver based purely on Time Difference of Arrival (TDOA), the current heuristic guarantees real-time computational efficiency ($O(N)$ complexity) and handles the dense topological nature of the IoT network natively.

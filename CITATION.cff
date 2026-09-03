@@ -10,7 +10,7 @@ authors:
     given-names: "Riccardo"
     alias: "riccardo0731"
 title: "QuakeGuard"
-version: 2.0.2
+version: 2.1.0
 identifiers:
   - type: doi
     value: "10.5281/zenodo.21710405"

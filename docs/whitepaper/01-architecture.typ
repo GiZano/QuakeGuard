@@ -11,15 +11,28 @@ The infrastructure is decoupled into three primary tiers:
 - *Client Presentation Layer:* A React Native (Expo) mobile application providing users with real-time seismograph telemetry and instantaneous critical event notifications delivered through WebSockets and native push notifications.
 
 #figure(
-  image("assets/01-architecture.png", width: 100%),
-  caption: [_High-Level Architecture Block Diagram_]
+  image("assets/c4-context_1.png", width: 100%),
+  caption: [_High-Level Architecture Context Diagram_]
+)
+
+#grid(
+  columns: (1fr, 1fr),
+  gutter: 1em,
+  figure(
+    image("assets/c4-context_2.png", width: 100%),
+    caption: [_High-Level Architecture Container Diagram (Part A)_]
+  ),
+  figure(
+    image("assets/c4-context_3.png", width: 100%),
+    caption: [_High-Level Architecture Container Diagram (Part B)_]
+  )
 )
 
 == Data Plane and Control Plane
 
 Following the v1.1.0 cloud migration, the architecture strictly separates the data and control pipelines:
 
-- *Data Plane (Telemetry):* Flows exclusively through a HiveMQ Cloud Serverless broker on port 8883. Communication is fully authenticated and TLS-encrypted. A Python-based MQTT bridge (`mqtt_subscriber.py`) subscribes to the `quakeguard/telemetry` topic and forwards payloads to the internal FastAPI ingestion pipeline via HTTP POST.
+- *Data Plane (Telemetry):* Flows exclusively through a local Eclipse Mosquitto broker on port 1883. A Python-based MQTT bridge (`mqtt_subscriber.py`) subscribes to the `quakeguard/telemetry` topic and forwards payloads to the internal FastAPI ingestion pipeline via HTTP POST.
 - *Control Plane (Provisioning & Management):* Device onboarding, cryptographic handshakes, and REST retrieval operations are routed through an HTTPS tunnel to the FastAPI endpoints (e.g., `/devices/register`). In development the tunnel is a *Cloudflare quick tunnel* (`cloudflared tunnel --url http://localhost:8000`); production should use a real HTTPS domain. The ngrok free-tier edge is not used because its bot-protection terminates ESP-IDF (mbedTLS) TLS handshakes via JA3 fingerprinting *before* any HTTP header can be read, so IoT clients never reach the backend.
 
 == Key Design Principles

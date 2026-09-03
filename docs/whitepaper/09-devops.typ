@@ -19,7 +19,7 @@ To enforce the "Zero-Trust" architecture without manual pain, `generate_secrets.
 
 - *Smart Generation:* It uses `openssl rand -hex 32` to generate secure 256-bit keys, substituting them into the respective `.env` files via regex.
 - *Conflict Resolution:* If keys are modified manually and become desynchronized across the backend, mobile, or firmware, the script performs a Global Mismatch Check. It prompts the developer via an interactive `[b/m/f]` prompt to select the "Source of Truth," subsequently synchronizing the remaining systems to match the selected component.
-- *Dependency Checks:* The script actively scans for missing manual configuration (such as the HiveMQ MQTT broker credentials) and forces a loud terminal warning to ensure the data plane is fully established before boot.
+- *Dependency Checks:* The script actively scans for missing manual configuration (such as the Mosquitto MQTT broker credentials) and forces a loud terminal warning to ensure the data plane is fully established before boot.
 
 == E2E Pipeline Stress Testing
 

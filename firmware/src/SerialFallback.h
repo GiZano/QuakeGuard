@@ -78,9 +78,13 @@ inline std::string buildSerialFrame(const std::string& marker, // NOSONAR(cpp:S9
                                     int value,
                                     int sensorId,
                                     long deviceTimestamp,
-                                    const std::string& signatureHex) { // NOSONAR(cpp:S995)
+                                    const std::string& signatureHex,
+                                    long long deviceTimestampMs = 0,
+                                    int freeHeap = 0,
+                                    int rssi = 0,
+                                    int gnssSatellites = 0) { // NOSONAR(cpp:S995)
     std::string frame;
-    frame.reserve(marker.size() + 64 + signatureHex.size());
+    frame.reserve(marker.size() + 128 + signatureHex.size());
 
     frame += marker;
     frame += R"({"value":)";
@@ -89,6 +93,22 @@ inline std::string buildSerialFrame(const std::string& marker, // NOSONAR(cpp:S9
     frame += std::to_string(sensorId);
     frame += R"(,"device_timestamp":)";
     frame += std::to_string(deviceTimestamp);
+    if (deviceTimestampMs > 0) {
+        frame += R"(,"device_timestamp_ms":)";
+        frame += std::to_string(deviceTimestampMs);
+    }
+    if (freeHeap > 0) {
+        frame += R"(,"free_heap":)";
+        frame += std::to_string(freeHeap);
+    }
+    if (rssi != 0) {
+        frame += R"(,"rssi":)";
+        frame += std::to_string(rssi);
+    }
+    if (gnssSatellites > 0) {
+        frame += R"(,"gnss_satellites":)";
+        frame += std::to_string(gnssSatellites);
+    }
     frame += R"(,"signature_hex":")";
     frame += signatureHex;
     frame += R"("})";

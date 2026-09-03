@@ -30,12 +30,14 @@ services:
     volumes:
       - redis_data:/data
 
-  # --- MQTT BROKER (CI/test fallback) ---
+  # --- MQTT BROKER (Mosquitto) ---
   mosquitto:
     image: eclipse-mosquitto:2
     restart: unless-stopped
     ports:
       - "1883:1883"
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
 
   # --- API ---
   fastapi-app:
@@ -134,7 +136,27 @@ services:
       - OLLAMA_TIMEOUT=${OLLAMA_TIMEOUT:-30}
       - PYTHONUNBUFFERED=1
 
+  # --- OBSERVABILITY DASHBOARD (Grafana) ---
+  grafana:
+    image: grafana/grafana:latest
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+
 volumes:
   postgres_data:
   redis_data:
   ollama_data:
+  grafana_data:

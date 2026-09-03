@@ -28,7 +28,7 @@ Report generation is fully decoupled from the alert engine via a dedicated Redis
 - *State Machine:* Each report transitions through a tri-state lifecycle:
 
 #figure(
-  image("assets/08-ai.png", width: 70%),
+  image("assets/08-ai.png", width: 100%),
   caption: [_AI Report State Machine_]
 )
 

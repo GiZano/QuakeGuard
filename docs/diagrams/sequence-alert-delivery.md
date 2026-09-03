@@ -1,20 +1,17 @@
 # Sequence Diagram — Alert Delivery (Earthquake Detection → Mobile Alert)
 
+## a. Event Ingestion
+
 ```mermaid
 sequenceDiagram
-    participant ADXL as ADXL345 Sensor
-    participant ESP as ESP32-C3 Node
-    participant MQTT as HiveMQ Cloud
-    participant Bridge as MQTT Bridge
-    participant API as FastAPI Gateway
+    participant ADXL as ADXL345<br/>Sensor
+    participant ESP as ESP32-C3<br/>Node
+    participant MQTT as Eclipse<br/>Mosquitto
+    participant Bridge as MQTT<br/>Bridge
+    participant API as FastAPI<br/>Gateway
     participant Redis as Redis
-    participant Worker as Background Worker
+    participant Worker as Background<br/>Worker
     participant DB as PostgreSQL
-    participant AI as AI Report Worker
-    participant Ollama as Ollama LLM
-    participant WS as WebSocket
-    participant App as Mobile App
-    participant User as End User
 
     ADXL->>ESP: Acceleration data (100 Hz, I2C)
     ESP->>ESP: HPF → STA/LTA detection
@@ -36,6 +33,20 @@ sequenceDiagram
     Worker->>Redis: XREADGROUP (batch)
     Worker->>Worker: Calculate magnitude<br/>M = log10(PGA/scale) × K + B
     Worker->>DB: INSERT INTO readings
+```
+
+## b. Alert Delivery & AI Report
+
+```mermaid
+sequenceDiagram
+    participant Worker as Background<br/>Worker
+    participant Redis as Redis
+    participant DB as PostgreSQL
+    participant AI as AI Report<br/>Worker
+    participant Ollama as Ollama<br/>LLM
+    participant WS as WebSocket
+    participant App as Mobile<br/>App
+    participant User as End<br/>User
 
     alt M ≥ 4.5 (Alert threshold)
         Worker->>Redis: Check cooldown lock<br/>(alert_cooldown:geohash)

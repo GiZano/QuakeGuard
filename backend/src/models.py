@@ -76,6 +76,12 @@ class Reading(Base):
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
     
+    # System Telemetry (v2.1.0 Grafana Observability)
+    latency_ms = Column(Integer, nullable=True)
+    free_heap = Column(Integer, nullable=True)
+    rssi = Column(Integer, nullable=True)
+    gnss_satellites = Column(Integer, nullable=True)
+    
     sensor_id = Column(Integer, ForeignKey("sensors.id"), nullable=False)
 
     sensor = relationship("Sensor", back_populates="readings")
