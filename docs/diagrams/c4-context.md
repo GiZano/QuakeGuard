@@ -58,9 +58,9 @@ FIX (Figure 2):
 -->
 ```mermaid
 %%{init: {"themeVariables": {"fontSize": "20px"}}}%%
-flowchart LR
+flowchart TD
     subgraph edge["IoT Edge Layer"]
-        direction TB
+        direction LR
         adxl["ADXL345"]
         gnss["NEO-6M GNSS"]
         esp32["ESP32-C3 Node"]
@@ -71,7 +71,7 @@ flowchart LR
     mosquitto["Eclipse Mosquitto"]
 
     subgraph backend["Backend Layer (Docker)"]
-        direction TB
+        direction LR
         worker["Background Worker"]
         mqtt_bridge["MQTT Bridge"]
         api["FastAPI Gateway"]
