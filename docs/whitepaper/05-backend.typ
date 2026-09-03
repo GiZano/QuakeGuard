@@ -50,11 +50,11 @@ Where $"PGA"_"calib"$ accounts for the ADXL345 scale and hardware calibration co
 
 #page(flipped: true, margin: 1cm)[
   #figure(
-    image("assets/sequence-alert-delivery_1.svg", width: 100%, fit: "contain"),
+    image("assets/sequence-alert-delivery_1.png", width: 100%, fit: "contain"),
     caption: [_End-to-End Alert Delivery Sequence (Part A)_]
   )
   #figure(
-    image("assets/sequence-alert-delivery_2.svg", width: 100%, fit: "contain"),
+    image("assets/sequence-alert-delivery_2.png", width: 100%, fit: "contain"),
     caption: [_End-to-End Alert Delivery Sequence (Part B)_]
   )
 ]

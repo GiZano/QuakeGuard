@@ -11,17 +11,17 @@ The infrastructure is decoupled into three primary tiers:
 - *Client Presentation Layer:* A React Native (Expo) mobile application providing users with real-time seismograph telemetry and instantaneous critical event notifications delivered through WebSockets and native push notifications.
 
 #figure(
-  image("assets/c4-context_1.svg", width: 100%),
+  image("assets/c4-context_1.png", width: 100%),
   caption: [_High-Level Architecture Context Diagram_]
 )
 
 #figure(
-  image("assets/c4-context_2.svg", width: 100%),
+  image("assets/c4-context_2.png", width: 100%),
   caption: [_High-Level Architecture Container Diagram (Part A)_]
 )
 
 #figure(
-  image("assets/c4-context_3.svg", width: 100%),
+  image("assets/c4-context_3.png", width: 100%),
   caption: [_High-Level Architecture Container Diagram (Part B)_]
 )
 
