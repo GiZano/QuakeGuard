@@ -15,17 +15,14 @@ The infrastructure is decoupled into three primary tiers:
   caption: [_High-Level Architecture Context Diagram_]
 )
 
-#grid(
-  columns: (1fr, 1fr),
-  gutter: 1em,
-  figure(
-    image("assets/c4-context_2.png", width: 100%),
-    caption: [_High-Level Architecture Container Diagram (Part A)_]
-  ),
-  figure(
-    image("assets/c4-context_3.png", width: 100%),
-    caption: [_High-Level Architecture Container Diagram (Part B)_]
-  )
+#figure(
+  image("assets/c4-context_2.png", width: 100%),
+  caption: [_High-Level Architecture Container Diagram (Part A)_]
+)
+
+#figure(
+  image("assets/c4-context_3.png", width: 100%),
+  caption: [_High-Level Architecture Container Diagram (Part B)_]
 )
 
 == Data Plane and Control Plane
