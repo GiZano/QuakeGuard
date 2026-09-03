@@ -46,9 +46,9 @@ flowchart TD
 ## Container-Level Breakdown
 
 ```mermaid
-%%{init: {"themeVariables": {"fontSize": "36px"}}}%%
+%%{init: {"themeVariables": {"fontSize": "36px", "lineColor": "#343a40"}, "flowchart": {"padding": 40}}}%%
 flowchart TD
-    subgraph edge["IoT Edge Layer"]
+    subgraph edge["IoT Edge Layer<br/>"]
         direction LR
         adxl["ADXL345"]
         gnss["NEO-6M GNSS"]
@@ -57,9 +57,17 @@ flowchart TD
         gnss -- "UART" --> esp32
     end
 
-    mosquitto["Eclipse Mosquitto"]
+    subgraph mobile["Mobile Layer<br/>"]
+        direction TB
+        app["React Native App"]
+    end
 
-    subgraph backend["Backend Layer (Docker)"]
+    edge ~~~ mobile
+
+    mosquitto["Eclipse Mosquitto"]
+    user(("End User"))
+
+    subgraph backend["Backend Layer (Docker)<br/>"]
         direction LR
         worker["Background Worker"]
         mqtt_bridge["MQTT Bridge"]
@@ -70,18 +78,11 @@ flowchart TD
 
         mqtt_bridge -- "HTTP" --> api
         api -- "XADD" --> redis
-        worker -- "XREAD" --> redis
+        redis -- "XREAD" --> worker
         worker -- "INSERT" --> postgres
         worker -- "PUB alerts" --> redis
         redis -- "POP queue" --> ai_worker
     end
-
-    subgraph mobile["Mobile Layer"]
-        direction TB
-        app["React Native App"]
-    end
-    
-    user(("End User"))
 
     ollama["Ollama (Host)"]
 
@@ -98,5 +99,5 @@ flowchart TD
 
     style edge fill:#f8f9fa,stroke:#6c757d,stroke-width:6px,color:#000
     style backend fill:#f8f9fa,stroke:#343a40,stroke-width:6px,color:#000
-    style mobile fill:#f8f9fa,stroke:#ced4da,stroke-width:6px,color:#000
+    style mobile fill:#f8f9fa,stroke:#6c757d,stroke-width:6px,color:#000
 ```
