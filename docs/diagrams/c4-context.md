@@ -46,58 +46,55 @@ flowchart TD
 ## Container-Level Breakdown
 
 ```mermaid
-%%{init: {"themeVariables": {"fontSize": "36px", "lineColor": "#343a40"}, "flowchart": {"padding": 40}}}%%
-flowchart TD
-    subgraph edge["IoT Edge Layer<br/>"]
-        direction LR
+---
+config:
+  themeVariables:
+    fontSize: 36px
+    lineColor: '#343a40'
+  flowchart:
+    padding: 40
+  layout: fixed
+---
+flowchart TB
+ subgraph edge["IoT Edge Layer<br>"]
+    direction LR
         adxl["ADXL345"]
         gnss["NEO-6M GNSS"]
         esp32["ESP32-C3 Node"]
-        adxl -- "I2C" --> esp32
-        gnss -- "UART" --> esp32
-    end
-
-    subgraph mobile["Mobile Layer<br/>"]
-        direction TB
+  end
+ subgraph mobile["Mobile Layer<br>"]
+    direction TB
         app["React Native App"]
-    end
-
-    edge ~~~ mobile
-
-    mosquitto["Eclipse Mosquitto"]
-    user(("End User"))
-
-    subgraph backend["Backend Layer (Docker)<br/>"]
-        direction LR
+  end
+ subgraph backend["Backend Layer (Docker)<br>"]
+    direction LR
         worker["Background Worker"]
         mqtt_bridge["MQTT Bridge"]
         api["FastAPI Gateway"]
         redis[("Redis")]
         ai_worker["AI Report Worker"]
         postgres[("TimescaleDB")]
-
-        mqtt_bridge -- "HTTP" --> api
-        api -- "XADD" --> redis
-        redis -- "XREAD" --> worker
-        worker -- "INSERT" --> postgres
-        worker -- "PUB alerts" --> redis
-        redis -- "POP queue" --> ai_worker
-    end
-
-    ollama["Ollama (Host)"]
-
-    esp32 -- "Register" --> api
-    esp32 -- "MQTT" --> mosquitto
-    mosquitto -- "Sub" --> mqtt_bridge
-
-    ai_worker -- "POST" --> ollama
-    ai_worker -. "PUB reports" .-> redis
-
-    api -- "WSS" --> app
-    app -- "REST" --> api
-    app -- "UI" --> user
+  end
+    adxl -- I2C --> esp32
+    gnss -- UART --> esp32
+    edge ~~~ mobile
+    mqtt_bridge -- HTTP --> api
+    api -- XADD --> redis
+    redis -- XREAD --> worker
+    worker -- INSERT --> postgres
+    worker -- PUB alerts --> redis
+    redis -- POP queue --> ai_worker
+    esp32 -- Register --> api
+    esp32 -- MQTT --> mosquitto["Eclipse Mosquitto"]
+    mosquitto -- Sub --> mqtt_bridge
+    ai_worker -- POST --> ollama["Ollama (Host)"]
+    ai_worker -- PUB reports --> redis
+    api -- WSS --> app
+    app -- REST --> api
+    app -- UI --> user(("End User"))
+    ollama -- AI Report --> ai_worker
 
     style edge fill:#f8f9fa,stroke:#6c757d,stroke-width:6px,color:#000
-    style backend fill:#f8f9fa,stroke:#343a40,stroke-width:6px,color:#000
     style mobile fill:#f8f9fa,stroke:#6c757d,stroke-width:6px,color:#000
+    style backend fill:#f8f9fa,stroke:#343a40,stroke-width:6px,color:#000
 ```
