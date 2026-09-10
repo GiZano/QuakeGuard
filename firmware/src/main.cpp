@@ -412,7 +412,8 @@ void sensorTask(void *pvParameters) { // NOSONAR
 // TASK 2: NETWORK DISPATCH (MQTT + USB SERIAL FALLBACK)
 // --------------------------------------------------------------------------
 static void deliverEvent(PubSubClient &mqttClient, DeliveryPath path, int val,
-                         time_t evt_time, const char *sig);
+                         time_t evt_time, const char *sig,
+                         long long evt_time_ms = 0);
 
 #if SERIAL_FALLBACK_ENABLED
 static void drainRetention(RetentionRing<RETENTION_CAPACITY> &retention,
