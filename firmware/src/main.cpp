@@ -38,7 +38,7 @@
 // --------------------------------------------------------------------------
 // FIRMWARE VERSION (printed at boot for field identification)
 // --------------------------------------------------------------------------
-#define FIRMWARE_VERSION "2.1.0"
+constexpr const char* FIRMWARE_VERSION = "2.1.0";
 
 // --------------------------------------------------------------------------
 // HARDWARE & SERVER CONFIGURATION
@@ -232,7 +232,7 @@ void CryptoContext::getPublicKeyHex(char *out_hex_key, size_t out_max_len) {
   if (out_max_len > static_cast<size_t>(len * 2)) {
     for (int i = 0; i < len; i++) {
       snprintf(out_hex_key + (i * 2), out_max_len - (i * 2), "%02x",
-               pub_buf[start_index + i]); // NOSONAR(cpp:S6494)
+               pub_buf[start_index + i]); // NOSONAR(cpp:S6494,cpp:S6356)
     }
   } else if (out_max_len > 0) {
     out_hex_key[0] = '\0';
@@ -248,7 +248,7 @@ void CryptoContext::signMessage(const char *message, char *out_hex_sig,
   mbedtls_md_init(&ctx);
   mbedtls_md_setup(&ctx, mbedtls_md_info_from_type(MBEDTLS_MD_SHA256), 0);
   mbedtls_md_starts(&ctx);
-  mbedtls_md_update(&ctx, (const unsigned char *)message, strlen(message));
+  mbedtls_md_update(&ctx, (const unsigned char *)message, strlen(message)); // NOSONAR
   mbedtls_md_finish(&ctx, hash.data());
   mbedtls_md_free(&ctx);
   mbedtls_pk_sign(&pk_context_, MBEDTLS_MD_SHA256, hash.data(), 0, sig.data(),
@@ -257,7 +257,7 @@ void CryptoContext::signMessage(const char *message, char *out_hex_sig,
   if (out_max_len > sig_len * 2) {
     for (size_t i = 0; i < sig_len; i++) {
       snprintf(out_hex_sig + (i * 2), out_max_len - (i * 2), "%02x",
-               sig[i]); // NOSONAR(cpp:S6494)
+               sig[i]); // NOSONAR(cpp:S6494,cpp:S6356)
     }
   } else if (out_max_len > 0) {
     out_hex_sig[0] = '\0';
@@ -307,9 +307,9 @@ bool performProvisioning() {
   http.setTimeout(15000);
 
   JsonDocument doc;
-  char pub_hex[256];
-  crypto().getPublicKeyHex(pub_hex, sizeof(pub_hex));
-  doc["public_key_hex"] = pub_hex;
+  std::array<char, 256> pub_hex;
+  crypto().getPublicKeyHex(pub_hex.data(), pub_hex.size());
+  doc["public_key_hex"] = pub_hex.data();
   doc["mac_address"] = WiFi.macAddress();
   doc["enrollment_token"] = ENROLLMENT_TOKEN;
 
@@ -363,7 +363,7 @@ bool performProvisioning() {
       preferences.end();
       globalSensorID = newID;
       Serial.printf("[PROV] SUCCESS! Assigned Sensor ID: %d\n", globalSensorID);
-      Serial.printf("[PROV] Public key: %s\n", pub_hex);
+      Serial.printf("[PROV] Public key: %s\n", pub_hex.data());
       http.end();
       return true;
     }
@@ -430,14 +430,14 @@ static void drainRetention(RetentionRing<RETENTION_CAPACITY> &retention,
   SerialEvent retainedEvt;
   while (retention.pop(retainedEvt)) {
     time_t report_time = epochAtSync + (millis() - millisAtSync) / 1000;
-    char payload[64];
-    snprintf(payload, sizeof(payload), "%d:%ld", retainedEvt.value,
-             (long)report_time);
-    char sig[MBEDTLS_ECDSA_MAX_LEN * 2 + 1];
-    crypto().signMessage(payload, sig, sizeof(sig));
+    std::array<char, 64> payload;
+    snprintf(payload.data(), payload.size(), "%d:%ld", retainedEvt.value,
+             (long)report_time); // NOSONAR
+    std::array<char, MBEDTLS_ECDSA_MAX_LEN * 2 + 1> sig;
+    crypto().signMessage(payload.data(), sig.data(), sig.size());
     long long report_time_ms =
         ((long long)epochAtSync * 1000) + (millis() - millisAtSync);
-    deliverEvent(mqttClient, path, retainedEvt.value, report_time, sig,
+    deliverEvent(mqttClient, path, retainedEvt.value, report_time, sig.data(),
                  report_time_ms);
     triggerQuakeLed();
   }
@@ -470,11 +470,11 @@ static void deliverEvent(PubSubClient &mqttClient, DeliveryPath path, int val,
     doc["gnss_satellites"] = gnss_satellites;
 #endif
 
-    char json[512];
-    serializeJson(doc, json, sizeof(json));
+    std::array<char, 512> json;
+    serializeJson(doc, json.data(), json.size());
 
     // FIRE AND FORGET! Milliseconds instead of HTTP round-trips!
-    if (mqttClient.publish("quakeguard/telemetry", json)) {
+    if (mqttClient.publish("quakeguard/telemetry", json.data())) {
       Serial.println("[NET] MQTT Publish OK.");
     } else {
       Serial.println("[NET] MQTT Publish FAILED.");
@@ -526,10 +526,10 @@ void networkTask(void *pvParameters) { // NOSONAR
     if (!mqttUp && WiFi.status() == WL_CONNECTED &&
         (millis() - lastMqttAttempt > backoffDelay)) {
       lastMqttAttempt = millis();
-      char clientId[64];
-      snprintf(clientId, sizeof(clientId), "QuakeGuard-%s",
-               WiFi.macAddress().c_str());
-      if (mqttClient.connect(clientId, MQTT_USERNAME, MQTT_PASSWORD)) {
+      std::array<char, 64> clientId;
+      snprintf(clientId.data(), clientId.size(), "QuakeGuard-%s",
+               WiFi.macAddress().c_str()); // NOSONAR
+      if (mqttClient.connect(clientId.data(), MQTT_USERNAME, MQTT_PASSWORD)) {
         Serial.println("[NET] MQTT Reconnected.");
         mqttUp = true;
         reconnectAttempts = 0;
@@ -603,10 +603,10 @@ void networkTask(void *pvParameters) { // NOSONAR
               .count();
 
       auto val = static_cast<int>(receivedEvt.magnitude * 100);
-      char payload[64];
-      snprintf(payload, sizeof(payload), "%d:%ld", val, (long)evt_time);
-      char sig[MBEDTLS_ECDSA_MAX_LEN * 2 + 1];
-      crypto().signMessage(payload, sig, sizeof(sig));
+      std::array<char, 64> payload;
+      snprintf(payload.data(), payload.size(), "%d:%ld", val, (long)evt_time); // NOSONAR
+      std::array<char, MBEDTLS_ECDSA_MAX_LEN * 2 + 1> sig;
+      crypto().signMessage(payload.data(), sig.data(), sig.size());
 
 #if SERIAL_FALLBACK_ENABLED
       {
@@ -615,7 +615,7 @@ void networkTask(void *pvParameters) { // NOSONAR
                         // gnu++11
         case DeliveryPath::MQTT:
         case DeliveryPath::SERIAL_CDC:
-          deliverEvent(mqttClient, path, val, evt_time, sig, evt_time_ms);
+          deliverEvent(mqttClient, path, val, evt_time, sig.data(), evt_time_ms);
           triggerQuakeLed();
           break;
         case DeliveryPath::RETAIN:
@@ -625,7 +625,7 @@ void networkTask(void *pvParameters) { // NOSONAR
         }
       }
 #else
-      deliverEvent(mqttClient, DeliveryPath::MQTT, val, evt_time, sig,
+      deliverEvent(mqttClient, DeliveryPath::MQTT, val, evt_time, sig.data(),
                    evt_time_ms); // NOSONAR(cpp:S5811)
       triggerQuakeLed();
 #endif

@@ -123,11 +123,9 @@ if [[ -z "$LOCAL_IP" ]]; then
     # macOS
     LOCAL_IP=$(ipconfig getifaddr en0 2>/dev/null)
 fi
-if [[ -z "$LOCAL_IP" ]]; then
+if [[ -z "$LOCAL_IP" ]] && command -v ipconfig.exe &> /dev/null; then
     # Windows (Git Bash / Cygwin)
-    if command -v ipconfig.exe &> /dev/null; then
-        LOCAL_IP=$(ipconfig.exe | grep -i 'IPv4' | head -n 1 | awk -F ': ' '{print $2}' | tr -d '\r')
-    fi
+    LOCAL_IP=$(ipconfig.exe | grep -i 'IPv4' | head -n 1 | awk -F ': ' '{print $2}' | tr -d '\r')
 fi
 if [[ -z "$LOCAL_IP" ]]; then
     LOCAL_IP="192.168.1.100"

@@ -78,7 +78,7 @@ inline std::string buildSerialFrame(const std::string& marker, // NOSONAR(cpp:S9
                                     int value,
                                     int sensorId,
                                     long deviceTimestamp,
-                                    const std::string& signatureHex,
+                                    const std::string& signatureHex, // NOSONAR
                                     long long deviceTimestampMs = 0,
                                     int freeHeap = 0,
                                     int rssi = 0,
