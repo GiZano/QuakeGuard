@@ -9,7 +9,7 @@ Due to the specific physical layout of the ESP32-C3 SuperMini, the I2C bus is so
 - *SCL (Clock):* Mapped to GPIO 8, requiring internal pull-up resistors.
 - *Power Constraints:* The ADXL345 is powered strictly via the 3.3V rail; applying 5V will result in immediate hardware damage.
 
-The sensor operates at a 100Hz sampling rate (`ADXL345_DATARATE_100_HZ`) with a measurement range of $\pm$16G (`ADXL345_RANGE_16_G`). To prevent I2C bus race conditions during startup, the sensor object is instantiated dynamically in memory only after the hardware bus is fully stabilized.
+The sensor operates at a 100Hz sampling rate (`ADXL345_DATARATE_100_HZ`) with a measurement range of $plus.minus 16 G$ (`ADXL345_RANGE_16_G`). To prevent I2C bus race conditions during startup, the sensor object is instantiated dynamically in memory only after the hardware bus is fully stabilized.
 
 == Digital Signal Processing (DSP) & Calibration Pipeline
 

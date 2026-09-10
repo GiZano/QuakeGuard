@@ -27,11 +27,14 @@ Report generation is fully decoupled from the alert engine via a dedicated Redis
 - *Non-Blocking Enqueue:* When the main worker (`worker.py`) persists a confirmed `Alert`, it creates an `EmergencyReport` row in `PENDING` state and pushes the alert context to `ai_report_queue` via `lpush`. The alert pipeline is never blocked by LLM latency.
 - *State Machine:* Each report transitions through a tri-state lifecycle (mapped in @fig-ai-state):
 
-#figure(
-  image("assets/08-ai.png", width: 100%),
-  caption: [_AI Report State Machine_],
-  placement: auto
-) <fig-ai-state>
+#align(center)[
+  #figure(
+    image("assets/fig07-ai-report-state-machine.pdf", width: 84%),
+    caption: [_AI Report State Machine_],
+    numbering: _ => "7",
+    placement: top
+  ) <fig-ai-state>
+]
 
 - *Dedicated Consumer:* The `ai-worker` container loops on a blocking `brpop`, fetches the telemetry context, invokes Ollama, and atomically flips the report state. On success the worker publishes an `EMERGENCY_REPORT` payload to the `ai_reports` Redis Pub/Sub channel and commits the `COMPLETED` report with its `summary` and `recommendations`.
 - *Dead Letter Queue:* Unrecoverable failures (missing report, persistent inference errors) push the event to `ai_report_queue_dlq` and mark the report `FAILED`. The mobile app renders a "Report unavailable" badge for `FAILED` reports instead of showing partial or fabricated content.

@@ -7,12 +7,12 @@ QuakeGuard's architecture implements a Zero-Trust model where the network is ass
 #table(
   columns: (auto, auto, auto, auto),
   [*Threat Type*], [*Vector*], [*Mitigation*], [*Section*],
-  [Spoofing], [Attacker injects fake seismic data], [ECDSA signatures required on all telemetry], [§3.1],
-  [Tampering], [MITM alters event magnitude], [Payload hash (SHA-256) checked against signature], [§3.1],
-  [Repudiation], [Node denies sending a false alert], [Public key strictly bound to Sensor ID at provisioning], [§3.2],
-  [Info Disclosure], [Sniffing telemetry over WAN], [Data plane strictly enforces TLS 1.2+], [§3.3],
-  [Denial of Service], [Volumetric flooding of the ingestion API], [Redis Geohash rate limiter (50 req/s/IP) and connection pooling], [§5],
-  [Elevation of Priv], [Node attempts to provision others], [Enrollment Token required for `/devices/register`], [§3.2]
+  [Spoofing], [Attacker injects fake seismic data], [ECDSA signatures required on all telemetry], [§4.1],
+  [Tampering], [MITM alters event magnitude], [Payload hash (SHA-256) checked against signature], [§4.1],
+  [Repudiation], [Node denies sending a false alert], [Public key strictly bound to Sensor ID at provisioning], [§4.2],
+  [Info Disclosure], [Sniffing telemetry over WAN], [Data plane strictly enforces TLS 1.2+], [§4.3],
+  [Denial of Service], [Volumetric flooding of the ingestion API], [Redis Geohash rate limiter (50 req/s/IP) and connection pooling], [§6],
+  [Elevation of Priv], [Node attempts to provision others], [Enrollment Token required for `/devices/register`], [§4.2]
 )
 
 == Out of Scope

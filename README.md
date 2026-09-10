@@ -14,7 +14,7 @@
 ![Redis](https://img.shields.io/badge/Redis-Message_Broker-DC382D?style=for-the-badge&logo=redis&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Containerization-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 ![Local AI](https://img.shields.io/badge/Local_AI-Ollama_%7C_Llama_3.2-000000?style=for-the-badge&logo=meta&logoColor=white)
-![HiveMQ](https://img.shields.io/badge/HiveMQ-Cloud_MQTT-FFC107?style=for-the-badge&logo=mqtt&logoColor=black)
+![Mosquitto](https://img.shields.io/badge/Mosquitto-Local_MQTT-3C5280?style=for-the-badge&logo=eclipse-mosquitto&logoColor=white)
 ![Cloudflare](https://img.shields.io/badge/Cloudflare-HTTP2_Tunnel-F38020?style=for-the-badge&logo=cloudflare&logoColor=white)
 
 ![CI Backend](https://github.com/GiZano/QuakeGuard/actions/workflows/backend-ci.yml/badge.svg)
@@ -200,11 +200,9 @@ POSTGRES_USER=developer
 POSTGRES_PASSWORD=your_db_password
 API_PORT=8000
 
-# --- Cloud MQTT (HiveMQ) ---
-MQTT_BROKER=your-cluster-id.s1.eu.hivemq.cloud
-MQTT_PORT=8883
-MQTT_USERNAME=your_mqtt_username
-MQTT_PASSWORD=your_mqtt_password
+# --- Local MQTT (Mosquitto) ---
+MQTT_BROKER=localhost
+MQTT_PORT=1883
 
 # --- AI Emergency Reports (hybrid Edge AI architecture) ---
 AI_REPORT_ENABLED=true

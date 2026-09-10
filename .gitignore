@@ -55,6 +55,8 @@ extract.sh
 # Compiled Documents & Media
 # ------------------------------------------
 *.pdf
+!docs/diagrams/sanitized/*.pdf
+!docs/whitepaper/assets/*.pdf
 
 # ------------------------------------------
 # Research (SIL validation, ROADMAP R1)

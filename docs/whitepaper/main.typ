@@ -32,7 +32,8 @@
   #text(size: 12pt)[Release: *v2.1.0* (Grafana Observability & System Telemetry)]\
   #v(0.5cm)
   #text(size: 12pt)[Core Maintainers: \@GiZano, \@riccardo0731]\
-  #v(3cm)
+  #v(2cm)
+  #image("assets/logo/png/logo.png", width: 45%)
 ]
 
 #pagebreak()
