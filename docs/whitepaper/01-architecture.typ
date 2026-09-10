@@ -19,7 +19,7 @@ The infrastructure is decoupled into three primary tiers (illustrated in @fig-co
 
 == Data Plane and Control Plane
 
-Following the v1.1.0 cloud migration, the architecture strictly separates the data and control pipelines, mapping directly to the containerized deployment shown in @fig-container:
+Following the v1.1.0 cloud migration, the architecture strictly separates the data and control pipelines (see @fig-container for the core container topology):
 
 - *Data Plane (Telemetry):* Flows exclusively through a local Eclipse Mosquitto broker on port 1883. A Python-based MQTT bridge (`mqtt_subscriber.py`) subscribes to the `quakeguard/telemetry` topic and forwards payloads to the internal FastAPI ingestion pipeline via HTTP POST.
 - *Control Plane (Provisioning & Management):* Device onboarding, cryptographic handshakes, and REST retrieval operations are routed through an HTTPS tunnel to the FastAPI endpoints (e.g., `/devices/register`). In development the tunnel is a *Cloudflare quick tunnel* (`cloudflared tunnel --url http://localhost:8000`); production should use a real HTTPS domain. The ngrok free-tier edge is not used because its bot-protection terminates ESP-IDF (mbedTLS) TLS handshakes via JA3 fingerprinting *before* any HTTP header can be read, so IoT clients never reach the backend.
