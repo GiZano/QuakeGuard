@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
       - name: Run Actionlint
-        uses: reviewdog/action-actionlint@50842263c20a7c46bd0065b9e624d3c569db061e
+        uses: reviewdog/action-actionlint@d290e336d5a743810aef4404f757dc862276d2ae
 
       - name: Test Orchestration Scripts (Zero-Config Sync)
         run: |
