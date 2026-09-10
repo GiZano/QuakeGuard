@@ -114,19 +114,29 @@ else
     echo "✅ All local secrets are perfectly synchronized!"
 fi
 
-# --- HiveMQ Check ---
-if grep -q "your_mqtt_username" backend/.env || grep -q "your-cluster-id" backend/.env; then
-    echo ""
-    echo "⚠️  ACTION REQUIRED: HiveMQ Credentials Missing!"
-    echo "   The MQTT Broker is vital for QuakeGuard telemetry."
-    echo "   Please create a free cluster at: https://console.hivemq.cloud/"
-    echo "   Then, manually configure the following in backend/.env and firmware/esp32_config.env:"
-    echo "     - MQTT_BROKER"
-    echo "     - MQTT_USERNAME"
-    echo "     - MQTT_PASSWORD"
-    echo ""
-    prompt_yes_no "I understand, I will configure HiveMQ manually later. Continue?" || exit 1
+# --- Local IP Injection for Mosquitto & Backend ---
+echo ""
+echo "🔍 Detecting local IP address for Local-First Resilience..."
+# Detect IP (works on Linux, macOS, and Windows Git Bash)
+LOCAL_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
+if [[ -z "$LOCAL_IP" ]]; then
+    # macOS
+    LOCAL_IP=$(ipconfig getifaddr en0 2>/dev/null)
 fi
+if [[ -z "$LOCAL_IP" ]] && command -v ipconfig.exe &> /dev/null; then
+    # Windows (Git Bash / Cygwin)
+    LOCAL_IP=$(ipconfig.exe | grep -i 'IPv4' | head -n 1 | awk -F ': ' '{print $2}' | tr -d '\r')
+fi
+if [[ -z "$LOCAL_IP" ]]; then
+    LOCAL_IP="192.168.1.100"
+    echo "⚠️  Could not auto-detect local IP. Defaulting to $LOCAL_IP"
+else
+    echo "✅ Local IP detected: $LOCAL_IP"
+fi
+
+# Inject into firmware config
+sed -i "s/^MQTT_BROKER_HOST=.*/MQTT_BROKER_HOST=\"$LOCAL_IP\"/g" firmware/esp32_config.env
+echo "✅ Injected MQTT_BROKER_HOST=\"$LOCAL_IP\" into firmware/esp32_config.env"
 
 echo ""
 echo "🚀 Environment secrets synchronization complete!"

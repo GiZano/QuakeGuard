@@ -46,7 +46,7 @@ Because the orchestrator (`quakeguard_init.sh`) dynamically resolves and injects
 
 To validate the deployment, the system includes an End-to-End (E2E) stress test that simulates a massive seismic event.
 
-From the \`backend\` directory, execute:
+From the `backend` directory, execute:
 ```bash
 export API_URL="http://localhost:8000"
 export NUM_SENSORS=150

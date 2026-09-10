@@ -334,13 +334,13 @@ export default function MonitorScreen() {
   // Default to the first zone once the PostGIS list is available.
   useEffect(() => {
     if (selectedZoneId === undefined && zones && zones.length > 0) {
-      setSelectedZoneId(zones[0].id);
+      queueMicrotask(() => setSelectedZoneId(zones[0].id));
     }
   }, [zones, selectedZoneId]);
 
   // Reset the sliding window when switching zone.
   useEffect(() => {
-    setWindow([]);
+    queueMicrotask(() => setWindow([]));
   }, [selectedZoneId]);
 
   // Try to silently fetch the user location if we don't have it (for ETA calculation)
@@ -424,7 +424,7 @@ export default function MonitorScreen() {
       const ageMs = now - alertTime;
 
       if (ageMs < 60000) {
-        setIsAlertActive(true);
+        queueMicrotask(() => setIsAlertActive(true));
         if (alertTimerRef.current) clearTimeout(alertTimerRef.current);
         alertTimerRef.current = setTimeout(() => {
           setIsAlertActive(false);

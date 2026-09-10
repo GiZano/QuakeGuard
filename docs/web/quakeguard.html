@@ -15,7 +15,7 @@
           "alternateName": "QuakeGuard \u2014 Distributed Earthquake Early Warning System",
           "applicationCategory": "IoTApplication",
           "operatingSystem": "Web, ESP32-C3, React Native (Android/iOS)",
-          "softwareVersion": "2.0.1",
+          "softwareVersion": "2.1.0",
           "url": "https://giovanni-zanotti.is-a.dev/projects/quakeguard.html",
           "description": "Full-stack IoT architecture for real-time earthquake detection and early warning. ESP32-C3 + ADXL345 edge sensors with on-device STA/LTA and optional GNSS, ECDSA-signed telemetry over MQTT or USB CDC serial fallback (Zero-Trust), FastAPI + Redis Streams + TimescaleDB/PostGIS backend with per-area geo-zoning, and a React Native app with on-premise AI emergency reports (Ollama).",
           "codeRepository": "https://github.com/GiZano/QuakeGuard",
@@ -158,12 +158,7 @@
                         Everyday household appliances — washing machines, TVs, refrigerators — become a distributed
                         earthquake early-warning network that alerts you <strong style="color:#fff">before the shaking
                             arrives</strong>.
-                        <strong style="color:#fff">v2.0.1 Hybrid Infrastructure & GNSS Automation</strong> — Automated
-                        DevOps orchestrator, Local Provisioning, NTP hardware PPS discipline, ADXL345 calibration, and
-                        INGV FDSN validation
-                        when MQTT/WiFi is unreachable, with host-aware retention and automatic first-boot provisioning —
-                        privacy-first,
-                        seismic telemetry never leaves the machine.
+                        <strong style="color:#fff">v2.1.0 Grafana Observability & System Telemetry</strong> — End-to-End Latency tracking, ESP32 memory/radio health metrics, and true Local Mosquitto resilience without relying on cloud brokers.
                     </p>
                     <div class="d-flex flex-wrap gap-2 mb-4">
                         <a href="#demo" class="btn btn-qg"><i class="fas fa-bolt me-2"></i><span
@@ -374,8 +369,8 @@
                             <div class="pipe-arrow"><i class="fas fa-chevron-down"></i></div>
                             <div class="pipe-step"><span class="n">3</span><strong
                                     data-i18n="pipe_3_t">Publish</strong><br><span data-i18n="pipe_3_d">MQTT publish to
-                                    <code style="color:#00f5ff">quakeguard/telemetry</code> on HiveMQ Cloud (TLS, port
-                                    8883).</span></div>
+                                    <code style="color:#00f5ff">quakeguard/telemetry</code> on local Eclipse Mosquitto (port
+                                    1883).</span></div>
                             <div class="pipe-arrow"><i class="fas fa-chevron-down"></i></div>
                             <div class="pipe-step"><span class="n">4</span><strong
                                     data-i18n="pipe_4_t">Verify</strong><br><span data-i18n="pipe_4_d">Bridge → <code
@@ -390,7 +385,7 @@
                             <div class="pipe-arrow"><i class="fas fa-chevron-down"></i></div>
                             <div class="pipe-step"><span class="n">6</span><strong
                                     data-i18n="pipe_6_t">Process</strong><br><span data-i18n="pipe_6_d">Worker estimates
-                                    <code style="color:#00f5ff">M = log10(PGA × 1.6) + 3.0</code>; if M ≥ 4.5 an Alert
+                                    <code style="color:#00f5ff">M = log10(PGA / 1.6) + 3.0</code>; if M ≥ 4.5 an Alert
                                     is triggered.</span></div>
                             <div class="pipe-arrow"><i class="fas fa-chevron-down"></i></div>
                             <div class="pipe-step"><span class="n">7</span><strong data-i18n="pipe_7_t">Persist &amp;
@@ -458,12 +453,12 @@
                         <div class="qg-card">
                             <div class="icon"><i class="fas fa-network-wired"></i></div>
                             <h3 data-i18n="arch_mqtt">MQTT Data Plane</h3>
-                            <p data-i18n="arch_mqtt_p">HiveMQ Cloud broker over TLS. A dedicated bridge microservice
+                            <p data-i18n="arch_mqtt_p">Eclipse Mosquitto broker. A dedicated bridge microservice
                                 forwards telemetry to the secure HTTP pipeline, injecting the API key.</p>
-                            <span class="qg-tag">TLS 8883</span><span class="qg-tag">Paho</span><span
+                            <span class="qg-tag">Port 1883</span><span class="qg-tag">Paho</span><span
                                 class="qg-tag">Bridge</span>
-                            <img src="https://img.shields.io/badge/HiveMQ-Cloud%20MQTT-FFC107?style=for-the-badge&logo=mqtt&logoColor=black"
-                                alt="HiveMQ" style="height:22px;margin-top:8px;" loading="lazy">
+                            <img src="https://img.shields.io/badge/Eclipse%20Mosquitto-Broker-3C5280?style=for-the-badge&logo=eclipse-mosquitto&logoColor=white"
+                                alt="Eclipse Mosquitto" style="height:22px;margin-top:8px;" loading="lazy">
                         </div>
                     </div>
                     <div class="col-md-6 col-lg-4">
@@ -510,7 +505,7 @@
                                     class="qg-tag">GNSS</span>
                             </div>
                             <div style="flex: 1">
-                                <img src="assets/quakeguard/pcb_assembled.jpg" alt="QuakeGuard PCB"
+                                <img src="../assets/quakeguard/pcb_assembled.jpg" alt="QuakeGuard PCB"
                                     style="width:100%; border-radius: 8px; border: 1px solid rgba(0, 245, 255, 0.2);">
                             </div>
                         </div>
@@ -750,7 +745,7 @@
                                     </div>
                                     <div class="road-item done"><span class="ver" data-i18n="road_11_label">v1.1 ·
                                             Released</span>
-                                        <p data-i18n="road_11"><strong>HiveMQ Cloud MQTT (TLS)</strong>, Cloudflare HTTPS
+                                        <p data-i18n="road_11"><strong>Eclipse Mosquitto MQTT</strong>, Cloudflare HTTPS
                                             tunnel, security hardening.</p>
                                     </div>
                                     <div class="road-item done"><span class="ver" data-i18n="road_120_label">v1.2.0 ·
@@ -781,10 +776,9 @@
                                             Released</span>
                                         <p data-i18n="road_14"><strong>Documentation &amp; Zenodo Sync</strong> — PDF/Wiki architectural coherence (Cloudflare, 300s anti-replay), CERN-OHL licensing, SIL threshold clarification.</p>
                                     </div>
-                                    <div class="road-item"><span class="ver" data-i18n="road_21_label">v2.1 ·
-                                            Dashboards</span>
-                                        <p data-i18n="road_21"><strong>Grafana</strong> live visualization of seismic
-                                            telemetry.</p>
+                                    <div class="road-item done"><span class="ver" data-i18n="road_21_label">v2.1.0 ·
+                                            Released</span>
+                                        <p data-i18n="road_21"><strong>Data Dashboards & Observability</strong> — Grafana live visualization of system telemetry, End-to-End Latency tracking, and true Local Mosquitto resilience.</p>
                                     </div>
                                 </div>
                             </div>

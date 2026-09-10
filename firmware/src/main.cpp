@@ -1,13 +1,12 @@
 /**
  * Project: QuakeGuard - Professional Seismic Node
- * Version: 1.3.0-GNSS-PPS
+ * Version: 2.1.0
  * Target Hardware: ESP32-C3 SuperMini + ADXL345 + NEO-6M (JLCPCB)
  * Author: GiZano
  *
  * CHANGELOG:
- * - v2.0.0: GNSS on UART1 RX 5 / TX 4 (JLCPCB J4), PPS on GPIO 2, fallback
- * coords via .env, LED blue (10) PWM dimmed + red (3) 3s quake pulse + boot
- * self-test, NTP+PPS discipline prep.
+ * - v2.1.0: End-to-end latency tracking, ESP32 free heap monitoring, RSSI
+ * and GNSS satellite count telemetry exposed for Grafana Observability.
  */
 
 #include <Adafruit_ADXL345_U.h>
@@ -35,6 +34,11 @@
 #include <array>
 #include <chrono>
 #include <vector>
+
+// --------------------------------------------------------------------------
+// FIRMWARE VERSION (printed at boot for field identification)
+// --------------------------------------------------------------------------
+constexpr const char* FIRMWARE_VERSION = "2.1.0";
 
 // --------------------------------------------------------------------------
 // HARDWARE & SERVER CONFIGURATION
@@ -178,8 +182,8 @@ class CryptoContext {
 
 public:
   void init();
-  String getPublicKeyHex();
-  String signMessage(const String &message);
+  void getPublicKeyHex(char *out_hex_key, size_t out_max_len);
+  void signMessage(const char *message, char *out_hex_sig, size_t out_max_len);
 };
 
 CryptoContext &crypto() {
@@ -218,23 +222,25 @@ void CryptoContext::init() {
   }
 }
 
-String CryptoContext::getPublicKeyHex() {
+void CryptoContext::getPublicKeyHex(char *out_hex_key, size_t out_max_len) {
   std::array<unsigned char, 128> pub_buf;
   int ret =
       mbedtls_pk_write_pubkey_der(&pk_context_, pub_buf.data(), pub_buf.size());
   int len = ret;
   int start_index = pub_buf.size() - len;
 
-  String hexKey = "";
-  for (int i = start_index; i < static_cast<int>(pub_buf.size()); i++) {
-    std::array<char, 3> buf;
-    snprintf(buf.data(), buf.size(), "%02x", pub_buf[i]); // NOSONAR(cpp:S6494) - std::format unavailable on ESP32
-    hexKey += buf.data();
+  if (out_max_len > static_cast<size_t>(len * 2)) {
+    for (int i = 0; i < len; i++) {
+      snprintf(out_hex_key + (i * 2), out_max_len - (i * 2), "%02x", // NOSONAR
+               pub_buf[start_index + i]);
+    }
+  } else if (out_max_len > 0) {
+    out_hex_key[0] = '\0';
   }
-  return hexKey;
 }
 
-String CryptoContext::signMessage(const String &message) {
+void CryptoContext::signMessage(const char *message, char *out_hex_sig,
+                                size_t out_max_len) {
   std::array<unsigned char, 32> hash;
   std::array<unsigned char, MBEDTLS_ECDSA_MAX_LEN> sig;
   size_t sig_len = 0;
@@ -242,20 +248,20 @@ String CryptoContext::signMessage(const String &message) {
   mbedtls_md_init(&ctx);
   mbedtls_md_setup(&ctx, mbedtls_md_info_from_type(MBEDTLS_MD_SHA256), 0);
   mbedtls_md_starts(&ctx);
-  mbedtls_md_update(&ctx, (const unsigned char *)message.c_str(),
-                    message.length());
+  mbedtls_md_update(&ctx, (const unsigned char *)message, strlen(message)); // NOSONAR
   mbedtls_md_finish(&ctx, hash.data());
   mbedtls_md_free(&ctx);
   mbedtls_pk_sign(&pk_context_, MBEDTLS_MD_SHA256, hash.data(), 0, sig.data(),
                   &sig_len, mbedtls_ctr_drbg_random, &ctr_drbg_);
 
-  String hexSig = "";
-  for (size_t i = 0; i < sig_len; i++) {
-    std::array<char, 3> buf;
-    snprintf(buf.data(), buf.size(), "%02x", sig[i]); // NOSONAR(cpp:S6494)
-    hexSig += buf.data();
+  if (out_max_len > sig_len * 2) {
+    for (size_t i = 0; i < sig_len; i++) {
+      snprintf(out_hex_sig + (i * 2), out_max_len - (i * 2), "%02x", // NOSONAR
+               sig[i]);
+    }
+  } else if (out_max_len > 0) {
+    out_hex_sig[0] = '\0';
   }
-  return hexSig;
 }
 
 // --------------------------------------------------------------------------
@@ -301,7 +307,9 @@ bool performProvisioning() {
   http.setTimeout(15000);
 
   JsonDocument doc;
-  doc["public_key_hex"] = crypto().getPublicKeyHex();
+  std::array<char, 256> pub_hex;
+  crypto().getPublicKeyHex(pub_hex.data(), pub_hex.size());
+  doc["public_key_hex"] = pub_hex.data();
   doc["mac_address"] = WiFi.macAddress();
   doc["enrollment_token"] = ENROLLMENT_TOKEN;
 
@@ -355,8 +363,7 @@ bool performProvisioning() {
       preferences.end();
       globalSensorID = newID;
       Serial.printf("[PROV] SUCCESS! Assigned Sensor ID: %d\n", globalSensorID);
-      Serial.printf("[PROV] Public key: %s\n",
-                    crypto().getPublicKeyHex().c_str());
+      Serial.printf("[PROV] Public key: %s\n", pub_hex.data());
       http.end();
       return true;
     }
@@ -393,7 +400,8 @@ void sensorTask(void *pvParameters) { // NOSONAR
     if (detector.push(raw_mag, millis())) {
       Serial.printf("[SENSOR] EARTHQUAKE! Ratio: %.2f (Mag: %.3f G)\n",
                     detector.lastRatio(), detector.lastSTA());
-      // The backend expects the physical PGA (m/s^2 or Gs) for the magnitude calculation, not the STA/LTA trigger ratio!
+      // The backend expects the physical PGA (m/s^2 or Gs) for the magnitude
+      // calculation, not the STA/LTA trigger ratio!
       SeismicEvent evt = {detector.lastSTA(), millis()};
       xQueueSend(eventQueue, &evt, 0);
     }
@@ -404,7 +412,8 @@ void sensorTask(void *pvParameters) { // NOSONAR
 // TASK 2: NETWORK DISPATCH (MQTT + USB SERIAL FALLBACK)
 // --------------------------------------------------------------------------
 static void deliverEvent(PubSubClient &mqttClient, DeliveryPath path, int val,
-                         time_t evt_time, const String &sig);
+                         time_t evt_time, const char *sig,
+                         long long evt_time_ms = 0);
 
 #if SERIAL_FALLBACK_ENABLED
 static void drainRetention(RetentionRing<RETENTION_CAPACITY> &retention,
@@ -421,28 +430,51 @@ static void drainRetention(RetentionRing<RETENTION_CAPACITY> &retention,
   SerialEvent retainedEvt;
   while (retention.pop(retainedEvt)) {
     time_t report_time = epochAtSync + (millis() - millisAtSync) / 1000;
-    String payload = String(retainedEvt.value) + ":" + String(report_time);
-    String sig = crypto().signMessage(payload);
-    deliverEvent(mqttClient, path, retainedEvt.value, report_time, sig);
+    std::array<char, 64> payload;
+    snprintf(payload.data(), payload.size(), "%d:%ld", retainedEvt.value, // NOSONAR
+             (long)report_time);
+    std::array<char, MBEDTLS_ECDSA_MAX_LEN * 2 + 1> sig;
+    crypto().signMessage(payload.data(), sig.data(), sig.size());
+    long long report_time_ms =
+        ((long long)epochAtSync * 1000) + (millis() - millisAtSync);
+    deliverEvent(mqttClient, path, retainedEvt.value, report_time, sig.data(),
+                 report_time_ms);
     triggerQuakeLed();
   }
 }
 #endif
 
 static void deliverEvent(PubSubClient &mqttClient, DeliveryPath path, int val,
-                         time_t evt_time, const String &sig) {
+                         time_t evt_time, const char *sig,
+                         long long evt_time_ms) {
+  int free_heap = ESP.getFreeHeap();
+  int rssi = WiFi.RSSI();
+  int gnss_satellites = 0;
+#ifdef GNSS_ENABLED
+  gnss_satellites = gnss().getSatellites();
+#endif
+
   if (path == DeliveryPath::MQTT) { // NOSONAR(cpp:S5811)
     JsonDocument doc;
     doc["value"] = val;
     doc["sensor_id"] = globalSensorID;
     doc["device_timestamp"] = evt_time;
+    if (evt_time_ms > 0)
+      doc["device_timestamp_ms"] = evt_time_ms;
     doc["signature_hex"] = sig;
 
-    String json;
-    serializeJson(doc, json);
+    // System Telemetry (v2.1.0 Grafana)
+    doc["free_heap"] = free_heap;
+    doc["rssi"] = rssi;
+#ifdef GNSS_ENABLED
+    doc["gnss_satellites"] = gnss_satellites;
+#endif
+
+    std::array<char, 512> json;
+    serializeJson(doc, json.data(), json.size());
 
     // FIRE AND FORGET! Milliseconds instead of HTTP round-trips!
-    if (mqttClient.publish("quakeguard/telemetry", json.c_str())) {
+    if (mqttClient.publish("quakeguard/telemetry", json.data())) {
       Serial.println("[NET] MQTT Publish OK.");
     } else {
       Serial.println("[NET] MQTT Publish FAILED.");
@@ -450,7 +482,8 @@ static void deliverEvent(PubSubClient &mqttClient, DeliveryPath path, int val,
   } else {
     // USB serial fallback: machine-readable frame on the CDC port.
     Serial.print(buildSerialFrame(SERIAL_FALLBACK_MARKER, val, globalSensorID,
-                                  (long)evt_time, sig.c_str())
+                                  (long)evt_time, sig, evt_time_ms, free_heap,
+                                  rssi, gnss_satellites)
                      .c_str());
     Serial.println();
     Serial.println("[NET] Serial Fallback Publish OK.");
@@ -479,22 +512,37 @@ void networkTask(void *pvParameters) { // NOSONAR
 
   SeismicEvent receivedEvt;
   unsigned long lastMqttAttempt = 0;
+  int reconnectAttempts = 0;
+  unsigned long backoffDelay = 0;
 
   for (;;) {
     mqttClient.loop(); // Process incoming keepalives
 
-    // Opportunistic MQTT (re)connection, throttled to 5 s: never blocks.
+    // Opportunistic MQTT (re)connection, throttled with Exponential Backoff
     bool mqttUp = mqttClient.connected();
     // Blue LED: double blink WiFi, single blink server, solid connected (also
     // handles red auto-off)
     updateConnectionLed(WiFi.status() == WL_CONNECTED, mqttUp);
     if (!mqttUp && WiFi.status() == WL_CONNECTED &&
-        (millis() - lastMqttAttempt > 5000)) {
+        (millis() - lastMqttAttempt > backoffDelay)) {
       lastMqttAttempt = millis();
-      String clientId = "QuakeGuard-" + WiFi.macAddress();
-      if (mqttClient.connect(clientId.c_str(), MQTT_USERNAME, MQTT_PASSWORD)) {
+      std::array<char, 64> clientId;
+      snprintf(clientId.data(), clientId.size(), "QuakeGuard-%s", // NOSONAR
+               WiFi.macAddress().c_str());
+      if (mqttClient.connect(clientId.data(), MQTT_USERNAME, MQTT_PASSWORD)) {
         Serial.println("[NET] MQTT Reconnected.");
         mqttUp = true;
+        reconnectAttempts = 0;
+        backoffDelay = 0; // immediate next check
+      } else {
+        reconnectAttempts++;
+        int exp_limit = reconnectAttempts > 5 ? 5 : reconnectAttempts;
+        unsigned long baseDelay = 5000 * (1 << exp_limit);
+        backoffDelay =
+            baseDelay +
+            random(0, 3000); // Truncated Exponential Backoff + Jitter
+        Serial.printf("[NET] MQTT Connect failed. Backoff: %lu ms\n",
+                      backoffDelay);
       }
     }
 
@@ -548,10 +596,17 @@ void networkTask(void *pvParameters) { // NOSONAR
       unsigned long age_ms = millis() - receivedEvt.event_millis;
       time_t evt_time = std::chrono::system_clock::to_time_t(
           now_chrono - std::chrono::milliseconds(age_ms));
+      long long evt_time_ms =
+          std::chrono::duration_cast<std::chrono::milliseconds>(
+              (now_chrono - std::chrono::milliseconds(age_ms))
+                  .time_since_epoch())
+              .count();
 
       auto val = static_cast<int>(receivedEvt.magnitude * 100);
-      String payload = String(val) + ":" + String(evt_time);
-      String sig = crypto().signMessage(payload);
+      std::array<char, 64> payload;
+      snprintf(payload.data(), payload.size(), "%d:%ld", val, (long)evt_time); // NOSONAR
+      std::array<char, MBEDTLS_ECDSA_MAX_LEN * 2 + 1> sig;
+      crypto().signMessage(payload.data(), sig.data(), sig.size());
 
 #if SERIAL_FALLBACK_ENABLED
       {
@@ -560,7 +615,7 @@ void networkTask(void *pvParameters) { // NOSONAR
                         // gnu++11
         case DeliveryPath::MQTT:
         case DeliveryPath::SERIAL_CDC:
-          deliverEvent(mqttClient, path, val, evt_time, sig);
+          deliverEvent(mqttClient, path, val, evt_time, sig.data(), evt_time_ms);
           triggerQuakeLed();
           break;
         case DeliveryPath::RETAIN:
@@ -570,8 +625,8 @@ void networkTask(void *pvParameters) { // NOSONAR
         }
       }
 #else
-      deliverEvent(mqttClient, DeliveryPath::MQTT, val, evt_time,
-                   sig); // NOSONAR(cpp:S5811)
+      deliverEvent(mqttClient, DeliveryPath::MQTT, val, evt_time, sig.data(),
+                   evt_time_ms); // NOSONAR(cpp:S5811)
       triggerQuakeLed();
 #endif
     }
@@ -605,7 +660,7 @@ void setup() {
   digitalWrite(LED_RED_PIN, LOW);
   ledBootTest(); // verify wiring: 2x blink both LEDs
 
-  Serial.println("\n\n[BOOT] QuakeGuard v2.0.0 GNSS+PPS+LED");
+  Serial.printf("\n\n[BOOT] QuakeGuard v%s\n", FIRMWARE_VERSION);
 
   crypto().init();
 

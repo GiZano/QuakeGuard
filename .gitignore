@@ -55,6 +55,8 @@ extract.sh
 # Compiled Documents & Media
 # ------------------------------------------
 *.pdf
+!docs/diagrams/sanitized/*.pdf
+!docs/whitepaper/assets/*.pdf
 
 # ------------------------------------------
 # Research (SIL validation, ROADMAP R1)
@@ -63,3 +65,8 @@ research/data/
 research/out/
 research/*.png
 firmware/tools/detect_cli
+
+# ------------------------------------------
+# KiCad local history
+# ------------------------------------------
+.history/

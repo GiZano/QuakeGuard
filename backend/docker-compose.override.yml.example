@@ -1,0 +1,32 @@
+# docker-compose.override.yml — Local Development Overrides
+#
+# This file is automatically loaded by Docker Compose alongside docker-compose.yml.
+# Use it to customize the stack for local development without modifying the base config.
+#
+# Usage:
+#   cp docker-compose.override.yml.example docker-compose.override.yml
+#   # Edit as needed, then:
+#   docker compose up --build -d
+
+services:
+  # --- Bind-mount source code for hot reload ---
+  fastapi-app:
+    volumes:
+      - ./src:/app/src:ro
+    environment:
+      - LOG_LEVEL=DEBUG
+
+  worker:
+    volumes:
+      - ./src:/app/src:ro
+    environment:
+      - LOG_LEVEL=DEBUG
+
+  # --- Expose additional ports for debugging ---
+  postgres:
+    ports:
+      - "5432:5432"
+
+  redis:
+    ports:
+      - "6379:6379"

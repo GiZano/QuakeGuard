@@ -14,7 +14,7 @@
 ![Redis](https://img.shields.io/badge/Redis-Message_Broker-DC382D?style=for-the-badge&logo=redis&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Containerization-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 ![Local AI](https://img.shields.io/badge/Local_AI-Ollama_%7C_Llama_3.2-000000?style=for-the-badge&logo=meta&logoColor=white)
-![HiveMQ](https://img.shields.io/badge/HiveMQ-Cloud_MQTT-FFC107?style=for-the-badge&logo=mqtt&logoColor=black)
+![Mosquitto](https://img.shields.io/badge/Mosquitto-Local_MQTT-3C5280?style=for-the-badge&logo=eclipse-mosquitto&logoColor=white)
 ![Cloudflare](https://img.shields.io/badge/Cloudflare-HTTP2_Tunnel-F38020?style=for-the-badge&logo=cloudflare&logoColor=white)
 
 ![CI Backend](https://github.com/GiZano/QuakeGuard/actions/workflows/backend-ci.yml/badge.svg)
@@ -32,12 +32,18 @@
 [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=GiZano_QuakeGuard&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=GiZano_QuakeGuard)
 [![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=GiZano_QuakeGuard&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=GiZano_QuakeGuard)
 
+![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=for-the-badge)
+
 > 📚 **Technical Specification:** A comprehensive architecture whitepaper is available in the `docs/` directory, compiled via Typst. For a browsable, topic-by-topic reference, check out the [project Wiki](https://github.com/GiZano/QuakeGuard/wiki).
 
 ![QuakeGuard Logo](docs/web/assets/quakeguard/github-banner.png)
 
 
 </div>
+
+---
+
+🌐 **[Landing Page](https://giovanni-zanotti.is-a.dev/projects/quakeguard.html)** · 📚 **[Wiki](https://github.com/GiZano/QuakeGuard/wiki)** · 📄 **[Whitepaper (PDF)](docs/whitepaper/)** · 🗺️ **[ROADMAP](ROADMAP.md)**
 
 ---
 
@@ -194,11 +200,9 @@ POSTGRES_USER=developer
 POSTGRES_PASSWORD=your_db_password
 API_PORT=8000
 
-# --- Cloud MQTT (HiveMQ) ---
-MQTT_BROKER=your-cluster-id.s1.eu.hivemq.cloud
-MQTT_PORT=8883
-MQTT_USERNAME=your_mqtt_username
-MQTT_PASSWORD=your_mqtt_password
+# --- Local MQTT (Mosquitto) ---
+MQTT_BROKER=localhost
+MQTT_PORT=1883
 
 # --- AI Emergency Reports (hybrid Edge AI architecture) ---
 AI_REPORT_ENABLED=true
@@ -434,7 +438,7 @@ QuakeGuard/
 | **v1.2.2** | ✅ Released — Zero-Trust Serial Fallback — signed telemetry over USB CDC (serial) when MQTT is unreachable |
 | **v2.0.0** | ✅ Released — Triangulation (multi-node spatial correlation), Hybrid Network Architecture, Automated DevOps Orchestration (Ptyxis), Local Factory Provisioning, GNSS sync, NTP+PPS, ADXL calibration, and INGV FDSN SIL validation |
 | **v2.0.1** | ✅ Released — Documentation & Zenodo Sync: PDF/Wiki architectural coherence (Cloudflare, 300s anti-replay), CERN-OHL hardware licensing, SIL vs Firmware threshold clarification, and `CITATION.cff` bump |
-| **v2.1** | Data Dashboards — Grafana dashboards for real-time visualization of seismic telemetry |
+| **v2.1.0** | ✅ Released — System Telemetry & Grafana Observability, Local Mosquitto architecture, Repository Health: Dependabot, ADRs, C4/sequence diagrams, multi-stage Dockerfile, firmware versioning, pinout, flashing guide, hardware compliance |
 | **v2.1.1** | Timeseries DB & Mobile Fix — migration to TimescaleDB/InfluxDB; per-sensor chart isolation in React Native mobile |
 | **v2.2** | Heterogeneous Edge Intelligence — hybrid Tier A (STA/LTA) + Tier B (quantized CNN) decision fusion |
 | **Future** | Cloud IaC — Kubernetes + Terraform auto-scaling platform (see [ROADMAP.md](ROADMAP.md)) |
@@ -461,6 +465,11 @@ QuakeGuard's architecture and real-world applicability have been recognized in t
 
 This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**.
 See the [LICENSE](LICENSE) file for details.
+
+Hardware designs (`hardware/`) are licensed under the **CERN Open Hardware Licence v2 — Strongly Reciprocal (CERN-OHL-S-2.0)**.
+See [hardware/LICENSE](hardware/LICENSE) for details.
+
+> ⚠️ **Hardware Compliance:** The QuakeGuard PCB is **not certified for CE/FCC/RoHS**. It is intended for **prototyping, educational, and research use only**. Do not deploy as a commercial safety-critical device without appropriate regulatory certification.
 
 ---
 

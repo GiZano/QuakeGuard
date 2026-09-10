@@ -1,0 +1,139 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="GwQsENpANJi7JgOfrHC7">
+    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="PJAb1rRzUWxbIY526-re-1" parent="1" style="whiteSpace=wrap;html=1;" value="&lt;div&gt;ESP32-C3&lt;/div&gt;&lt;div&gt;Node&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="120" x="42" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="PJAb1rRzUWxbIY526-re-2" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;endArrow=none;endFill=0;fillColor=#e1d5e7;strokeColor=#9673a6;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="101.5" y="100" as="sourcePoint" />
+            <mxPoint x="101.5" y="630" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PJAb1rRzUWxbIY526-re-3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Power ON --&amp;gt; LED boot test (2x blink)" vertex="1">
+          <mxGeometry height="40" width="158" x="23" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="PJAb1rRzUWxbIY526-re-10" edge="1" parent="1" source="PJAb1rRzUWxbIY526-re-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="40" y="220" />
+              <mxPoint x="40" y="350" />
+            </Array>
+            <mxPoint x="102" y="350" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PJAb1rRzUWxbIY526-re-15" connectable="0" parent="PJAb1rRzUWxbIY526-re-10" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="&lt;div&gt;Generate &lt;b&gt;ECDSA&lt;/b&gt;&lt;/div&gt;&lt;div&gt;key pair&lt;/div&gt;" vertex="1">
+          <mxGeometry relative="1" x="0.1872" y="1" as="geometry">
+            <mxPoint x="3" y="-23" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PJAb1rRzUWxbIY526-re-21" connectable="0" parent="PJAb1rRzUWxbIY526-re-10" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="&lt;div&gt;Store private key&amp;nbsp;&lt;/div&gt;&lt;div&gt;in &lt;b&gt;NVS&lt;/b&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry relative="1" x="0.3271" as="geometry">
+            <mxPoint x="4" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PJAb1rRzUWxbIY526-re-9" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="First Boot" vertex="1">
+          <mxGeometry height="80" width="97" x="53.5" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="PJAb1rRzUWxbIY526-re-12" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="T" vertex="1">
+          <mxGeometry height="30" width="60" x="20" y="195" as="geometry" />
+        </mxCell>
+        <mxCell id="PJAb1rRzUWxbIY526-re-13" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="F" vertex="1">
+          <mxGeometry height="30" width="60" x="80" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="PJAb1rRzUWxbIY526-re-16" edge="1" parent="1" style="curved=1;endArrow=classic;html=1;rounded=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <Array as="points">
+              <mxPoint x="140" y="460" />
+              <mxPoint x="140" y="490" />
+            </Array>
+            <mxPoint x="100" y="460" as="sourcePoint" />
+            <mxPoint x="100" y="490" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PJAb1rRzUWxbIY526-re-22" parent="1" style="whiteSpace=wrap;html=1;" value="WiFiManager" vertex="1">
+          <mxGeometry height="60" width="120" x="200" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="PJAb1rRzUWxbIY526-re-23" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;endArrow=none;endFill=0;fillColor=#e1d5e7;strokeColor=#9673a6;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="259.71" y="100" as="sourcePoint" />
+            <mxPoint x="259.71000000000004" y="440" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PJAb1rRzUWxbIY526-re-24" parent="1" style="whiteSpace=wrap;html=1;" value="&lt;div&gt;User&lt;/div&gt;&lt;div&gt;(Phone/Laptop)&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="120" x="358" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="PJAb1rRzUWxbIY526-re-25" parent="1" style="whiteSpace=wrap;html=1;" value="&lt;div&gt;FastAPI&lt;/div&gt;&lt;div&gt;Gateway&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="120" x="516" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="PJAb1rRzUWxbIY526-re-26" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;endArrow=none;endFill=0;fillColor=#e1d5e7;strokeColor=#9673a6;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="418" y="100" as="sourcePoint" />
+            <mxPoint x="418.00000000000006" y="440" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PJAb1rRzUWxbIY526-re-27" edge="1" parent="1" source="PJAb1rRzUWxbIY526-re-25" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.519;exitY=1.007;exitDx=0;exitDy=0;endArrow=none;endFill=0;fillColor=#e1d5e7;strokeColor=#9673a6;exitPerimeter=0;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="557" y="110" as="sourcePoint" />
+            <mxPoint x="578" y="640" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PJAb1rRzUWxbIY526-re-28" edge="1" parent="1" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;rounded=0;" value="">
+          <mxGeometry relative="1" width="100" as="geometry">
+            <Array as="points" />
+            <mxPoint x="100" y="380" as="sourcePoint" />
+            <mxPoint x="260" y="380" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PJAb1rRzUWxbIY526-re-30" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;div&gt;Start captive portal &quot;&lt;i&gt;QuakeGuard-setup&lt;/i&gt;&quot;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="30" width="170" x="95" y="348" as="geometry" />
+        </mxCell>
+        <mxCell id="PJAb1rRzUWxbIY526-re-31" edge="1" parent="1" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;rounded=0;startArrow=classic;startFill=1;endArrow=none;endFill=0;" value="">
+          <mxGeometry relative="1" width="100" as="geometry">
+            <Array as="points" />
+            <mxPoint x="260" y="400" as="sourcePoint" />
+            <mxPoint x="418" y="400" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PJAb1rRzUWxbIY526-re-32" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;div&gt;Connect to AP&lt;/div&gt;&lt;div&gt;enter Wi-Fi credentials&lt;/div&gt;" vertex="1">
+          <mxGeometry height="30" width="130" x="277" y="366" as="geometry" />
+        </mxCell>
+        <mxCell id="PJAb1rRzUWxbIY526-re-33" edge="1" parent="1" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;rounded=0;startArrow=classic;startFill=1;endArrow=none;endFill=0;" value="">
+          <mxGeometry relative="1" width="100" as="geometry">
+            <Array as="points" />
+            <mxPoint x="101" y="430" as="sourcePoint" />
+            <mxPoint x="259" y="430" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PJAb1rRzUWxbIY526-re-34" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Wi-Fi connected" vertex="1">
+          <mxGeometry height="30" width="97" x="131.5" y="402" as="geometry" />
+        </mxCell>
+        <mxCell id="PJAb1rRzUWxbIY526-re-36" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Check &lt;b&gt;NVS&lt;/b&gt; for existing &lt;i&gt;sensor_id&lt;/i&gt;" vertex="1">
+          <mxGeometry height="30" width="120" x="145" y="460" as="geometry" />
+        </mxCell>
+        <mxCell id="PJAb1rRzUWxbIY526-re-37" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="&lt;div&gt;&lt;br/&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="80" width="97" x="53.5" y="510" as="geometry" />
+        </mxCell>
+        <mxCell id="PJAb1rRzUWxbIY526-re-38" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;i&gt;sensor_id&lt;/i&gt;&amp;nbsp;&lt;i&gt;= 0&lt;/i&gt;" vertex="1">
+          <mxGeometry height="30" width="90" x="55" y="535" as="geometry" />
+        </mxCell>
+        <mxCell id="PJAb1rRzUWxbIY526-re-39" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="T" vertex="1">
+          <mxGeometry height="30" width="60" x="85" y="580" as="geometry" />
+        </mxCell>
+        <mxCell id="PJAb1rRzUWxbIY526-re-42" edge="1" parent="1" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;rounded=0;" value="">
+          <mxGeometry relative="1" width="100" as="geometry">
+            <Array as="points" />
+            <mxPoint x="102" y="620" as="sourcePoint" />
+            <mxPoint x="578" y="620" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PJAb1rRzUWxbIY526-re-43" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;div&gt;&lt;b&gt;POST&lt;/b&gt;&amp;nbsp;&lt;i&gt;/devices/register&lt;/i&gt;&lt;/div&gt;&lt;div&gt;&lt;i&gt;{public_key_hex, mac_address, enrollment_token, latitude?, longitude?}&lt;/i&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="30" width="430" x="127" y="584" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

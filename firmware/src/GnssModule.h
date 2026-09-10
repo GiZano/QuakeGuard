@@ -67,6 +67,7 @@ public:
   // PPS (v2.0.0) — returns millis() of last PPS pulse, 0 if never seen
   unsigned long getLastPpsMs() const { return lastPpsMs_; }
   bool hasPpsFix() const { return lastPpsMs_ != 0 && (millis() - lastPpsMs_) < 2000; }
+  uint32_t getSatellites() { return gps_.satellites.isValid() ? gps_.satellites.value() : 0; }
 
 private:
   void saveLastKnownFix();

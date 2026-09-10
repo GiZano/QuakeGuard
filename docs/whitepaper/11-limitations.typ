@@ -1,8 +1,8 @@
 = Limitations & State of the Art Comparison
 
 == Known Limitations
-While QuakeGuard provides a robust foundation for community EEW, several limitations exist in the v2.0.1 architecture:
-- *Single Point of Failure (Broker):* The system currently relies on a single HiveMQ Cloud cluster for MQTT telemetry. A network partition or broker outage breaks the data plane, though the Zero-Trust serial fallback mitigates this for local deployments.
+While QuakeGuard provides a robust foundation for community EEW, several limitations exist in the v2.1.0 architecture:
+- *Single Point of Failure (Broker):* The system currently relies on a single Mosquitto broker container for MQTT telemetry. A catastrophic Docker engine failure breaks the data plane, though the Zero-Trust serial fallback mitigates this for deployments bridging over USB.
 - *TPR Limits on Cheap Hardware:* The ADXL345 sensor has an inherently higher noise floor compared to professional episensors, capping the theoretical True Positive Rate (TPR) at ~80% when validated against the INGV SIL dataset.
 - *Macro-Region Alerting:* The triangulation algorithm computes the epicenter, but alerts are still broadcasted at the macro-zone level, potentially warning users who are outside the destructive radius.
 
@@ -11,7 +11,7 @@ QuakeGuard sits between massive government systems and smartphone-based crowdsou
 
 #table(
   columns: (1fr, 1.2fr, 1fr, 1.3fr),
-  [*Feature*], [*QuakeGuard (v2.0)*], [*ShakeAlert*], [*MyShake / EQN*],
+  [*Feature*], [*QuakeGuard (v2.1.0)*], [*ShakeAlert*], [*MyShake / EQN*],
   [Hardware], [Dedicated Edge IoT], [Professional], [Smartphones],
   [Latency], [< 200 ms], [< 5 s], [Variable (1-10 s)],
   [Coupling Noise], [Low (Rigid mount)], [Very Low], [Variable (Filtered when stationary/charging)],

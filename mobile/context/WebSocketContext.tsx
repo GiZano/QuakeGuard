@@ -114,7 +114,7 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
     registerForPushNotificationsAsync();
   }, []);
   
-  const connect = useCallback(() => {
+  const connect = useCallback(function doConnect() {
     if (usePreferencesStore.getState().isOfflineMode) return;
     
     // FIX: Also block when the socket is in "CONNECTING" (0) state,
@@ -209,7 +209,7 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
       console.log(`⏳ Reconnecting in ${delay / 1000} seconds...`);
       reconnectTimeout.current = setTimeout(() => {
         reconnectAttempts.current += 1;
-        connect();
+        doConnect();
       }, delay);
     };
 

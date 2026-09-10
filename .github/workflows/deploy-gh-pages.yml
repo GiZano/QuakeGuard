@@ -57,5 +57,5 @@ jobs:
         fi
 
         git add -A
-        git commit -m "docs(quakeguard): auto-sync v2.0.1 architecture and whitepaper"
+        git commit -m "docs(quakeguard): auto-sync v2.1.0 architecture and whitepaper"
         git push origin main

@@ -154,7 +154,7 @@ async def lifespan(app: FastAPI):
     listener_task.cancel()
 
 # Initialize FastAPI
-app = FastAPI(title="QuakeGuard Backend", version="2.0.0", lifespan=lifespan)
+app = FastAPI(title="QuakeGuard Backend", version="2.1.0", lifespan=lifespan)
 
 # ==========================================
 # MIDDLEWARE
@@ -531,6 +531,10 @@ async def create_reading_async(
     payload['longitude'] = sensor.longitude
     if sensor.latitude is not None and sensor.longitude is not None:
         payload['sensor_geohash'] = point_to_geohash(sensor.latitude, sensor.longitude, COOLDOWN_PRECISION)
+        
+    # --- System Telemetry: End-to-End Latency ---
+    if payload.get("device_timestamp_ms"):
+        payload["latency_ms"] = int(time.time() * 1000) - payload["device_timestamp_ms"]
     
     # Append to the Redis Streams ingestion bus (O(1)); the worker group drains it.
     await ingest.enqueue_reading(redis_client, json.dumps(payload))

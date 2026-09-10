@@ -8,7 +8,26 @@ Before calculating the physical epicenter, the ingestion worker (`backend/src/wo
 
 1. *Temporal Window:* When a valid trigger arrives, its payload is appended to a Redis List specific to its geographical area, and the list's Time-To-Live (TTL) is refreshed to 60 seconds. This creates a sliding temporal buffer that captures the seismic wavefront as it propagates across multiple sensors.
 2. *Quorum Consensus:* To eliminate isolated false positives (e.g., localized heavy impacts or tampering), the correlation engine requires a minimum quorum of 3 independent sensors (`llen(buffer_key) == 3`).
-3. *Execution:* The moment the quorum is reached within the 60-second window, the worker flushes the payload cluster to the triangulation function to compute the unified epicenter and trigger the downstream AI reporting services.
+3. *Execution:* The moment the quorum is reached within the 60-second window, the worker flushes the payload cluster to the triangulation function to compute the unified epicenter and trigger the downstream AI reporting services (process detailed in @fig-triangulation-1 and @fig-triangulation-2).
+
+
+  #align(center)[
+    #figure(
+      block(height: 45%, image("assets/fig08_1-clustering-sequence.pdf", width: 98%, height: 100%, fit: "contain")),
+      caption: [Temporal and spatial clustering sequence for seismic triggers],
+      numbering: _ => "8.1",
+      placement: top
+    ) <fig-triangulation-1>
+  ]
+  #align(center)[
+    #figure(
+      block(height: 45%, image("assets/fig08_2-triangulation-sequence.pdf", width: 94%, height: 100%, fit: "contain")),
+      caption: [Triangulation and epicenter generation sequence],
+      numbering: _ => "8.2",
+      placement: top
+    ) <fig-triangulation-2>
+  ]
+  
 
 == Mathematical Model (v2.0 MVP)
 

@@ -21,14 +21,14 @@
 
     var STORE_KEY = 'quakeguard_demo_history';
 
-    // Magnitude proxy: M = log10(PGA_calib) + b, where PGA_calib = PGA * K_CALIBRATION
+    // Magnitude proxy: M = log10(PGA_calib) + b, where PGA_calib = PGA / K_CALIBRATION
     // (K_CALIBRATION = 1.6, B_OFFSET = 3.0) — reproduced as the docs describe.
     var K_CALIBRATION = 1.6;
     var B_OFFSET = 3.0;
     var THRESHOLD = 4.5;
 
     function magnitudeFromPga(pga) {
-        return Math.log10(pga * K_CALIBRATION) + B_OFFSET;
+        return Math.log10(pga / K_CALIBRATION) + B_OFFSET;
     }
 
     var panel = document.getElementById('qg-demo');

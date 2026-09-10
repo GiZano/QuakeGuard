@@ -103,12 +103,26 @@ Documentation-only patch aligning the technical whitepaper, GitHub Wiki, and pro
 
 ---
 
-## v2.1.0 — Data Dashboards
+## v2.1.0 — System Telemetry & Repository Health (Released)
 
-Grafana dashboards for real-time visualization of seismic telemetry.
+Comprehensive repository maturity improvements: CI hardening, architectural documentation, developer experience, and compliance foundations.
 
-- Grafana dashboards for live seismic telemetry
-- Real-time visualization of multi-node network activity
+- ✅ **Dependabot** for automated dependency updates (pip, npm, GitHub Actions)
+- ✅ **Gitleaks** secret scanning in CI (prevents credential leaks)
+- ✅ **Architecture Decision Records (ADRs):** 4 initial ADRs (Redis Streams, HiveMQ, Hybrid Edge AI, CERN-OHL)
+- ✅ **C4 and Sequence Diagrams** in Mermaid (versionable, GitHub-renderable)
+- ✅ **Multi-stage Dockerfile** (builder + runtime stages, reduced image size)
+- ✅ **Firmware versioning** (`FIRMWARE_VERSION` define, printed at boot)
+- ✅ **Pinout reference** (`firmware/PINOUT.md`) and **Flashing guide** (`firmware/FLASHING.md`)
+- ✅ **Privacy Policy** (`mobile/PRIVACY_POLICY.md`) for App Store/Play Store readiness
+- ✅ **SUPPORT.md**, **Hardware Issue Template**, **Docker Compose override example**
+- ✅ **BOM enrichment** (manufacturer, cost, distributor links, socketable modules)
+- ✅ **README enhancements** (landing page link, PRs welcome badge, hardware disclaimer)
+
+- ✅ **Grafana Dashboards:** natively connected to TimescaleDB for real-time visualization
+- ✅ **System Telemetry:** (End-to-End Latency, ESP32 Free Heap, RSSI, GNSS Fix) appended to payload
+- ✅ Real-time visualization of multi-node network activity
+- ✅ Automated zero-config deployment via `docker-compose.yml`
 
 ---
 
@@ -141,7 +155,7 @@ Crowning of the engineering phase. Two-tier edge cluster where TinyML is **not**
 
 ---
 
-## v2.3.0 — Right-Sized Ingestion at Scale (Redis Streams + TimescaleDB)
+## Right-Sized Ingestion at Scale (Redis Streams + TimescaleDB) (Released)
 
 Backend ingestion redesigned so the control plane sustains tens of thousands of sensors on a small footprint instead of degrading into a single-queue toy.
 
@@ -238,10 +252,10 @@ Production-grade cloud platform behind the alert pipeline: the MQTT/REST/AI stac
 
 ### Performance & scaling engineering (post-paper, not needed at current scale)
 
-- **Kafka / Redpanda as the central ingestion buffer (millions-class)** — replaces Redis Streams as the durable, replayable backbone once sustained ingestion exceeds what a single Redis node can buffer. The v2.3.0 consumer interface (`src/ingest.py`) is deliberately transport-agnostic: `enqueue_reading` / `read_batch` / `ack` / `recover_pending` are re-pointable so a Kafka-backed implementation can slot in without touching the worker. Also unlocks partitions-per-sensor ordering and backfill reprocessing for the triangulation engine (v2.1).
+- **Kafka / Redpanda as the central ingestion buffer (millions-class)** — replaces Redis Streams as the durable, replayable backbone once sustained ingestion exceeds what a single Redis node can buffer. The consumer interface (`src/ingest.py`) is deliberately transport-agnostic: `enqueue_reading` / `read_batch` / `ack` / `recover_pending` are re-pointable so a Kafka-backed implementation can slot in without touching the worker. Also unlocks partitions-per-sensor ordering and backfill reprocessing for the triangulation engine.
 - **ClickHouse for cold-path analytics** — move long-range dashboards / multi-node correlation queries (epicenter triangulation, swarm clustering) off the operational Postgres node onto a columnar store with a Kafka connector. Cold reads never contend with the ingestion hot path; TimescaleDB continuous aggregates keep serving the real-time dashboard.
 - **Non-blocking MQTT-Bridge refactor** — `aiomqtt` + async push to Redis (or `httpx`/`aiohttp`)
-  to make the bridge relay fully non-blocking. *Partially superseded by v2.3.0: the ingestion
+  to make the bridge relay fully non-blocking. *Partially superseded: the ingestion
   endpoint is now an O(1) stream append, so the HTTP-proxying bridge is no longer the DB
   bottleneck; direct MQTT→stream still removes the HTTP hop and is the documented next step.*
 - **Rust ingestion microservice (Axum) + ECDSA verification via PyO3** — the hybrid path:

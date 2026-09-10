@@ -10,12 +10,12 @@ authors:
     given-names: "Riccardo"
     alias: "riccardo0731"
 title: "QuakeGuard"
-version: 2.0.1
+version: 2.1.0
 identifiers:
   - type: doi
     value: "10.5281/zenodo.21710405"
     description: "Concept DOI (Absolute - resolves to all versions)"
-date-released: 2026-09-01
+date-released: 2026-09-03
 url: "https://giovanni-zanotti.is-a.dev/projects/quakeguard.html"
 repository-code: "https://github.com/GiZano/QuakeGuard"
 license: "AGPL-3.0"

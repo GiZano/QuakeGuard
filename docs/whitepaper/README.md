@@ -10,7 +10,7 @@ This directory holds the authoritative technical documentation for QuakeGuard, a
 | `01-architecture.typ` | System architecture & high-level topology (edge / backend / client) |
 | `02-hardware.typ` | ESP32-C3 edge node: DSP, STA/LTA, FreeRTOS, optional GNSS subsystem |
 | `03-security.typ` | ECDSA identity, provisioning handshake, payload authentication |
-| `04-broker.typ` | MQTT data plane, HiveMQ Cloud, internal MQTT bridge |
+| `04-broker.typ` | MQTT data plane, Eclipse Mosquitto, internal MQTT bridge |
 | `05-backend.typ` | Redis Streams ingestion, worker, TimescaleDB, geo-zoning, alerts |
 | `06-mobile.typ` | React Native client: per-zone seismograph, GPS zone detection, themes |
 | `07-deployment.typ` | Local/development provisioning, scaling, simulation & stress testing |
@@ -23,7 +23,7 @@ Requires [Typst](https://typst.app/) (`typst` on PATH) and the Liberation Serif 
 
 ```bash
 cd docs
-typst compile main.typ QuakeGuard_Technical_Report_v2.0.0.pdf
+typst compile main.typ QuakeGuard_Technical_Report_v2.1.0.pdf
 ```
 
 The output PDF is a local build artifact and is intentionally **not** tracked in git.
