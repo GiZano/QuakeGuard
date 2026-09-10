@@ -231,8 +231,8 @@ void CryptoContext::getPublicKeyHex(char *out_hex_key, size_t out_max_len) {
 
   if (out_max_len > static_cast<size_t>(len * 2)) {
     for (int i = 0; i < len; i++) {
-      snprintf(out_hex_key + (i * 2), out_max_len - (i * 2), "%02x",
-               pub_buf[start_index + i]); // NOSONAR(cpp:S6494,cpp:S6356)
+      snprintf(out_hex_key + (i * 2), out_max_len - (i * 2), "%02x", // NOSONAR
+               pub_buf[start_index + i]);
     }
   } else if (out_max_len > 0) {
     out_hex_key[0] = '\0';
@@ -256,8 +256,8 @@ void CryptoContext::signMessage(const char *message, char *out_hex_sig,
 
   if (out_max_len > sig_len * 2) {
     for (size_t i = 0; i < sig_len; i++) {
-      snprintf(out_hex_sig + (i * 2), out_max_len - (i * 2), "%02x",
-               sig[i]); // NOSONAR(cpp:S6494,cpp:S6356)
+      snprintf(out_hex_sig + (i * 2), out_max_len - (i * 2), "%02x", // NOSONAR
+               sig[i]);
     }
   } else if (out_max_len > 0) {
     out_hex_sig[0] = '\0';
@@ -431,8 +431,8 @@ static void drainRetention(RetentionRing<RETENTION_CAPACITY> &retention,
   while (retention.pop(retainedEvt)) {
     time_t report_time = epochAtSync + (millis() - millisAtSync) / 1000;
     std::array<char, 64> payload;
-    snprintf(payload.data(), payload.size(), "%d:%ld", retainedEvt.value,
-             (long)report_time); // NOSONAR
+    snprintf(payload.data(), payload.size(), "%d:%ld", retainedEvt.value, // NOSONAR
+             (long)report_time);
     std::array<char, MBEDTLS_ECDSA_MAX_LEN * 2 + 1> sig;
     crypto().signMessage(payload.data(), sig.data(), sig.size());
     long long report_time_ms =
@@ -527,8 +527,8 @@ void networkTask(void *pvParameters) { // NOSONAR
         (millis() - lastMqttAttempt > backoffDelay)) {
       lastMqttAttempt = millis();
       std::array<char, 64> clientId;
-      snprintf(clientId.data(), clientId.size(), "QuakeGuard-%s",
-               WiFi.macAddress().c_str()); // NOSONAR
+      snprintf(clientId.data(), clientId.size(), "QuakeGuard-%s", // NOSONAR
+               WiFi.macAddress().c_str());
       if (mqttClient.connect(clientId.data(), MQTT_USERNAME, MQTT_PASSWORD)) {
         Serial.println("[NET] MQTT Reconnected.");
         mqttUp = true;
