@@ -7,6 +7,8 @@ import { WebSocketProvider } from "../context/WebSocketContext";
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { FONTS } from "../theme";
 
+import { useUpdateChecker } from "../hooks/useUpdateChecker";
+
 // 1. Import TanStack Query essentials
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
@@ -17,6 +19,8 @@ SplashScreen.preventAutoHideAsync();
 const queryClient = new QueryClient();
 
 export default function RootLayout() {
+  useUpdateChecker();
+
   const [loaded, error] = useFonts({
     ...FontAwesome.font,
     [FONTS.mono]: require("../assets/fonts/SpaceMono-Regular.ttf"),
