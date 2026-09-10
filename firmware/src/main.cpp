@@ -677,7 +677,28 @@ void setup() {
   WiFiManager wm;
   wm.setConfigPortalTimeout(180);
 
-  Serial.println("[NET] Initializing WiFiManager...");
+  // Genera la Public Key per mostrarla a schermo nel Captive Portal
+  std::array<char, 128> pub_hex;
+  crypto().getPublicKeyHex(pub_hex.data(), pub_hex.size());
+  
+  String customHtml = 
+    "<div style='margin-top:20px; padding:15px; border-radius:8px; background:#f8f9fa; border:1px solid #dee2e6; text-align:center; font-family:sans-serif;'>"
+    "  <h2 style='color:#333; margin-top:0;'>Benvenuto in QuakeGuard!</h2>"
+    "  <p style='color:#555;'>Per configurare questo nodo, scarica prima l'app mobile ufficiale.</p>"
+    "  <a href='https://github.com/GiZano/QuakeGuard/releases/latest/download/quakeguard.apk' "
+    "     style='display:inline-block; padding:12px 24px; background:#0d6efd; color:#fff; text-decoration:none; border-radius:50px; font-weight:bold; margin-bottom:15px;'>"
+    "     &#x1F4F1; Scarica l'App (APK)"
+    "  </a>"
+    "  <p style='font-size:0.9em; color:#666; margin-bottom:5px;'>Copia questa Public Key e incollala nell'app in fase di Enrollment:</p>"
+    "  <div style='background:#e9ecef; padding:10px; border-radius:4px; font-family:monospace; word-break:break-all; font-weight:bold; color:#d63384; font-size:1.1em;'>"
+    + String(pub_hex.data()) + 
+    "  </div>"
+    "</div><hr/>";
+    
+  WiFiManagerParameter custom_element(customHtml.c_str());
+  wm.addParameter(&custom_element);
+
+  Serial.println("[NET] Initializing WiFiManager Captive Portal...");
   if (!wm.autoConnect("QuakeGuard-Setup")) {
     Serial.println("[NET] WiFi Failed. Offline Mode.");
   } else {
