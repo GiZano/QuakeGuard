@@ -446,7 +446,7 @@ static void drainRetention(RetentionRing<RETENTION_CAPACITY> &retention,
 
 static void deliverEvent(PubSubClient &mqttClient, DeliveryPath path, int val,
                          time_t evt_time, const char *sig,
-                         long long evt_time_ms = 0) {
+                         long long evt_time_ms) {
   int free_heap = ESP.getFreeHeap();
   int rssi = WiFi.RSSI();
   int gnss_satellites = 0;
@@ -470,7 +470,7 @@ static void deliverEvent(PubSubClient &mqttClient, DeliveryPath path, int val,
     doc["gnss_satellites"] = gnss_satellites;
 #endif
 
-    char json[256];
+    char json[512];
     serializeJson(doc, json, sizeof(json));
 
     // FIRE AND FORGET! Milliseconds instead of HTTP round-trips!
