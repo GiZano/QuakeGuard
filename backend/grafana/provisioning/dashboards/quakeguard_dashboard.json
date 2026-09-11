@@ -1,14 +1,4 @@
 {
-  "__inputs": [
-    {
-      "name": "DS_TIMESCALEDB",
-      "label": "TimescaleDB",
-      "description": "",
-      "type": "datasource",
-      "pluginId": "postgres",
-      "pluginName": "PostgreSQL"
-    }
-  ],
   "__elements": {},
   "__requires": [
     {
@@ -81,13 +71,13 @@
       },
       "id": 1,
       "panels": [],
-      "title": "1. Sismografo Live (Il Fenomeno)",
+      "title": "1. Live Seismograph",
       "type": "row"
     },
     {
       "datasource": {
         "type": "postgres",
-        "uid": "${DS_TIMESCALEDB}"
+        "uid": "timescaledb"
       },
       "fieldConfig": {
         "defaults": {
@@ -166,13 +156,13 @@
         {
           "datasource": {
             "type": "postgres",
-            "uid": "${DS_TIMESCALEDB}"
+            "uid": "timescaledb"
           },
           "format": "time_series",
           "group": [],
           "metricColumn": "sensor_id",
           "rawQuery": true,
-          "rawSql": "SELECT\n  $__timeGroupAlias(recorded_at, 500ms),\n  sensor_id::text AS metric,\n  avg(value) / 100.0 AS \"PGA (Magnitude)\"\nFROM readings\nWHERE\n  $__timeFilter(recorded_at)\nGROUP BY 1, 2\nORDER BY 1",
+          "rawSql": "SELECT\n  $__timeGroupAlias(r.recorded_at, 500ms),\n  z.city AS metric,\n  avg(r.value) / 100.0 AS \"PGA (g)\"\nFROM readings r\nJOIN sensors s ON r.sensor_id = s.id\nJOIN zones z ON s.zone_id = z.id\nWHERE\n  $__timeFilter(r.recorded_at) AND z.city IN ($zone)\nGROUP BY 1, 2\nORDER BY 1",
           "refId": "A",
           "select": [
             [
@@ -194,13 +184,13 @@
           ]
         }
       ],
-      "title": "Aggregato Sensori (Real-Time)",
+      "title": "Aggregated Sensors ($zone)",
       "type": "timeseries"
     },
     {
       "datasource": {
         "type": "postgres",
-        "uid": "${DS_TIMESCALEDB}"
+        "uid": "timescaledb"
       },
       "fieldConfig": {
         "defaults": {
@@ -254,13 +244,13 @@
         {
           "datasource": {
             "type": "postgres",
-            "uid": "${DS_TIMESCALEDB}"
+            "uid": "timescaledb"
           },
           "format": "table",
           "group": [],
           "metricColumn": "none",
           "rawQuery": true,
-          "rawSql": "SELECT max(magnitude) as \"Picco Max (Mag)\"\nFROM alerts\nWHERE $__timeFilter(created_at)",
+          "rawSql": "SELECT a.magnitude as \"Peak Magnitude\"\nFROM alerts a\nJOIN zones z ON a.zone_id = z.id\nWHERE z.city IN ($zone)\nORDER BY a.created_at DESC\nLIMIT 1",
           "refId": "A",
           "select": [
             [
@@ -282,13 +272,13 @@
           ]
         }
       ],
-      "title": "Ultimo Picco Massimo",
+      "title": "Latest Peak Magnitude",
       "type": "stat"
     },
     {
       "datasource": {
         "type": "postgres",
-        "uid": "${DS_TIMESCALEDB}"
+        "uid": "timescaledb"
       },
       "fieldConfig": {
         "defaults": {
@@ -336,13 +326,13 @@
         {
           "datasource": {
             "type": "postgres",
-            "uid": "${DS_TIMESCALEDB}"
+            "uid": "timescaledb"
           },
           "format": "table",
           "group": [],
           "metricColumn": "none",
           "rawQuery": true,
-          "rawSql": "SELECT \n  created_at AS \"Timestamp\",\n  zone_id AS \"Zona\",\n  magnitude AS \"Magnitudo\"\nFROM alerts\nORDER BY created_at DESC\nLIMIT 10",
+          "rawSql": "SELECT\n  a.created_at AS \"Timestamp\",\n  z.city AS \"Zone Name\",\n  a.magnitude AS \"Magnitude\"\nFROM alerts a\nLEFT JOIN zones z ON a.zone_id = z.id\nWHERE z.city IN ($zone)\nORDER BY a.created_at DESC\nLIMIT 10",
           "refId": "A",
           "select": [
             [
@@ -364,7 +354,7 @@
           ]
         }
       ],
-      "title": "Log Allarmi Recenti",
+      "title": "Recent Alerts Log",
       "type": "table"
     },
     {
@@ -377,13 +367,13 @@
       },
       "id": 5,
       "panels": [],
-      "title": "2. Telemetria della Rete IoT (L'Hardware)",
+      "title": "2. IoT Network Telemetry",
       "type": "row"
     },
     {
       "datasource": {
         "type": "postgres",
-        "uid": "${DS_TIMESCALEDB}"
+        "uid": "timescaledb"
       },
       "fieldConfig": {
         "defaults": {
@@ -433,13 +423,13 @@
         {
           "datasource": {
             "type": "postgres",
-            "uid": "${DS_TIMESCALEDB}"
+            "uid": "timescaledb"
           },
           "format": "table",
           "group": [],
           "metricColumn": "none",
           "rawQuery": true,
-          "rawSql": "SELECT count(id) as \"Nodi Attivi\"\nFROM sensors\nWHERE active = true",
+          "rawSql": "SELECT count(s.id) as \"Active Nodes\"\nFROM sensors s\nJOIN zones z ON s.zone_id = z.id\nWHERE s.active = true AND z.city IN ($zone)",
           "refId": "A",
           "select": [
             [
@@ -461,13 +451,13 @@
           ]
         }
       ],
-      "title": "Nodi Attivi",
+      "title": "Active Nodes",
       "type": "stat"
     },
     {
       "datasource": {
         "type": "postgres",
-        "uid": "${DS_TIMESCALEDB}"
+        "uid": "timescaledb"
       },
       "fieldConfig": {
         "defaults": {
@@ -524,7 +514,9 @@
               }
             ]
           },
-          "unit": "dBm"
+          "unit": "dBm",
+          "min": -100,
+          "max": 0
         },
         "overrides": []
       },
@@ -554,13 +546,13 @@
         {
           "datasource": {
             "type": "postgres",
-            "uid": "${DS_TIMESCALEDB}"
+            "uid": "timescaledb"
           },
           "format": "time_series",
           "group": [],
           "metricColumn": "sensor_id",
           "rawQuery": true,
-          "rawSql": "SELECT\n  recorded_at AS \"time\",\n  sensor_id::text AS metric,\n  rssi\nFROM readings\nWHERE\n  $__timeFilter(recorded_at) AND rssi IS NOT NULL\nORDER BY 1",
+          "rawSql": "SELECT\n  r.recorded_at AS \"time\",\n  s.id::text AS metric,\n  r.rssi\nFROM readings r\nJOIN sensors s ON r.sensor_id = s.id\nJOIN zones z ON s.zone_id = z.id\nWHERE\n  $__timeFilter(r.recorded_at) AND r.rssi IS NOT NULL AND z.city IN ($zone)\nORDER BY 1",
           "refId": "A",
           "select": [
             [
@@ -582,13 +574,13 @@
           ]
         }
       ],
-      "title": "Potenza Segnale (RSSI)",
+      "title": "Signal Strength (RSSI)",
       "type": "bargauge"
     },
     {
       "datasource": {
         "type": "postgres",
-        "uid": "${DS_TIMESCALEDB}"
+        "uid": "timescaledb"
       },
       "fieldConfig": {
         "defaults": {
@@ -668,13 +660,13 @@
         {
           "datasource": {
             "type": "postgres",
-            "uid": "${DS_TIMESCALEDB}"
+            "uid": "timescaledb"
           },
           "format": "time_series",
           "group": [],
           "metricColumn": "sensor_id",
           "rawQuery": true,
-          "rawSql": "SELECT\n  $__timeGroupAlias(recorded_at, 1s),\n  sensor_id::text AS metric,\n  avg(free_heap) AS \"Free Heap\"\nFROM readings\nWHERE\n  $__timeFilter(recorded_at) AND free_heap IS NOT NULL\nGROUP BY 1, 2\nORDER BY 1",
+          "rawSql": "SELECT\n  $__timeGroupAlias(r.recorded_at, 1s),\n  z.city AS metric,\n  avg(r.free_heap) AS \"Free Heap\"\nFROM readings r\nJOIN sensors s ON r.sensor_id = s.id\nJOIN zones z ON s.zone_id = z.id\nWHERE\n  $__timeFilter(r.recorded_at) AND r.free_heap IS NOT NULL AND z.city IN ($zone)\nGROUP BY 1, 2\nORDER BY 1",
           "refId": "A",
           "select": [
             [
@@ -696,7 +688,7 @@
           ]
         }
       ],
-      "title": "Stabilità Firmware (Free Heap ESP32)",
+      "title": "Firmware Stability ($zone)",
       "type": "timeseries"
     },
     {
@@ -709,13 +701,13 @@
       },
       "id": 9,
       "panels": [],
-      "title": "3. Latenza e Backend (L'Ingegneria)",
+      "title": "3. Backend and Latency",
       "type": "row"
     },
     {
       "datasource": {
         "type": "postgres",
-        "uid": "${DS_TIMESCALEDB}"
+        "uid": "timescaledb"
       },
       "fieldConfig": {
         "defaults": {
@@ -774,7 +766,7 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 8,
+        "w": 12,
         "x": 0,
         "y": 19
       },
@@ -795,13 +787,13 @@
         {
           "datasource": {
             "type": "postgres",
-            "uid": "${DS_TIMESCALEDB}"
+            "uid": "timescaledb"
           },
           "format": "time_series",
           "group": [],
           "metricColumn": "none",
           "rawQuery": true,
-          "rawSql": "SELECT\n  $__timeGroupAlias(recorded_at, 1s),\n  avg(latency_ms) AS \"Latenza Media\"\nFROM readings\nWHERE\n  $__timeFilter(recorded_at) AND latency_ms IS NOT NULL\nGROUP BY 1\nORDER BY 1",
+          "rawSql": "SELECT\n  $__timeGroupAlias(r.recorded_at, 1s),\n  avg(r.latency_ms) AS \"Avg Latency\"\nFROM readings r\nJOIN sensors s ON r.sensor_id = s.id\nJOIN zones z ON s.zone_id = z.id\nWHERE\n  $__timeFilter(r.recorded_at) AND r.latency_ms IS NOT NULL AND z.city IN ($zone)\nGROUP BY 1\nORDER BY 1",
           "refId": "A",
           "select": [
             [
@@ -823,13 +815,13 @@
           ]
         }
       ],
-      "title": "Latenza End-to-End",
+      "title": "End-to-End Latency",
       "type": "timeseries"
     },
     {
       "datasource": {
         "type": "postgres",
-        "uid": "${DS_TIMESCALEDB}"
+        "uid": "timescaledb"
       },
       "fieldConfig": {
         "defaults": {
@@ -887,8 +879,8 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 8,
-        "x": 8,
+        "w": 12,
+        "x": 12,
         "y": 19
       },
       "id": 11,
@@ -908,13 +900,13 @@
         {
           "datasource": {
             "type": "postgres",
-            "uid": "${DS_TIMESCALEDB}"
+            "uid": "timescaledb"
           },
           "format": "time_series",
           "group": [],
           "metricColumn": "none",
           "rawQuery": true,
-          "rawSql": "SELECT\n  $__timeGroupAlias(recorded_at, 1s),\n  count(id) AS \"Throughput (Eventi/sec)\"\nFROM readings\nWHERE\n  $__timeFilter(recorded_at)\nGROUP BY 1\nORDER BY 1",
+          "rawSql": "SELECT\n  $__timeGroupAlias(r.recorded_at, 1s),\n  count(r.id) AS \"Throughput (events/sec)\"\nFROM readings r\nJOIN sensors s ON r.sensor_id = s.id\nJOIN zones z ON s.zone_id = z.id\nWHERE\n  $__timeFilter(r.recorded_at) AND z.city IN ($zone)\nGROUP BY 1\nORDER BY 1",
           "refId": "A",
           "select": [
             [
@@ -936,97 +928,8 @@
           ]
         }
       ],
-      "title": "Throughput Ingestion",
+      "title": "Ingestion Throughput",
       "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "postgres",
-        "uid": "${DS_TIMESCALEDB}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "max": 100,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 20
-              },
-              {
-                "color": "red",
-                "value": 50
-              }
-            ]
-          },
-          "unit": "ms"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 16,
-        "y": 19
-      },
-      "id": 12,
-      "options": {
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "text": {}
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "postgres",
-            "uid": "${DS_TIMESCALEDB}"
-          },
-          "format": "table",
-          "group": [],
-          "metricColumn": "none",
-          "rawQuery": true,
-          "rawSql": "SELECT avg(latency_ms) as \"Avg Worker Load\"\nFROM readings\nWHERE $__timeFilter(recorded_at)",
-          "refId": "A",
-          "select": [
-            [
-              {
-                "params": [
-                  "id"
-                ],
-                "type": "column"
-              }
-            ]
-          ],
-          "timeColumn": "recorded_at",
-          "where": [
-            {
-              "name": "$__timeFilter",
-              "params": [],
-              "type": "macro"
-            }
-          ]
-        }
-      ],
-      "title": "Carico del Worker",
-      "type": "gauge"
     }
   ],
   "refresh": "5s",
@@ -1034,7 +937,36 @@
   "style": "dark",
   "tags": [],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "allValue": null,
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "postgres",
+          "uid": "timescaledb"
+        },
+        "definition": "SELECT DISTINCT z.city FROM zones z JOIN sensors s ON s.zone_id = z.id WHERE s.active = true ORDER BY z.city ASC",
+        "hide": 0,
+        "includeAll": true,
+        "multi": true,
+        "name": "zone",
+        "options": [],
+        "query": "SELECT DISTINCT z.city FROM zones z JOIN sensors s ON s.zone_id = z.id WHERE s.active = true ORDER BY z.city ASC",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      }
+    ]
   },
   "time": {
     "from": "now-5m",

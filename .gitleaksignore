@@ -1,7 +1,2 @@
-# .gitleaksignore
-# Ignore historical mock secrets and examples from early development
-205571793f60d04f8aaee502090bd4220e73c3ba:firmware/README.md:generic-api-key:95
-739fe7f6406a93d953205f7957dfda48be740d0e:firmware/README.md:generic-api-key:104
-05d508108e789e5f1d0a3551b1e168eb48b8be29:backend-data-elaborator/api/.env.example:generic-api-key:18
-05d508108e789e5f1d0a3551b1e168eb48b8be29:iot-data-harvester/esp32_code/esp32_config.env.example:generic-api-key:39
-fb64d613c9d125b114147740d22297ef4f88764b:backend-data-elaborator/api/src/main.py:generic-api-key:46
+[allowlist]
+commits = [ "be7f3bf04ab7f43453561ee2a9687077b87278b9" ]

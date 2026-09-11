@@ -33,6 +33,7 @@
 #include "mbedtls/pk.h"
 #include <array>
 #include <chrono>
+#include <cstring>
 #include <vector>
 
 // --------------------------------------------------------------------------
@@ -50,6 +51,8 @@ constexpr int I2C_CLOCK_SPEED = 100000;
 constexpr int LED_BLUE_PIN =
     10; // connection state: double->wifi, single->server, solid->connected
 constexpr int LED_RED_PIN = 3; // quake detected: on 3 s
+constexpr int BOOT_BUTTON_PIN = 9;  // GPIO 0 — BOOT button (active LOW)
+constexpr unsigned long RESET_HOLD_MS = 5000;  // 5 seconds hold to trigger factory reset
 
 #ifndef SERVER_HOST
 #define SERVER_HOST "your-tunnel-id.trycloudflare.com"
@@ -491,11 +494,15 @@ static void deliverEvent(PubSubClient &mqttClient, DeliveryPath path, int val,
 }
 
 void networkTask(void *pvParameters) { // NOSONAR
-  WiFiClientSecure espClient;
-  espClient.setInsecure();
-  PubSubClient mqttClient(espClient);
+  WiFiClient espClientPlain;
+  WiFiClientSecure espClientSecure;
+  espClientSecure.setInsecure();
+  
+  Client* baseClient = (MQTT_BROKER_PORT == 8883) ? (Client*)&espClientSecure : (Client*)&espClientPlain;
+  PubSubClient mqttClient(*baseClient);
 
   mqttClient.setServer(MQTT_BROKER_HOST, MQTT_BROKER_PORT);
+  mqttClient.setBufferSize(1024);
 
   // NTP sync happens opportunistically; event dispatch never blocks on it.
   configTime(0, 0, "pool.ntp.org", "time.nist.gov");
@@ -647,6 +654,75 @@ void gnssTask(void *pvParameters) { // NOSONAR
 #endif
 
 // --------------------------------------------------------------------------
+// TASK 4: BOOT BUTTON HANDLER (short press = on-demand portal, long press = factory reset)
+// --------------------------------------------------------------------------
+void resetTask(void *pvParameters) { // NOSONAR
+  pinMode(BOOT_BUTTON_PIN, INPUT_PULLUP);
+  for (;;) {
+    vTaskDelay(pdMS_TO_TICKS(100));
+    if (digitalRead(BOOT_BUTTON_PIN) != LOW) {
+      continue;
+    }
+    unsigned long pressStart = millis();
+    // Wait for release or long-press timeout
+    while (digitalRead(BOOT_BUTTON_PIN) == LOW) {
+      if ((millis() - pressStart) >= RESET_HOLD_MS) {
+        Serial.println("[RESET] BOOT button held >5s — Factory Reset!");
+        Serial.println("[RESET] Clearing WiFi credentials and sensor config...");
+        WiFiManager wm;
+        wm.resetSettings();
+        preferences.begin("quake-config", false);
+        preferences.remove("sensor_id");
+        preferences.end();
+        Serial.println("[RESET] Done. Rebooting into AP mode...");
+        delay(500);
+        ESP.restart();
+      }
+      vTaskDelay(pdMS_TO_TICKS(50));
+    }
+    unsigned long pressDur = millis() - pressStart;
+    // Short press 1-5 s -> reopen captive portal WITHOUT wiping (re-expose public key)
+    if (pressDur >= 1000 && pressDur < RESET_HOLD_MS) {
+      Serial.printf("[RESET] Short press %lums — opening on-demand portal\n", pressDur);
+      Serial.println("[RESET] Connect to 'QuakeGuard-Setup' -> OS should show 'Sign in to network'");
+      Serial.println("[RESET] If no notification, open http://192.168.4.1 manually (disable mobile data / Private DNS)");
+      WiFiManager wm;
+      wm.setDebugOutput(true);
+      wm.setTitle("QuakeGuard Setup");
+      wm.setCaptivePortalEnable(true);
+      wm.setAPStaticIPConfig(IPAddress(192, 168, 4, 1), IPAddress(192, 168, 4, 1),
+                             IPAddress(255, 255, 255, 0));
+      wm.setConfigPortalTimeout(180);
+      wm.setConnectTimeout(10);
+      wm.setConfigPortalBlocking(true);
+      std::array<char, 400> pub_hex2;
+      crypto().getPublicKeyHex(pub_hex2.data(), pub_hex2.size());
+      Serial.printf("[SEC] On-demand Portal Public Key: %s\n", pub_hex2.data());
+      String portalHtml =
+          "<div style='margin-top:20px; padding:15px; border-radius:8px; background:#f8f9fa; border:1px solid #dee2e6; text-align:center; font-family:sans-serif;'>"
+          "  <h2 style='color:#333; margin-top:0;'>QuakeGuard — On-Demand Portal</h2>"
+          "  <p style='background:#fff3cd; border:1px solid #ffc107; color:#856404; padding:8px; border-radius:6px; font-size:0.82em;'><b>&#9888; No internet on this AP</b> — download APK from normal WiFi before.</p>"
+          "  <a href='https://github.com/GiZano/QuakeGuard/releases/latest/download/quakeguard.apk' style='display:inline-block; padding:10px 22px; background:#0d6efd; color:#fff; text-decoration:none; border-radius:50px; font-weight:bold; margin-bottom:10px; font-size:0.9em;'>&#x1F4F1; Download App (APK)</a>"
+          "  <p style='font-size:0.9em; color:#666; margin-bottom:5px;'><b>ECDSA Public Key (paste in App &gt; My Devices):</b></p>"
+          "  <div style='background:#e9ecef; padding:10px; border-radius:4px; font-family:monospace; word-break:break-all; font-weight:bold; color:#d63384; font-size:1em; user-select:all; -webkit-user-select:all; cursor:text;' id='qg-pubkey2'>" // NOSONAR
+          + String(pub_hex2.data()) +
+          "  </div>" // NOSONAR
+          "  <button onclick=\"(function(){var t=document.getElementById('qg-pubkey2').innerText; if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(t).then(function(){alert('Public key copied!')}).catch(function(){fallback()});}else{fallback();} function fallback(){var ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{if(document.execCommand('copy')){alert('Public key copied!');}else{throw 'e';}}catch(e){prompt('Copy manually (Ctrl+C):',t);} document.body.removeChild(ta);}})()\" style='margin-top:8px; padding:6px 14px; background:#198754; color:#fff; border:none; border-radius:6px; font-size:0.82em;'>&#128203; Copy Key</button>" // NOSONAR - captive portal HTML requires inline JS/CSS
+          "  <p style='font-size:0.72em; color:#888; margin-top:10px; text-align:left; background:#f8f9fa; padding:8px; border-radius:6px;'>Portal opened via BOOT 1s press. No WiFi wipe. Still available via Serial. Opened manually at <a href='http://192.168.4.1' style='color:#0d6efd;'>http://192.168.4.1</a> if auto-popup missing (normal on tablets).</p>"
+          "</div><hr/>";
+      WiFiManagerParameter p2(portalHtml.c_str());
+      wm.addParameter(&p2);
+      wm.setCustomMenuHTML(portalHtml.c_str());
+      std::vector<const char*> menu2 = {"wifi","info","param","sep","restart","exit","custom"};
+      wm.setMenu(menu2);
+      // This blocks this task for up to 180 s while portal is served; after exit, continue monitoring
+      wm.startConfigPortal("QuakeGuard-Setup");
+      Serial.println("[RESET] On-demand portal closed");
+    }
+  }
+}
+
+// --------------------------------------------------------------------------
 // MAIN ENTRY POINTS
 // --------------------------------------------------------------------------
 void setup() {
@@ -674,31 +750,65 @@ void setup() {
     Serial.println("[BOOT] Device UNREGISTERED. Entering Provisioning Mode...");
   }
 
+  // Ensure WiFi radio is awake (ESP32 sleep can delay AP beacons) and hostname is set
+  WiFi.setSleep(false);
+  WiFi.setHostname("quakeguard");
   WiFiManager wm;
-  wm.setConfigPortalTimeout(180);
+  // Captive-portal window: keep AP open 5 min after every boot/RST so
+  // information (WiFi config, ECDSA key, APK link) can be recovered without
+  // reflashing. Meets request "2-5m quando si accende (quindi anche facendo rst)".
+  // After timeout device falls back to STA connection or Offline Mode.
+  wm.setDebugOutput(true);
+  wm.setTitle("QuakeGuard Setup");
+  wm.setCaptivePortalEnable(true);
+  wm.setAPStaticIPConfig(IPAddress(192, 168, 4, 1), IPAddress(192, 168, 4, 1),
+                         IPAddress(255, 255, 255, 0));
+  wm.setConfigPortalTimeout(300); // 5 minutes — upper bound of 2-5m range
+  Serial.println("[NET] Portal window: 300s after boot/RST (AP QuakeGuard-Setup @ 192.168.4.1)");
+  wm.setConnectTimeout(10);
+  wm.setConfigPortalBlocking(true);
 
   // Genera la Public Key per mostrarla a schermo nel Captive Portal
-  std::array<char, 128> pub_hex;
+  std::array<char, 400> pub_hex;
   crypto().getPublicKeyHex(pub_hex.data(), pub_hex.size());
-  
-  String customHtml = 
-    "<div style='margin-top:20px; padding:15px; border-radius:8px; background:#f8f9fa; border:1px solid #dee2e6; text-align:center; font-family:sans-serif;'>"
-    "  <h2 style='color:#333; margin-top:0;'>Benvenuto in QuakeGuard!</h2>"
-    "  <p style='color:#555;'>Per configurare questo nodo, scarica prima l'app mobile ufficiale.</p>"
-    "  <a href='https://github.com/GiZano/QuakeGuard/releases/latest/download/quakeguard.apk' "
-    "     style='display:inline-block; padding:12px 24px; background:#0d6efd; color:#fff; text-decoration:none; border-radius:50px; font-weight:bold; margin-bottom:15px;'>"
-    "     &#x1F4F1; Scarica l'App (APK)"
-    "  </a>"
-    "  <p style='font-size:0.9em; color:#666; margin-bottom:5px;'>Copia questa Public Key e incollala nell'app in fase di Enrollment:</p>"
-    "  <div style='background:#e9ecef; padding:10px; border-radius:4px; font-family:monospace; word-break:break-all; font-weight:bold; color:#d63384; font-size:1.1em;'>"
-    + String(pub_hex.data()) + 
-    "  </div>"
-    "</div><hr/>";
-    
+  Serial.printf("[SEC] Portal Public Key (%u chars): %s\n", (unsigned)strnlen(pub_hex.data(), pub_hex.size()), pub_hex.data());
+
+  String customHtml = // NOSONAR - HTML with inline CSS is intentional for captive portal without external assets
+      "<div style='margin-top:20px; padding:15px; border-radius:8px; background:#f8f9fa; border:1px solid #dee2e6; text-align:center; font-family:sans-serif;'>" // NOSONAR
+      "  <h2 style='color:#333; margin-top:0;'>Welcome to QuakeGuard!</h2>"
+      "  <p style='background:#fff3cd; border:1px solid #ffc107; color:#856404; padding:8px; border-radius:6px; font-size:0.85em;'><b>&#9888; This network has NO internet</b> — this is expected.</p>"
+      "  <p style='color:#555; font-size:0.85em; text-align:left;'><b>Correct workflow (2 steps):</b></p>"
+      "  <ol style='text-align:left; font-size:0.82em; color:#555; margin-top:0; padding-left:18px;'>"
+      "    <li><b>Before</b> connecting to <code>QuakeGuard-Setup</code>, download the APK from a normal network (home WiFi / 4G): <a href='https://github.com/GiZano/QuakeGuard/releases/latest/download/quakeguard.apk' style='color:#0d6efd;'>GitHub Releases</a></li>"
+      "    <li><b>Now</b> you are here: (1) configure WiFi below with <em>Configure WiFi</em>, (2) copy the Public Key below and paste it in App &gt; My Devices</li>"
+      "  </ol>"
+      "  <a href='https://github.com/GiZano/QuakeGuard/releases/latest/download/quakeguard.apk' "
+      "     style='display:inline-block; padding:10px 22px; background:#0d6efd; color:#fff; text-decoration:none; border-radius:50px; font-weight:bold; margin:8px 0; font-size:0.9em;'>"
+      "     &#x1F4F1; Download App (APK — requires internet)"
+      "  </a>"
+      "  <p style='font-size:0.72em; color:#999;'>If the link doesn't work while on QuakeGuard-Setup it's expected: disconnect, download, then reconnect.</p>"
+      "  <p style='font-size:0.9em; color:#666; margin-bottom:5px; margin-top:12px;'><b>ECDSA Public Key (copy & paste into App):</b></p>"
+      "  <div style='background:#e9ecef; padding:10px; border-radius:4px; font-family:monospace; word-break:break-all; font-weight:bold; color:#d63384; font-size:1em; user-select:all; -webkit-user-select:all; cursor:text;' id='qg-pubkey'>" // NOSONAR
+      + String(pub_hex.data()) +
+      "  </div>" // NOSONAR
+      "  <button onclick=\"(function(){var t=document.getElementById('qg-pubkey').innerText; var ok=false; if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(t).then(function(){alert('Public key copied!')}).catch(function(){fallback()});}else{fallback();} function fallback(){var ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{if(document.execCommand('copy')){alert('Public key copied!'); ok=true;}else{throw 'exec failed';}}catch(e){prompt('Copy manually (Ctrl+C):',t);} document.body.removeChild(ta);}})()\" style='margin-top:8px; padding:6px 14px; background:#198754; color:#fff; border:none; border-radius:6px; font-size:0.82em;'>&#128203; Copy Key</button>" // NOSONAR - captive portal HTML requires inline JS/CSS, no external assets
+      "  <p style='font-size:0.72em; color:#888; margin-top:10px; text-align:left; background:#f8f9fa; padding:8px; border-radius:6px;'>"
+      "    <b>When is it generated?</b> At first boot in <code>crypto().init()</code> — before the portal — and saved to NVS. It's already available now, not after registration. "
+      "    After <em>Save</em> WiFi the portal closes and the device auto-registers to <code>/devices/register</code> by itself.<br/>"
+      "    <b>Lost?</b> Hold BOOT for 1s to reopen this on-demand portal without wiping WiFi, or read from Serial (<code>pio device monitor</code>).<br/>"
+      "    <b>Tablet?</b> Auto-popup \"Sign in to network\" is best-effort: often suppressed on iPad/tablet. Opening manually <a href='http://192.168.4.1' style='color:#0d6efd;'>http://192.168.4.1</a> as you did is the supported fallback (correct!). Disable Private DNS / Mobile data if popup doesn't appear on phone."
+      "  </p>"
+      "</div><hr/>";
+
   WiFiManagerParameter custom_element(customHtml.c_str());
   wm.addParameter(&custom_element);
+  // Make portal HTML visible immediately on root page (192.168.4.1) — addParameter
+  // alone only shows on WiFi config page, so also inject as custom menu.
+  wm.setCustomMenuHTML(customHtml.c_str());
+  std::vector<const char*> menu = {"wifi","info","param","sep","restart","exit","custom"};
+  wm.setMenu(menu);
 
-  Serial.println("[NET] Initializing WiFiManager Captive Portal...");
+  Serial.println("[NET] Initializing WiFiManager Captive Portal (captive detection enabled, AP 192.168.4.1)...");
   if (!wm.autoConnect("QuakeGuard-Setup")) {
     Serial.println("[NET] WiFi Failed. Offline Mode.");
   } else {
@@ -749,6 +859,8 @@ void setup() {
 #ifdef GNSS_ENABLED
   xTaskCreate(gnssTask, "GnssTask", 8192, NULL, 2, NULL);
 #endif
+
+  xTaskCreate(resetTask, "ResetTask", 4096, NULL, 1, NULL);
 
   Serial.println("[SYS] System Running.");
 }

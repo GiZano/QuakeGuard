@@ -10,7 +10,7 @@
 ![C++](https://img.shields.io/badge/C++-Hardware_Logic-00599C?style=for-the-badge&logo=c%2B%2B&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-FastAPI-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
 ![React Native](https://img.shields.io/badge/React_Native-Mobile-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-PostGIS-316192?style=for-the-badge&logo=postgresql&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-TimescaleDB-316192?style=for-the-badge&logo=postgresql&logoColor=white)
 ![Redis](https://img.shields.io/badge/Redis-Message_Broker-DC382D?style=for-the-badge&logo=redis&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Containerization-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 ![Local AI](https://img.shields.io/badge/Local_AI-Ollama_%7C_Llama_3.2-000000?style=for-the-badge&logo=meta&logoColor=white)
@@ -43,7 +43,12 @@
 
 ---
 
-🌐 **[Landing Page](https://giovanni-zanotti.is-a.dev/projects/quakeguard.html)** · 📚 **[Wiki](https://github.com/GiZano/QuakeGuard/wiki)** · 📄 **[Whitepaper (PDF)](docs/whitepaper/)** · 🗺️ **[ROADMAP](ROADMAP.md)**
+<div align="center">
+  <a href="https://giovanni-zanotti.is-a.dev/projects/quakeguard.html"><img src="https://img.shields.io/badge/Website-Landing_Page-4A154B?style=for-the-badge&logo=vercel&logoColor=white" alt="Landing Page"/></a>
+  <a href="https://github.com/GiZano/QuakeGuard/wiki"><img src="https://img.shields.io/badge/Documentation-Wiki-000000?style=for-the-badge&logo=github&logoColor=white" alt="Wiki"/></a>
+  <a href="docs/whitepaper/"><img src="https://img.shields.io/badge/Research-Whitepaper_PDF-8E24AA?style=for-the-badge&logo=adobeacrobatreader&logoColor=white" alt="Whitepaper"/></a>
+  <a href="ROADMAP.md"><img src="https://img.shields.io/badge/Vision-Roadmap-0B6623?style=for-the-badge&logo=roadmap&logoColor=white" alt="ROADMAP"/></a>
+</div>
 
 ---
 
@@ -132,7 +137,7 @@ The project follows **Microservices** and **Event-Driven Design** principles acr
 | Feature | Detail |
 |---------|--------|
 | Framework | React Native (Expo) with TypeScript |
-| Navigation | Expo Router — 3-tab Bottom Navigator (Monitor, Sensors Map, Settings) |
+| Navigation | Expo Router — 4-tab Bottom Navigator (Monitor, Sensors Map, My Devices, Settings) |
 | State Management | Zustand slices (`usePreferencesStore`, `useAlertStore`) |
 | Server State | TanStack Query + Axios — caching, background refetch, retry |
 | Real-Time | WebSocket context with exponential backoff reconnection |
@@ -142,6 +147,7 @@ The project follows **Microservices** and **Event-Driven Design** principles acr
 | Offline Mode | Toggle silences WebSocket, halts all TanStack Query polling |
 | Notifications | `notificationsEnabled` toggle gates haptics and push notifications |
 | Safe Areas | `react-native-safe-area-context` — Dynamic Island and punch-hole compatible |
+| OTA Updates | Custom GitHub-based updater hook (`useUpdateChecker`) polls latest release and triggers native APK sideload prompt |
 
 ---
 
@@ -233,6 +239,7 @@ docker compose up --build -d
 | API | `http://localhost:8000` |
 | Swagger UI | `http://localhost:8000/docs` |
 | Health Check | `http://localhost:8000/health` |
+| Grafana | `http://localhost:3000` |
 
 ### 3. Configure and Flash the IoT Firmware
 
@@ -243,7 +250,7 @@ cp esp32_config.env.example esp32_config.env
 ```
 
 Flash via PlatformIO. On first boot the device will:
-1. Open a WiFi captive portal (`QuakeGuard-Setup`)
+1. Open a WiFi captive portal (`QuakeGuard-Setup`) — serves the mobile APK download link and displays the ECDSA Public Key for enrollment
 2. Connect to your network
 3. Automatically register with the backend and receive a `sensor_id`
 
@@ -376,6 +383,7 @@ QuakeGuard/
 │   ├── docker-compose.yml
 │   ├── Dockerfile
 │   ├── mosquitto.conf
+│   ├── grafana/                # Grafana provisioning (datasource + dashboard JSON)
 │   ├── requirements.txt         # Python requirements for backend development
 │   └── .env.example
 ├── mobile/
@@ -438,7 +446,7 @@ QuakeGuard/
 | **v1.2.2** | ✅ Released — Zero-Trust Serial Fallback — signed telemetry over USB CDC (serial) when MQTT is unreachable |
 | **v2.0.0** | ✅ Released — Triangulation (multi-node spatial correlation), Hybrid Network Architecture, Automated DevOps Orchestration (Ptyxis), Local Factory Provisioning, GNSS sync, NTP+PPS, ADXL calibration, and INGV FDSN SIL validation |
 | **v2.0.1** | ✅ Released — Documentation & Zenodo Sync: PDF/Wiki architectural coherence (Cloudflare, 300s anti-replay), CERN-OHL hardware licensing, SIL vs Firmware threshold clarification, and `CITATION.cff` bump |
-| **v2.1.0** | ✅ Released — System Telemetry & Grafana Observability, Local Mosquitto architecture, Repository Health: Dependabot, ADRs, C4/sequence diagrams, multi-stage Dockerfile, firmware versioning, pinout, flashing guide, hardware compliance |
+| **v2.1.0** | ✅ Released — System Telemetry & Grafana Observability, Captive Portal, Dynamic Demo Onboarding (QR), OTA In-App Updater, Local Mosquitto architecture, Repository Health: Dependabot, ADRs, C4/sequence diagrams, multi-stage Dockerfile, firmware versioning, pinout, flashing guide, hardware compliance |
 | **v2.1.1** | Timeseries DB & Mobile Fix — migration to TimescaleDB/InfluxDB; per-sensor chart isolation in React Native mobile |
 | **v2.2** | Heterogeneous Edge Intelligence — hybrid Tier A (STA/LTA) + Tier B (quantized CNN) decision fusion |
 | **Future** | Cloud IaC — Kubernetes + Terraform auto-scaling platform (see [ROADMAP.md](ROADMAP.md)) |

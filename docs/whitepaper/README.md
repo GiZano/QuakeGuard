@@ -15,7 +15,17 @@ This directory holds the authoritative technical documentation for QuakeGuard, a
 | `06-mobile.typ` | React Native client: per-zone seismograph, GPS zone detection, themes |
 | `07-deployment.typ` | Local/development provisioning, scaling, simulation & stress testing |
 | `08-ai.typ` | On-premise AI Emergency Report service (Ollama) |
-| `assets/` | Logos and color palette used by the report |
+| `09-devops.typ` | DevOps, CI/CD pipelines, and infrastructure orchestration |
+| `09-triangulation.typ` | Epicenter triangulation algorithm and multi-node correlation |
+| `10-benchmarks.typ` | Performance benchmarks and load testing results |
+| `11-limitations.typ` | Known limitations and future mitigations |
+| `12-roadmap.typ` | Version roadmap and future horizons |
+| `13-threat-model.typ` | Threat model and security analysis |
+| `14-bibliography.typ` | References and bibliography |
+| `15-glossary.typ` | Technical glossary |
+| `16-appendix.typ` | Appendix: schematics, data tables, and supplementary material |
+
+Note: The `assets/` directory contains logos and color palettes used by the report.
 
 ## Compiling the PDF
 

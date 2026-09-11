@@ -119,10 +119,14 @@ Comprehensive repository maturity improvements: CI hardening, architectural docu
 - ✅ **BOM enrichment** (manufacturer, cost, distributor links, socketable modules)
 - ✅ **README enhancements** (landing page link, PRs welcome badge, hardware disclaimer)
 
-- ✅ **Grafana Dashboards:** natively connected to TimescaleDB for real-time visualization
+- ✅ **Grafana Dashboards:** natively connected to TimescaleDB via automated JSON provisioning
 - ✅ **System Telemetry:** (End-to-End Latency, ESP32 Free Heap, RSSI, GNSS Fix) appended to payload
+- ✅ **Captive Portal Onboarding:** `WiFiManager` embedded HTML to serve the mobile APK and display the ECDSA Public Key
+- ✅ **Dynamic Demo Onboarding:** terminal QR Code (`qrencode`) and mobile `AsyncStorage` override for zero-recompile tunnel routing
+- ✅ **Over-the-Air (OTA) Updates:** GitHub-based React Native automatic in-app updater
 - ✅ Real-time visualization of multi-node network activity
 - ✅ Automated zero-config deployment via `docker-compose.yml`
+- ✅ **Hollywood Simulator:** `scripts/hollywood.sh` demo orchestrator for live exhibitions with automated zone seeding
 
 ---
 

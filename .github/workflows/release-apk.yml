@@ -1,0 +1,67 @@
+name: Release APK
+
+on:
+  push:
+    tags:
+      - 'v*'
+  pull_request:
+    paths:
+      - 'mobile/**'
+      - '.github/workflows/release-apk.yml'
+  workflow_dispatch:
+
+jobs:
+  build-apk:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Setup Java (Android SDK requirement)
+        uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install dependencies
+        working-directory: mobile
+        run: npm ci --ignore-scripts
+
+      - name: Prebuild Android project
+        working-directory: mobile
+        run: npx --no-install expo prebuild --platform android --clean
+        env:
+          EXPO_PUBLIC_IOT_API_KEY: ${{ secrets.IOT_API_KEY }}
+          EXPO_PUBLIC_MOBILE_WS_TOKEN: ${{ secrets.MOBILE_WS_TOKEN }}
+
+      - name: Build APK with Gradle
+        working-directory: mobile/android
+        run: ./gradlew assembleRelease
+
+      - name: Copy APK to root
+        working-directory: mobile
+        run: cp android/app/build/outputs/apk/release/app-release.apk ./QuakeGuard.apk
+
+      - name: Upload APK as Workflow Artifact (For PRs/Testing)
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: QuakeGuard-APK
+          path: mobile/QuakeGuard.apk
+
+      - name: Upload APK to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65
+        with:
+          files: mobile/QuakeGuard.apk
+          fail_on_unmatched_files: true

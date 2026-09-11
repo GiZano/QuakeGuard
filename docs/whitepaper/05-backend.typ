@@ -82,3 +82,5 @@ To ensure the physical and network infrastructure operates with absolute reliabi
 - *Data Injection:* The edge nodes append their current ESP32 `free_heap` (monitoring for memory leaks), Wi-Fi `rssi` (monitoring radio health), GNSS `satellites` count, and a precise millisecond epoch `device_timestamp_ms` to the JSON payload without affecting the cryptographic signature.
 - *End-to-End Latency Calculation:* The API Gateway calculates the `latency_ms` by subtracting the hardware epoch from its own UTC ingestion time. This generates the core Proof of Rigor metric for the EEW pipeline.
 - *Zero-Config Provisioning:* The system automatically alters the TimescaleDB hypertable at startup to store these columns. The `docker-compose.yml` launches Grafana, utilizing a pre-injected `postgres.yml` datasource to connect natively to TimescaleDB, rendering time-series diagnostics instantly.
+
+- *Dashboard-as-Code:* The full "Mission Control" dashboard is provisioned via a JSON file mounted into Grafana's provisioning directory.

@@ -148,6 +148,8 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/etc/grafana/provisioning/dashboards/quakeguard_dashboard.json
+      - GF_INSTALL_PLUGINS=redis-datasource
     depends_on:
       postgres:
         condition: service_healthy

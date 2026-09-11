@@ -29,6 +29,13 @@ The appearance layer ships two operator modes toggled from Settings:
 - *RESEARCH MODE (light):* `themeMode: 'light'` — a slate-50 "scientific paper" palette for lab analysis.
 The active theme propagates through `useAppTheme()` to every screen, the seismograph's Victory theme, the tab bar, and the Google Map styles (Android).
 
+== Over-the-Air (OTA) Updates & Distribution
+
+To maintain version parity across the user base without relying on centralized app stores or paid deployment services (e.g., Expo EAS), the application includes a custom GitHub-based OTA updater.
+- *Release Polling:* On startup, a React `useEffect` hook queries the GitHub REST API (`/releases/latest`) to retrieve the current public release tag.
+- *Semantic Versioning Check:* The client compares the remote tag against its compiled `package.json` version. If the remote semantic version is strictly greater, a native prompt alerts the user.
+- *Direct APK Sideloading:* Upon confirmation, the application parses the release assets and directly triggers the download of the updated `.apk` via the native device browser, enabling a frictionless open-source distribution model.
+
 == Resilience and Global State (Zustand)
 
 Global application state, including alert history and user preferences, is managed using Zustand.

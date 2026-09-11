@@ -18,7 +18,8 @@ Integrate **Grafana** directly into the `docker-compose.yml` infrastructure as a
 1. **Telemetry Injection:** The ESP32-C3 firmware now appends `free_heap`, `rssi`, `gnss_satellites`, and a `device_timestamp_ms` to the JSON payload without modifying the core cryptographic signature (which protects the underlying sensor value and epoch).
 2. **Latency Calculation:** The FastAPI ingress router calculates `latency_ms` by diffing the server's UTC time with the sensor's millisecond timestamp before enqueueing to Redis.
 3. **Database Schema:** The `readings` TimescaleDB hypertable is dynamically altered at startup to store these telemetry columns.
-4. **Grafana Provisioning:** A `postgres.yml` datasource is automatically provisioned, allowing Grafana to natively query TimescaleDB without needing a custom API or proxy layer.
+4. **Grafana Datasource Provisioning:** A `postgres.yml` datasource is automatically provisioned, allowing Grafana to natively query TimescaleDB without needing a custom API or proxy layer.
+5. **Dashboard-as-Code (JSON Provisioning):** A full "Mission Control" dashboard (`quakeguard_dashboard.json`) is auto-provisioned via `dashboards.yml`. This includes a robust **Geomap panel** that queries the active sensor coordinates, providing a visually spectacular, global real-time view of the fleet network (crucial for both operations and demo/Hollywood mode).
 
 ## Consequences
 - **Positive:** System administrators have a real-time, zero-cost, open-source dashboard specifically optimized for high-frequency time-series data.

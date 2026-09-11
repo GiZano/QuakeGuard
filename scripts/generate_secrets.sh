@@ -135,7 +135,11 @@ else
 fi
 
 # Inject into firmware config
-sed -i "s/^MQTT_BROKER_HOST=.*/MQTT_BROKER_HOST=\"$LOCAL_IP\"/g" firmware/esp32_config.env
+if grep -q "^MQTT_BROKER_HOST=" firmware/esp32_config.env; then
+    sed -i "s/^MQTT_BROKER_HOST=.*/MQTT_BROKER_HOST=\"$LOCAL_IP\"/g" firmware/esp32_config.env
+else
+    echo "MQTT_BROKER_HOST=\"$LOCAL_IP\"" >> firmware/esp32_config.env
+fi
 echo "✅ Injected MQTT_BROKER_HOST=\"$LOCAL_IP\" into firmware/esp32_config.env"
 
 echo ""

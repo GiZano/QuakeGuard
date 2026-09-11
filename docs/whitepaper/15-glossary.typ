@@ -7,3 +7,6 @@
 - *Geohash:* A public domain geocoding system which encodes a geographic location into a short string of letters and digits.
 - *NVS (Non-Volatile Storage):* The flash memory partition on the ESP32 used to securely store persistent configuration and cryptographic keys.
 - *SIL (Software-in-the-Loop):* A testing methodology where the exact embedded C++ code is compiled and validated on the host machine using historical datasets.
+- *Captive Portal:* A web page served by the ESP32's WiFiManager AP that allows users to configure Wi-Fi credentials and view the device's ECDSA public key for backend enrollment.
+- *Grafana Provisioning:* A zero-config mechanism where datasource and dashboard JSON files are mounted into Grafana's provisioning directory, eliminating manual UI setup.
+- *OTA (Over-the-Air) Update:* A mechanism for distributing software updates wirelessly. In QuakeGuard, the React Native app polls GitHub Releases for new APK versions and triggers a native sideload prompt.
