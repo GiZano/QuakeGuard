@@ -13,6 +13,12 @@ The infrastructure is decoupled into three primary tiers (illustrated in @fig-co
 - *Device Onboarding:* A WiFiManager-based Captive Portal (`QuakeGuard-Setup` SSID) serves the mobile APK download link and displays the ECDSA public key for zero-touch enrollment. Additionally, the system features a Dynamic Demo Onboarding mode where a QR code is generated in the terminal to configure the mobile app URL without recompilation. A hardware reset via the BOOT button (GPIO 0, 5-second hold) re-enters AP mode for credential recovery.
 - *Over-the-Air Updates:* A custom React Native hook (`useUpdateChecker`) polls GitHub Releases for new APK versions and triggers a native sideload prompt, eliminating manual update distribution.
 
+Beyond the core data path, the platform provides three supporting capabilities:
+
+- *Observability Layer:* A Grafana instance automatically provisioned via `docker-compose.yml` with a JSON dashboard and TimescaleDB datasource, providing system telemetry (latency, RSSI, free heap).
+- *Device Onboarding:* A WiFiManager-based Captive Portal (`QuakeGuard-Setup` SSID) serves the mobile APK download link and displays the ECDSA public key for zero-touch enrollment. Additionally, the system features a Dynamic Demo Onboarding mode where a QR code is generated in the terminal to configure the mobile app URL without recompilation. A hardware reset via the BOOT button (GPIO 0, 5-second hold) re-enters AP mode for credential recovery.
+- *Over-the-Air Updates:* A custom React Native hook (`useUpdateChecker`) polls GitHub Releases for new APK versions and triggers a native sideload prompt, eliminating manual update distribution.
+
 #figure(
   image("assets/fig01-context-diagram.pdf", width: 115%, height: 105%, fit: "contain"),
   caption: [_High-Level Architecture Context Diagram_],

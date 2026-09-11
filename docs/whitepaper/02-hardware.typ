@@ -67,18 +67,18 @@ With the v2.0.0 milestone, the QuakeGuard hardware has matured from a breadboard
     _The QuakeGuard v2.0.0 fully assembled PCB, featuring the ESP32-C3 SuperMini, the ADXL345 
     accelerometer, and the u-blox GNSS module soldered into their dedicated footprints._
   ],
-  numbering: _ => "3",
+  numbering: _ => "2.1",
   placement: auto
 ) <fig-pcb>
 
-== GNSS Subsystem & NTP Discipline (v2.0.0)
+== GNSS Subsystem & NTP Discipline (v1.3.0)
 
 The firmware features an optional GNSS module: an optional module parses NMEA data from a u-blox / NEO-6M / NEO-M8N receiver over the secondary UART (RX GPIO 5, TX GPIO 4, 9600 baud on the JLCPCB — `J4-3→GPIO5`, `J4-4→GPIO4`, `J4-5→GPIO2 PPS` for v2.0.0) at 9600 baud. The module is compiled #strong[only] when `GNSS_ENABLED=1` is present in `esp32_config.env`, so the default build stays hermetic and pulls no `TinyGPSPlus` dependency. Defaults in `GnssModule.h` are `RX 5 / TX 4` to match the fabricated PCB; they remain overridable via `GPS_SERIAL_RX_PIN`/`TX_PIN` in `esp32_config.env` through `extra_script.py`.
 
 - *Last-Known Fix Persistence:* Every reliable fix is saved into NVS (namespace `quake-gnss`, at most once per 60 seconds to limit flash wear). Provisioning therefore reports real coordinates even before the first fix after a cold boot.
 - *Staleness Handling:* A live fix older than 10 seconds is treated as stale and the firmware falls back to the last-known value.
 - *Provisioning Integration:* During `/devices/register`, the node reports the live GNSS fix when available, else the last-known-from-NVS fix; when neither exists it uses `GNSS_FALLBACK_LAT`/`LON` from `esp32_config.env` if defined (indoor testing), otherwise coordinates are omitted so the backend can assign the zone once placed.
-- *NTP + PPS Discipline:* The core feature of v2.0.0. The pulse-per-second (PPS) hardware interrupt (GPIO 2) records the precise `millis()` at the start of each UTC second. The `networkTask` synchronizes via NTP and then disciplines the internal `epochAtSync` directly to the last PPS interrupt, ensuring stratum-1-like millisecond precision for all seismic telemetry.
+- *NTP + PPS Discipline:* The core feature of v1.3.0. The pulse-per-second (PPS) hardware interrupt (GPIO 2) records the precise `millis()` at the start of each UTC second. The `networkTask` synchronizes via NTP and then disciplines the internal `epochAtSync` directly to the last PPS interrupt, ensuring stratum-1-like millisecond precision for all seismic telemetry.
 
 == Software-in-the-Loop (SIL) Validation
 
@@ -98,6 +98,6 @@ To ensure the theoretical STA/LTA model translates correctly to the real world, 
     event (a weak micro-seismicity recorded at >100km distance) correctly fails to 
     trigger the algorithm, proving the firmware's robustness against distant noise._
   ],
-  numbering: _ => "4",
+  numbering: _ => "2.2",
   placement: auto
 ) <fig-roc>
