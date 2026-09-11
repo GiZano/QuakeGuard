@@ -13,21 +13,12 @@ Before calculating the physical epicenter, the ingestion worker (`backend/src/wo
 
   #align(center)[
     #figure(
-      block(height: 42%, image("assets/fig08_1-clustering-sequence.svg", width: 98%, height: 100%, fit: "contain")),
+      image("assets/fig08_1-clustering-sequence.svg", width: 100%),
       caption: [Temporal and spatial clustering sequence for seismic triggers],
       numbering: _ => "8.1",
       placement: top
     ) <fig-triangulation-1>
   ]
-  #align(center)[
-    #figure(
-      block(height: 68%, image("assets/fig08_2-triangulation-sequence.svg", width: 140%, height: 140%, fit: "contain")),
-      caption: [Triangulation and epicenter generation sequence],
-      numbering: _ => "8.2",
-      placement: top
-    ) <fig-triangulation-2>
-  ]
-  
 
 == Mathematical Model (v2.0 MVP)
 
@@ -54,6 +45,15 @@ $ Delta t_"travel" = d / V_P $
 The event origin time $T_0$ is then retroactively calculated by subtracting the travel time from the first absolute NTP-synchronized timestamp recorded:
 
 $ T_0 = T_"first" - Delta t_"travel" $
+
+  #align(center)[
+    #figure(
+      image("assets/fig08_2-triangulation-sequence.svg", width: 100%),
+      caption: [Triangulation and epicenter generation sequence],
+      numbering: _ => "8.2",
+      placement: top
+    ) <fig-triangulation-2>
+  ]
 
 == Accuracy & Future Work
 
