@@ -427,13 +427,13 @@ export default function MonitorScreen() {
         queueMicrotask(() => setIsAlertActive(true));
         if (alertTimerRef.current) clearTimeout(alertTimerRef.current);
         alertTimerRef.current = setTimeout(() => {
-          setIsAlertActive(false);
+          queueMicrotask(() => setIsAlertActive(false));
         }, 60000 - ageMs);
       } else {
-        setIsAlertActive(false);
+        queueMicrotask(() => setIsAlertActive(false));
       }
     } else {
-      setIsAlertActive(false);
+      queueMicrotask(() => setIsAlertActive(false));
     }
     return () => {
       if (alertTimerRef.current) clearTimeout(alertTimerRef.current);
