@@ -6,7 +6,7 @@ This project was conceived, designed, and built by two founders — responsible 
 
 *Founder, Systems & Edge Architecture*
 
-BSc Student in Computer Science @ University of Pisa (UniPi) - Edge Computing | Systems Architecture | Mathematical Foundations.
+BSc Student in Computer Science @ University of Pisa (UniPi) — Edge Computing | Systems Architecture | Mathematical Foundations.
 
 - GitHub: #link("https://github.com/GiZano")[github.com/GiZano]
 - Website: #link("https://giovanni-zanotti.is-a.dev")[giovanni-zanotti.is-a.dev]
@@ -17,7 +17,7 @@ BSc Student in Computer Science @ University of Pisa (UniPi) - Edge Computing | 
 
 *Founder, Full-Stack & Mobile*
 
-Junior Software Developer - High school diploma in Computer Science - passionate about Archery, Photography, and Full Stack Development (Backend to Frontend).
+Junior Software Developer — High school diploma in Computer Science (Perito Informatico) — passionate about Archery, Photography, and Full Stack Development (Backend to Frontend).
 
 - GitHub: #link("https://github.com/riccardo0731")[github.com/riccardo0731]
 - Portfolio: #link("https://riccardo0731.github.io")[riccardo0731.github.io]

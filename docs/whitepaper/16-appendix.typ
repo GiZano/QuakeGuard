@@ -12,6 +12,9 @@ The QuakeGuard Control Plane exposes a REST API via FastAPI. The full OpenAPI 3.
 - `GET /alerts/{zone_id}`: Retrieves the latest alerts for a specific geographic zone.
 - `GET /reports/{alert_id}`: Fetches the AI-generated emergency report for a confirmed alert.
 
+*Demo & Simulation*
+- `POST /demo/trigger-earthquake`: Simulates a critical seismic event for demo/testing (payload `zone_id`, `magnitude`, `message`; defaults to `zone_id:1`, `magnitude:7.5`). Bypasses the IoT ingestion pipeline and publishes directly to the `quake_alerts` Redis channel, triggering the mobile alert within milliseconds.
+
 *Telemetry & Analytics*
 - `GET /sensors/{sensor_id}/statistics`: Returns time-series aggregates (count, max magnitude) for a specific sensor, leveraging TimescaleDB continuous aggregates.
 
