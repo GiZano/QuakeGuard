@@ -6,7 +6,7 @@ This project was conceived, designed, and built by two founders — responsible 
 
 *Founder, Systems & Edge Architecture*
 
-BSc Student in Computer Science @ University of Pisa (UniPi) — Edge Computing | Systems Architecture | Mathematical Foundations. Building robust IoT ecosystems, high-performance backends, and bridging the gap between low-level hardware constraints and cloud infrastructure. Currently deepening C/C++ & Linux internals and studying scalable IoT infrastructures.
+BSc Student in Computer Science @ University of Pisa (UniPi) — Edge Computing | Systems Architecture | Mathematical Foundations.
 
 - GitHub: #link("https://github.com/GiZano")[github.com/GiZano]
 - Website: #link("https://giovanni-zanotti.is-a.dev")[giovanni-zanotti.is-a.dev]
@@ -17,7 +17,7 @@ BSc Student in Computer Science @ University of Pisa (UniPi) — Edge Computing 
 
 *Founder, Full-Stack & Mobile*
 
-Junior Software Developer & IT Student — passionate about Archery, Photography, and Full-Stack Development (Backend to Frontend). Focusing on Database (SQL, PHP) and Networking (Cisco), with hands-on experience across HTML/CSS/JavaScript, Java, Python, C++, Arduino, and Git.
+Junior Software Developer — Perito Informatico (IT Technician) — passionate about Archery, Photography, and Full Stack Development (Backend to Frontend).
 
 - GitHub: #link("https://github.com/riccardo0731")[github.com/riccardo0731]
 - Portfolio: #link("https://riccardo0731.github.io")[riccardo0731.github.io]
