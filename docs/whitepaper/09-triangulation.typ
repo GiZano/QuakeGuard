@@ -21,7 +21,7 @@ Before calculating the physical epicenter, the ingestion worker (`backend/src/wo
   ]
   #align(center)[
     #figure(
-      block(height: 58%, image("assets/fig08_2-triangulation-sequence.svg", width: 112%, height: 112%, fit: "contain")),
+      block(height: 68%, image("assets/fig08_2-triangulation-sequence.svg", width: 140%, height: 140%, fit: "contain")),
       caption: [Triangulation and epicenter generation sequence],
       numbering: _ => "8.2",
       placement: top
