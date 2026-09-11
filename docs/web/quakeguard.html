@@ -495,8 +495,8 @@
 
                 <div class="row mt-5">
                     <div class="col-12">
-                        <div class="qg-card d-flex flex-column flex-md-row align-items-center gap-4">
-                            <div style="flex: 1">
+                        <div class="qg-card d-flex flex-column flex-md-row align-items-center gap-4" style="overflow:hidden;">
+                            <div style="flex: 1 1 0; min-width: 0;">
                                 <h3 data-i18n="arch_hardware">Proprietary Hardware (v2.0.1)</h3>
                                 <p data-i18n="arch_hardware_p">The QuakeGuard v2.0.1 milestone introduces a custom
                                     Printed Circuit Board (PCB) designed in KiCad. It houses the ESP32-C3 SuperMini, the
@@ -505,9 +505,9 @@
                                 <span class="qg-tag">KiCad</span><span class="qg-tag">PCB</span><span
                                     class="qg-tag">GNSS</span>
                             </div>
-                            <div style="flex: 1; min-width: 0;">
+                            <div style="flex: 1 1 0; min-width: 0;">
                                 <img src="../assets/quakeguard/pcb_assembled.jpg" alt="QuakeGuard PCB"
-                                    style="width:100%; max-width:100%; height:auto; display:block; border-radius: 8px; border: 1px solid rgba(0, 245, 255, 0.2);">
+                                    class="img-fluid" style="max-width:100%; height:auto; display:block; border-radius: 8px; border: 1px solid rgba(0, 245, 255, 0.2);">
                             </div>
                         </div>
                     </div>
@@ -937,7 +937,9 @@
                 </div>
                 <div class="row">
                     <div class="col-lg-10 mx-auto">
-                        <iframe class="qg-video" src="https://www.youtube.com/embed/Nwnah5GTkrk" title="QuakeGuard Demo" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen style="width:100%; aspect-ratio: 16/9; max-width: 800px; max-height: 80vh; background: #000; display:block; margin:0 auto;"></iframe>
+                        <div class="ratio ratio-16x9" style="max-width:800px; margin:0 auto; background:#000; border-radius:16px; overflow:hidden; border:1px solid rgba(255,255,255,0.12);">
+                            <iframe src="https://www.youtube.com/embed/Nwnah5GTkrk" title="QuakeGuard Demo" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen style="border:0;"></iframe>
+                        </div>
                     </div>
                 </div>
             </div>
