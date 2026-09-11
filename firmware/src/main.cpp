@@ -771,10 +771,10 @@ void setup() {
   // Genera la Public Key per mostrarla a schermo nel Captive Portal
   std::array<char, 400> pub_hex;
   crypto().getPublicKeyHex(pub_hex.data(), pub_hex.size());
-  Serial.printf("[SEC] Portal Public Key (%u chars): %s\n", (unsigned)strlen(pub_hex.data()), pub_hex.data());
+  Serial.printf("[SEC] Portal Public Key (%u chars): %s\n", (unsigned)strnlen(pub_hex.data(), pub_hex.size()), pub_hex.data());
 
-  String customHtml =
-      "<div style='margin-top:20px; padding:15px; border-radius:8px; background:#f8f9fa; border:1px solid #dee2e6; text-align:center; font-family:sans-serif;'>"
+  String customHtml = // NOSONAR - HTML with inline CSS is intentional for captive portal without external assets
+      "<div style='margin-top:20px; padding:15px; border-radius:8px; background:#f8f9fa; border:1px solid #dee2e6; text-align:center; font-family:sans-serif;'>" // NOSONAR
       "  <h2 style='color:#333; margin-top:0;'>Welcome to QuakeGuard!</h2>"
       "  <p style='background:#fff3cd; border:1px solid #ffc107; color:#856404; padding:8px; border-radius:6px; font-size:0.85em;'><b>&#9888; This network has NO internet</b> — this is expected.</p>"
       "  <p style='color:#555; font-size:0.85em; text-align:left;'><b>Correct workflow (2 steps):</b></p>"

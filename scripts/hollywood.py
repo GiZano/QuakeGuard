@@ -193,8 +193,8 @@ async def _register_fleet():
     for _ in range(NUM_SENSORS):
         city_name = secrets.choice(list(CITIES.keys()))
         base_lat, base_lon = CITIES[city_name]
-        lat = base_lat + (-0.1 + secrets.SystemRandom().random() * (0.1 - -0.1))
-        lon = base_lon + (-0.1 + secrets.SystemRandom().random() * (0.1 - -0.1))
+        lat = base_lat + (-0.1 + secrets.SystemRandom().random() * (0.1 - -0.1))  # NOSONAR - geographic jitter, not cryptographic
+        lon = base_lon + (-0.1 + secrets.SystemRandom().random() * (0.1 - -0.1))  # NOSONAR - geographic jitter, not cryptographic
         sensors.append(VirtualSensor(lat, lon, city_name))
 
     async with aiohttp.ClientSession() as session:
@@ -247,7 +247,7 @@ async def main():
             port=MQTT_PORT,
             username=MQTT_USERNAME or None,
             password=MQTT_PASSWORD or None,
-            tls_context=ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT) if MQTT_PORT == 8883 else None,
+            tls_context=ssl.create_default_context() if MQTT_PORT == 8883 else None,
         ) as mqtt_client:
             
             # Run both the telemetry loop and the interactive director console
