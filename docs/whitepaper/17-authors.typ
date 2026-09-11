@@ -17,7 +17,7 @@ BSc Student in Computer Science @ University of Pisa (UniPi) — Edge Computing 
 
 *Founder, Full-Stack & Mobile*
 
-Junior Software Developer — Perito Informatico (IT Technician) — passionate about Archery, Photography, and Full Stack Development (Backend to Frontend).
+Junior Software Developer — High school diploma in Computer Science (Perito Informatico) — passionate about Archery, Photography, and Full Stack Development (Backend to Frontend).
 
 - GitHub: #link("https://github.com/riccardo0731")[github.com/riccardo0731]
 - Portfolio: #link("https://riccardo0731.github.io")[riccardo0731.github.io]
