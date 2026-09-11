@@ -56,7 +56,8 @@
     script-src 'self' https://www.googletagmanager.com https://cdn.jsdelivr.net;
     style-src 'self' https://fonts.googleapis.com https://cdn.jsdelivr.net;
     font-src 'self' https://fonts.gstatic.com;
-    img-src 'self' data: https://www.googletagmanager.com https://img.shields.io https://sonarcloud.io https://github.com https://camo.githubusercontent.com;
+    img-src 'self' data: https://www.googletagmanager.com https://img.shields.io https://sonarcloud.io https://github.com https://camo.githubusercontent.com https://i.ytimg.com https://img.youtube.com;
+    frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://www.youtube.com/embed/;
     connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com; object-src 'none'; base-uri 'self'">
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -504,9 +505,9 @@
                                 <span class="qg-tag">KiCad</span><span class="qg-tag">PCB</span><span
                                     class="qg-tag">GNSS</span>
                             </div>
-                            <div style="flex: 1">
+                            <div style="flex: 1; min-width: 0;">
                                 <img src="../assets/quakeguard/pcb_assembled.jpg" alt="QuakeGuard PCB"
-                                    style="width:100%; border-radius: 8px; border: 1px solid rgba(0, 245, 255, 0.2);">
+                                    style="width:100%; max-width:100%; height:auto; display:block; border-radius: 8px; border: 1px solid rgba(0, 245, 255, 0.2);">
                             </div>
                         </div>
                     </div>
@@ -936,7 +937,7 @@
                 </div>
                 <div class="row">
                     <div class="col-lg-10 mx-auto">
-                        <iframe class="qg-video" src="https://www.youtube.com/embed/Nwnah5GTkrk" title="QuakeGuard Demo" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen style="aspect-ratio: 9/16; max-width: 400px; max-height: 80vh; background: #000;"></iframe>
+                        <iframe class="qg-video" src="https://www.youtube.com/embed/Nwnah5GTkrk" title="QuakeGuard Demo" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen style="width:100%; aspect-ratio: 16/9; max-width: 800px; max-height: 80vh; background: #000; display:block; margin:0 auto;"></iframe>
                     </div>
                 </div>
             </div>
