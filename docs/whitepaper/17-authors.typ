@@ -13,8 +13,6 @@ BSc Student in Computer Science @ University of Pisa (UniPi) — Edge Computing 
 - LinkedIn: #link("https://www.linkedin.com/in/giovanni-zanotti-it/")[linkedin.com/in/giovanni-zanotti-it]
 - ORCID: #link("https://orcid.org/0009-0000-8900-9586")[0009-0000-8900-9586]
 
-Role in QuakeGuard: edge DSP & cryptography (STA/LTA, ECDSA NVS, Serial Fallback), FastAPI/Redis ingestion & triangulation, DevOps (Docker/TimescaleDB, Mosquitto, Grafana provisioning), and whitepaper architecture.
-
 == Riccardo Dilecce — #link("https://github.com/riccardo0731")[riccardo0731] #link("https://github.com/riccardo0731")[#text(fill: rgb("#0969da"))[\@riccardo0731]]
 
 *Founder, Full-Stack & Mobile*
@@ -24,5 +22,3 @@ Junior Software Developer & IT Student — passionate about Archery, Photography
 - GitHub: #link("https://github.com/riccardo0731")[github.com/riccardo0731]
 - Portfolio: #link("https://riccardo0731.github.io")[riccardo0731.github.io]
 - LinkedIn: #link("https://www.linkedin.com/in/riccardo-dilecce-archer/")[linkedin.com/in/riccardo-dilecce-archer]
-
-Role in QuakeGuard: mobile client (Expo, WebSocket, per-zone seismograph, OTA updater, captive-portal onboarding), hardware bring-up & PCB validation, and documentation/web assets.
