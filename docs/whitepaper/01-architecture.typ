@@ -14,7 +14,7 @@ The infrastructure is decoupled into three primary tiers (illustrated in @fig-co
 - *Over-the-Air Updates:* A custom React Native hook (`useUpdateChecker`) polls GitHub Releases for new APK versions and triggers a native sideload prompt, eliminating manual update distribution.
 
 #figure(
-  image("assets/fig01-context-diagram.svg", width: 115%, height: 105%, fit: "contain"),
+  image("assets/fig01-context-diagram.pdf", width: 115%, height: 105%, fit: "contain"),
   caption: [_High-Level Architecture Context Diagram_],
   numbering: _ => "1",
   placement: auto
@@ -28,7 +28,7 @@ Following the v1.1.0 cloud migration, the architecture strictly separates the da
 - *Control Plane (Provisioning & Management):* Device onboarding, cryptographic handshakes, and REST retrieval operations are routed through an HTTPS tunnel to the FastAPI endpoints (e.g., `/devices/register`). In development the tunnel is a *Cloudflare quick tunnel* (`cloudflared tunnel --url http://localhost:8000`); production should use a real HTTPS domain. The ngrok free-tier edge is not used because its bot-protection terminates ESP-IDF (mbedTLS) TLS handshakes via JA3 fingerprinting *before* any HTTP header can be read, so IoT clients never reach the backend.
 
 #figure(
-  image("assets/fig02-container-diagram.svg", width: 115%, height: 105%, fit: "contain"),
+  image("assets/fig02-container-diagram.pdf", width: 115%, height: 105%, fit: "contain"),
   caption: [_High-Level Architecture Container Diagram_],
   numbering: _ => "2",
   placement: auto

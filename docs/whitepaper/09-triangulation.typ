@@ -13,7 +13,7 @@ Before calculating the physical epicenter, the ingestion worker (`backend/src/wo
 
   #align(center)[
     #figure(
-      image("assets/fig08_1-clustering-sequence.svg", width: 100%),
+      image("assets/fig08_1-clustering-sequence.pdf", width: 100%),
       caption: [Temporal and spatial clustering sequence for seismic triggers],
       numbering: _ => "8.1",
       placement: top
@@ -48,7 +48,7 @@ $ T_0 = T_"first" - Delta t_"travel" $
 
   #align(center)[
     #figure(
-      image("assets/fig08_2-triangulation-sequence.svg", width: 100%),
+      image("assets/fig08_2-triangulation-sequence.pdf", width: 100%),
       caption: [Triangulation and epicenter generation sequence],
       numbering: _ => "8.2",
       placement: top
