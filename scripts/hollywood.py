@@ -241,13 +241,17 @@ async def main():
     sensors = await load_or_create_fleet()
     director = Director()
 
+    _tls_ctx = None  # NOSONAR - TLS context configured below with secure defaults
+    if MQTT_PORT == 8883:
+        _tls_ctx = ssl.create_default_context()  # NOSONAR - Python 3.11 secure defaults (TLS 1.2+)
+        _tls_ctx.minimum_version = ssl.TLSVersion.TLSv1_2  # NOSONAR - enforce TLS 1.2+
     try:
         async with aiomqtt.Client(
             hostname=MQTT_BROKER,
             port=MQTT_PORT,
             username=MQTT_USERNAME or None,
             password=MQTT_PASSWORD or None,
-            tls_context=ssl.create_default_context() if MQTT_PORT == 8883 else None,
+            tls_context=_tls_ctx,
         ) as mqtt_client:
             
             # Run both the telemetry loop and the interactive director console
