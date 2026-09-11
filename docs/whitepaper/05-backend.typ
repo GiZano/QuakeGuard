@@ -53,7 +53,7 @@ Where $"PGA"_"calib"$ accounts for the ADXL345 scale and hardware calibration co
     #figure(
       image("assets/fig06_1-backend-alert-propagation.pdf", width: 100%),
       caption: [Telemetry ingestion and magnitude estimation sequence],
-      numbering: _ => "5.1",
+      numbering: _ => "6.1",
       placement: top
     ) <fig-alert-delivery-1>
   ]
@@ -61,7 +61,7 @@ Where $"PGA"_"calib"$ accounts for the ADXL345 scale and hardware calibration co
     #figure(
       image("assets/fig06_2-mobile-alert-propagation.pdf", width: 100%),
       caption: [Real-time alert propagation and critical message publication sequence],
-      numbering: _ => "5.2",
+      numbering: _ => "6.2",
       placement: top
     ) <fig-alert-delivery-2>
   ]
@@ -80,7 +80,7 @@ To ensure the physical and network infrastructure operates with absolute reliabi
     #figure(
       image("assets/fig06_3-ai-report-propagation.pdf", width: 100%),
       caption: [AI reporting sequence and propagation],
-      numbering: _ => "5.3",
+      numbering: _ => "6.3",
       placement: top
     ) <fig-ai-report-prop>
   ]

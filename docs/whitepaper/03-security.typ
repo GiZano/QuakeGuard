@@ -27,14 +27,14 @@ Before transmitting any seismic data, an unregistered sensor must complete an au
 #figure(
   image("assets/fig05_1-provisioning-handshake-sequence.pdf", width: 96%),
   caption: [_Provisioning Handshake Sequence_],
-  numbering: _ => "3.1",
+  numbering: _ => "5.1",
   placement: top
 ) <fig-provisioning-a>
 
 #figure(
   image("assets/fig05_2-provisioning-handshake-sequence.pdf", width: 94%),
   caption: [_Provisioning Handshake Sequence (continuation)_],
-  numbering: _ => "3.2",
+  numbering: _ => "5.2",
   placement: top
 ) <fig-provisioning-b>
 
