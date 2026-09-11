@@ -67,7 +67,7 @@ With the v2.0.0 milestone, the QuakeGuard hardware has matured from a breadboard
     _The QuakeGuard v2.0.0 fully assembled PCB, featuring the ESP32-C3 SuperMini, the ADXL345 
     accelerometer, and the u-blox GNSS module soldered into their dedicated footprints._
   ],
-  numbering: _ => "2.1",
+  numbering: _ => "3",
   placement: auto
 ) <fig-pcb>
 
@@ -98,6 +98,6 @@ To ensure the theoretical STA/LTA model translates correctly to the real world, 
     event (a weak micro-seismicity recorded at >100km distance) correctly fails to 
     trigger the algorithm, proving the firmware's robustness against distant noise._
   ],
-  numbering: _ => "2.2",
+  numbering: _ => "4",
   placement: auto
 ) <fig-roc>
