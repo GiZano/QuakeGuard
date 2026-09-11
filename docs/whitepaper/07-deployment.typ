@@ -39,7 +39,7 @@ Upon executing the orchestrator, Grafana exposes port `3000`, presenting a fully
 #figure(
   image("assets/grafana_dashboard.png", width: 100%),
   caption: [QuakeGuard Mission Control Dashboard (Zone-Aware)],
-  numbering: _ => "7.1",
+  numbering: _ => "7",
 ) <fig-grafana>
 
 1. *Live Seismograph:* Aggregated real-time Magnitude (PGA) and alert tables.
