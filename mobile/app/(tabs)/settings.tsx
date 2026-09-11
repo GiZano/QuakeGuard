@@ -1,5 +1,6 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useState, useRef, useEffect } from "react";
-import { View, Text, StyleSheet, Switch, Alert, TouchableOpacity, ActivityIndicator, ScrollView, Linking } from "react-native";
+import { View, Text, StyleSheet, Switch, Alert, TouchableOpacity, ActivityIndicator, ScrollView, Linking, TextInput } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams } from "expo-router";
 import {
@@ -30,6 +31,21 @@ interface Zone {
 }
 
 export default function SettingsScreen() {
+  const [customUrl, setCustomUrl] = useState("");
+
+  useEffect(() => {
+    AsyncStorage.getItem('CLOUD_TUNNEL_URL').then(url => setCustomUrl(url || ""));
+  }, []);
+
+  const handleSaveUrl = async () => {
+    if (customUrl.trim() === "") {
+      await AsyncStorage.removeItem('CLOUD_TUNNEL_URL');
+    } else {
+      await AsyncStorage.setItem('CLOUD_TUNNEL_URL', customUrl.trim());
+    }
+    alert("Backend URL saved! Please restart the app.");
+  };
+
   const {
     isOfflineMode,
     notificationsEnabled,
@@ -271,6 +287,30 @@ export default function SettingsScreen() {
                 </TouchableOpacity>
               );
             })}
+          </View>
+        </View>
+
+        
+        {/* Connection Setup */}
+        <Text style={[styles.sectionTitle, styles.sectionTitleSpaced]}>CONNECTION (DEMO)</Text>
+        <View style={styles.card}>
+          <View style={[styles.settingRow, styles.lastRow, { flexDirection: 'column', alignItems: 'flex-start', gap: 10 }]}>
+            <Text style={styles.settingLabel}>Custom Backend URL</Text>
+            <Text style={styles.settingHint}>Override API URL for Cloudflare Tunnels</Text>
+            <View style={{ flexDirection: 'row', width: '100%', gap: 10 }}>
+              <TextInput 
+                style={{ flex: 1, backgroundColor: '#1a1a1a', color: 'white', padding: 10, borderRadius: 8, fontFamily: 'SpaceMono' }} 
+                placeholder="https://xxx.trycloudflare.com"
+                placeholderTextColor="#666"
+                value={customUrl}
+                onChangeText={setCustomUrl}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              <TouchableOpacity style={styles.detectButton} onPress={handleSaveUrl}>
+                <Text style={styles.detectButtonText}>SAVE</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 

@@ -5,9 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.1.0] - 2026-09-03
+## [2.1.0] - 2026-09-10
 ### Added
-- **Grafana Observability Stack:** Full integration with TimescaleDB for system telemetry, providing real-time diagnostics of the sensor fleet (end-to-end latency, free heap, RSSI, GNSS satellites).
+- **Grafana Mission Control:** Automated dashboard provisioning via JSON configuration, providing real-time seismographs, IoT telemetry (RSSI, free heap), and backend latency metrics instantly on `docker compose up`.
+- **Hollywood Simulator:** `scripts/hollywood.sh` demo orchestrator for live exhibitions, simulating a multi-node seismic fleet with automated world-zone seeding.
+- **Captive Portal Onboarding:** Embedded HTML captive portal in `WiFiManager` to distribute the Mobile APK and display the ECDSA Public Key for seamless device enrollment.
+- **Dynamic Backend Onboarding:** Introduced QR Code generation via `qrencode` in the local terminal during boot. The mobile app now supports overriding the static API URL dynamically by saving it to `AsyncStorage`, enabling zero-recompilation demo setups.
+- **Over-the-Air (OTA) Updates:** Custom GitHub-based updater hook (`useUpdateChecker`) inside the React Native app that polls the latest release and triggers a native prompt to sideload the updated APK.
 - **System Telemetry Injection:** ESP32-C3 firmware now appends `free_heap`, `rssi`, `gnss_satellites`, and `device_timestamp_ms` to the payload without breaking the cryptographic signature.
 - **End-to-End Latency Tracking:** FastAPI Gateway calculates exact latency between the hardware timestamp and UTC ingestion time, powering the core Proof of Rigor metric in Grafana.
 - **Dependabot Configuration:** Automated dependency updates for pip (backend), npm (mobile), and GitHub Actions (`.github/dependabot.yml`).

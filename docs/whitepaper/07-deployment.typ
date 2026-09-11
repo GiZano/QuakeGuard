@@ -29,6 +29,22 @@ Because telemetry is consumed through Redis Streams consumer groups, the worker 
 docker compose up --scale worker=N -d
 ```
 
+== Observability & Telemetry Dashboards
+
+System health and network latency are continuously monitored through a Grafana container. To eliminate manual configuration, QuakeGuard leverages Grafana's automated provisioning system:
+- *Data Sources:* The `postgres.yml` file natively mounts the TimescaleDB connection parameters.
+- *Dashboards:* The "Mission Control" JSON dashboard is mounted via `dashboards.yml` directly into `/etc/grafana/provisioning/dashboards/`.
+Upon executing the orchestrator, Grafana exposes port `3000`, presenting a fully configured 4-tier dashboard:
+ 
+#figure(
+  image("assets/grafana_dashboard.png", width: 90%),
+  caption: [QuakeGuard Mission Control Dashboard (Zone-Aware)],
+) <fig-grafana>
+
+1. *Live Seismograph:* Aggregated real-time Magnitude (PGA) and alert tables.
+2. *IoT Telemetry:* Node counts, RSSI bar gauges, and ESP32 free heap stability.
+3. *Backend Latency:* End-to-end packet latency and ingestion throughput (Events/sec).
+
 == Seismic Simulation & Stress Testing
 
 Two companion scripts exercise the ingestion pipeline:

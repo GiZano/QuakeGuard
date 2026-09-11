@@ -67,6 +67,6 @@ research/*.png
 firmware/tools/detect_cli
 
 # ------------------------------------------
-# KiCad local history
+# Hollywood Simulator
 # ------------------------------------------
-.history/
+scripts/fleet.json

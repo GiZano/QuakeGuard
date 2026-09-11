@@ -9,6 +9,9 @@ The infrastructure is decoupled into three primary tiers (illustrated in @fig-co
 - *Edge Layer (IoT):* Composed of ESP32-C3 SuperMini microcontrollers interfaced with ADXL345 digital accelerometers. These nodes execute on-device Digital Signal Processing (DSP) using the STA/LTA (Short Term Average / Long Term Average) algorithm. 
 - *Core Backend & Processing:* A polyglot backend architecture utilizing FastAPI (Python) as the API gateway. Validated data is asynchronously offloaded to a Redis Stream (`readings:stream`) and consumed by horizontally-scalable background workers via consumer groups. The workers persist time-series data into a PostgreSQL/PostGIS database (provisioned as a TimescaleDB hypertable) and trigger area-scoped alerts via Redis Pub/Sub.
 - *Client Presentation Layer:* A React Native (Expo) mobile application providing users with real-time seismograph telemetry and instantaneous critical event notifications delivered through WebSockets and native push notifications.
+- *Observability Layer:* A Grafana instance automatically provisioned via `docker-compose.yml` with a JSON dashboard and TimescaleDB datasource, providing system telemetry (latency, RSSI, free heap).
+- *Device Onboarding:* A WiFiManager-based Captive Portal (`QuakeGuard-Setup` SSID) serves the mobile APK download link and displays the ECDSA public key for zero-touch enrollment. Additionally, the system features a Dynamic Demo Onboarding mode where a QR code is generated in the terminal to configure the mobile app URL without recompilation. A hardware reset via the BOOT button (GPIO 0, 5-second hold) re-enters AP mode for credential recovery.
+- *Over-the-Air Updates:* A custom React Native hook (`useUpdateChecker`) polls GitHub Releases for new APK versions and triggers a native sideload prompt, eliminating manual update distribution.
 
 #figure(
   image("assets/fig01-context-diagram.pdf", width: 115%, height: 105%, fit: "contain"),

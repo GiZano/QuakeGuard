@@ -50,6 +50,8 @@ constexpr int I2C_CLOCK_SPEED = 100000;
 constexpr int LED_BLUE_PIN =
     10; // connection state: double->wifi, single->server, solid->connected
 constexpr int LED_RED_PIN = 3; // quake detected: on 3 s
+constexpr int BOOT_BUTTON_PIN = 9;  // GPIO 0 — BOOT button (active LOW)
+constexpr unsigned long RESET_HOLD_MS = 5000;  // 5 seconds hold to trigger factory reset
 
 #ifndef SERVER_HOST
 #define SERVER_HOST "your-tunnel-id.trycloudflare.com"
@@ -491,11 +493,15 @@ static void deliverEvent(PubSubClient &mqttClient, DeliveryPath path, int val,
 }
 
 void networkTask(void *pvParameters) { // NOSONAR
-  WiFiClientSecure espClient;
-  espClient.setInsecure();
-  PubSubClient mqttClient(espClient);
+  WiFiClient espClientPlain;
+  WiFiClientSecure espClientSecure;
+  espClientSecure.setInsecure();
+  
+  Client* baseClient = (MQTT_BROKER_PORT == 8883) ? (Client*)&espClientSecure : (Client*)&espClientPlain;
+  PubSubClient mqttClient(*baseClient);
 
   mqttClient.setServer(MQTT_BROKER_HOST, MQTT_BROKER_PORT);
+  mqttClient.setBufferSize(1024);
 
   // NTP sync happens opportunistically; event dispatch never blocks on it.
   configTime(0, 0, "pool.ntp.org", "time.nist.gov");
@@ -647,6 +653,35 @@ void gnssTask(void *pvParameters) { // NOSONAR
 #endif
 
 // --------------------------------------------------------------------------
+// TASK 4: FACTORY RESET MONITOR (BOOT BUTTON GPIO 0)
+// --------------------------------------------------------------------------
+void resetTask(void *pvParameters) { // NOSONAR
+  pinMode(BOOT_BUTTON_PIN, INPUT_PULLUP);
+  for (;;) {
+    vTaskDelay(pdMS_TO_TICKS(100));
+    if (digitalRead(BOOT_BUTTON_PIN) != LOW) {
+      continue;
+    }
+    unsigned long pressStart = millis();
+    while (digitalRead(BOOT_BUTTON_PIN) == LOW) {
+      if ((millis() - pressStart) >= RESET_HOLD_MS) {
+        Serial.println("[RESET] BOOT button held >5s — Factory Reset!");
+        Serial.println("[RESET] Clearing WiFi credentials and sensor config...");
+        WiFiManager wm;
+        wm.resetSettings();
+        preferences.begin("quake-config", false);
+        preferences.remove("sensor_id");
+        preferences.end();
+        Serial.println("[RESET] Done. Rebooting into AP mode...");
+        delay(500);
+        ESP.restart();
+      }
+      vTaskDelay(pdMS_TO_TICKS(50));
+    }
+  }
+}
+
+// --------------------------------------------------------------------------
 // MAIN ENTRY POINTS
 // --------------------------------------------------------------------------
 void setup() {
@@ -749,6 +784,8 @@ void setup() {
 #ifdef GNSS_ENABLED
   xTaskCreate(gnssTask, "GnssTask", 8192, NULL, 2, NULL);
 #endif
+
+  xTaskCreate(resetTask, "ResetTask", 4096, NULL, 1, NULL);
 
   Serial.println("[SYS] System Running.");
 }

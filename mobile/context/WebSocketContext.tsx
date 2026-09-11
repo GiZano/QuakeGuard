@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, {
   createContext,
   ReactNode,
@@ -9,25 +10,30 @@ import React, {
   useCallback,
 } from "react";
 import { Vibration, Platform } from "react-native";
-import * as Notifications from "expo-notifications";
 import * as Device from "expo-device";
 import { API_BASE_URL, MOBILE_WS_TOKEN } from "../constants/config";
 import { useAlertStore } from '../store/useAlertStore';
 import { usePreferencesStore } from '../store/usePreferencesStore';
 import { playAlarm } from "../audio/alarm";
 
-// --- NOTIFICATION HANDLER ---
-Notifications.setNotificationHandler({
-  handleNotification: async () => {
-    const enabled = usePreferencesStore.getState().notificationsEnabled;
-    return {
-      shouldShowBanner: enabled,
-      shouldShowList: enabled,
-      shouldPlaySound: enabled,
-      shouldSetBadge: false,
-    };
-  },
-});
+let Notifications: any = null;
+try {
+  Notifications = require("expo-notifications");
+  // --- NOTIFICATION HANDLER ---
+  Notifications.setNotificationHandler({
+    handleNotification: async () => {
+      const enabled = usePreferencesStore.getState().notificationsEnabled;
+      return {
+        shouldShowBanner: enabled,
+        shouldShowList: enabled,
+        shouldPlaySound: enabled,
+        shouldSetBadge: false,
+      };
+    },
+  });
+} catch (e) {
+  console.warn("expo-notifications disabled (likely Expo Go SDK 53+)", e);
+}
 
 // --- TYPES & INTERFACES ---
 export interface AlertMessage {
@@ -88,6 +94,7 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
 
   useEffect(() => {
     const registerForPushNotificationsAsync = async () => {
+      if (!Notifications) return;
       if (Platform.OS === 'android') {
         await Notifications.setNotificationChannelAsync('default', {
           name: 'default',
@@ -114,7 +121,50 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
     registerForPushNotificationsAsync();
   }, []);
   
-  const connect = useCallback(function doConnect() {
+  const handleEmergencyReport = useCallback((report: EmergencyReportMessage, ringsForZone: (zoneId: number) => boolean) => {
+    console.log("🤖 AI REPORT RECEIVED:", report);
+    setLastReport(report);
+    useAlertStore.getState().addReport(report);
+
+    if (ringsForZone(report.zone_id) && Notifications) {
+      Notifications.scheduleNotificationAsync({
+        content: {
+          title: report.status === "COMPLETED" ? "🤖 AI Emergency Report" : "🤖 AI Report Unavailable",
+          body:
+            report.status === "COMPLETED"
+              ? report.summary ?? "Emergency report generated."
+              : "The AI report could not be generated. Contact local authorities.",
+          sound: true,
+          priority: Notifications.AndroidNotificationPriority.MAX,
+        },
+        trigger: null,
+      });
+    }
+  }, []);
+
+  const handleAlert = useCallback((alert: AlertMessage, ringsForZone: (zoneId: number) => boolean) => {
+    console.log("⚡ ALERT RECEIVED:", alert);
+    setLastAlert(alert);
+    useAlertStore.getState().addAlert(alert);
+
+    if ((alert.type === "CRITICAL" || alert.type === "TRIANGULATED") && ringsForZone(alert.zone_id)) {
+      Vibration.vibrate(SOS_VIBRATION_PATTERN);
+      playAlarm(15000);
+      if (Notifications) {
+        Notifications.scheduleNotificationAsync({
+          content: {
+            title: alert.type === "TRIANGULATED" ? "🚨 TRIANGULATED ALERT: EPICENTER FOUND" : "⚠️ CRITICAL SEISMIC ALERT",
+            body: `Magnitude ${alert.magnitude.toFixed(1)} detected. ${alert.message}`,
+            sound: true,
+            priority: Notifications.AndroidNotificationPriority.MAX,
+          },
+          trigger: null,
+        });
+      }
+    }
+  }, []);
+  
+  const connect = useCallback(async function doConnect() {
     if (usePreferencesStore.getState().isOfflineMode) return;
     
     // FIX: Also block when the socket is in "CONNECTING" (0) state,
@@ -124,7 +174,9 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
     }
 
     intentionalClose.current = false;
-    const wsUrl = `${API_BASE_URL.replace("http", "ws")}/ws/alerts?token=${MOBILE_WS_TOKEN}`;
+    const dynamicUrl = await AsyncStorage.getItem('CLOUD_TUNNEL_URL');
+    const baseUrl = dynamicUrl || API_BASE_URL;
+    const wsUrl = `${baseUrl.replace("http", "ws")}/ws/alerts?token=${MOBILE_WS_TOKEN}`;
     console.log(`🔌 Attempting WS Connection: ${wsUrl}`);
 
     ws.current = new WebSocket(wsUrl);
@@ -146,48 +198,10 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
         const ringsForZone = (zoneId: number): boolean =>
           notificationsEnabled && (homeZoneId == null || zoneId === homeZoneId);
 
-        // 🤖 AI Emergency Report (generated asynchronously by the local Ollama worker)
         if (message.type === "EMERGENCY_REPORT") {
-          const report: EmergencyReportMessage = message;
-          console.log("🤖 AI REPORT RECEIVED:", report);
-          setLastReport(report);
-          useAlertStore.getState().addReport(report);
-
-          if (ringsForZone(report.zone_id)) {
-            Notifications.scheduleNotificationAsync({
-              content: {
-                title: report.status === "COMPLETED" ? "🤖 AI Emergency Report" : "🤖 AI Report Unavailable",
-                body:
-                  report.status === "COMPLETED"
-                    ? report.summary ?? "Emergency report generated."
-                    : "The AI report could not be generated. Contact local authorities.",
-                sound: true,
-                priority: Notifications.AndroidNotificationPriority.MAX,
-              },
-              trigger: null,
-            });
-          }
-          return;
-        }
-
-        const alert: AlertMessage = message;
-        console.log("⚡ ALERT RECEIVED:", alert);
-
-        setLastAlert(alert);
-        useAlertStore.getState().addAlert(alert);
-
-        if ((alert.type === "CRITICAL" || alert.type === "TRIANGULATED") && ringsForZone(alert.zone_id)) {
-          Vibration.vibrate(SOS_VIBRATION_PATTERN);
-          playAlarm(15000);
-          Notifications.scheduleNotificationAsync({
-            content: {
-              title: alert.type === "TRIANGULATED" ? "🚨 TRIANGULATED ALERT: EPICENTER FOUND" : "⚠️ CRITICAL SEISMIC ALERT",
-              body: `Magnitude ${alert.magnitude.toFixed(1)} detected. ${alert.message}`,
-              sound: true,
-              priority: Notifications.AndroidNotificationPriority.MAX,
-            },
-            trigger: null,
-          });
+          handleEmergencyReport(message, ringsForZone);
+        } else {
+          handleAlert(message, ringsForZone);
         }
       } catch (err) {
         console.error("❌ Error parsing WS message:", err);
@@ -216,7 +230,7 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
     ws.current.onerror = (error: Event) => {
       console.error("⚠️ WS Error:", error);
     };
-  }, []);
+  }, [handleEmergencyReport, handleAlert]);
 
   // 💡 THE NEW WATCHER: React to the offline toggle changing
   useEffect(() => {

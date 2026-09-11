@@ -3,12 +3,14 @@ apiVersion: 1
 datasources:
   - name: TimescaleDB
     type: postgres
+    uid: timescaledb
     url: postgres:5432
     user: ${POSTGRES_USER}
     secureJsonData:
       password: ${POSTGRES_PASSWORD}
     database: ${POSTGRES_DB}
     jsonData:
+      database: ${POSTGRES_DB}
       sslmode: 'disable'
       postgresVersion: 1500
       timescaledb: true

@@ -50,8 +50,15 @@ else
     echo "⚠️ Warning: firmware/esp32_config.env not found at $PROJECT_ROOT/firmware/esp32_config.env!"
 fi
 
+
 echo ""
 echo "🎉 Everything configured automatically!"
 echo "👉 ESP32: Go to the 'firmware' folder and run 'pio run -t upload'"
 echo "👉 Mobile: If Expo is running, press 'r' to reload, otherwise 'npx expo start'"
 echo "👉 To stop the tunnel when finished: killall cloudflared"
+
+echo ""
+echo "📱 Inquadra questo QR dall'app per auto-configurare il server:"
+qrencode -t ANSIUTF8 "https://$URL"
+echo ""
+

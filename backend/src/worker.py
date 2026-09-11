@@ -90,6 +90,10 @@ def _enrich_event(event: dict, db: Session) -> dict:
         sensor_id=event.get("sensor_id"),
         latitude=event.get("latitude"),
         longitude=event.get("longitude"),
+        free_heap=event.get("free_heap"),
+        rssi=event.get("rssi"),
+        gnss_satellites=event.get("gnss_satellites"),
+        latency_ms=event.get("latency_ms"),
     )
     db.add(new_entry)
 

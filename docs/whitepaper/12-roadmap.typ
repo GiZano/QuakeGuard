@@ -8,7 +8,7 @@
   [v1.2.x], [On-Premise AI, Geo-Zoning, Serial Fallback],
   [v1.3.0], [Synchronized GNSS (NTP + PPS Time Discipline)],
   [v2.0.0], [Epicenter Triangulation & Hardware Assembly],
-  [v2.1.0], [Grafana Observability & System Telemetry]
+  [v2.1.0], [Grafana Observability, System Telemetry, Captive Portal Onboarding, Dynamic Demo Onboarding (QR), OTA In-App Updates, Hollywood Simulator, and Repository Health (ADRs, CI Hardening, Dependabot)]
 )
 
 == Next Steps
