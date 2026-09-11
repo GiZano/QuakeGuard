@@ -29,7 +29,7 @@ jobs:
     - name: Setup Typst (Compile Whitepaper)
       uses: typst-community/setup-typst@f5c90506c7ae74fca20e339034af05c52e0eda92
       with:
-        typst-version: '0.11.1'
+        typst-version: '0.15.1'
 
     - name: Build Technical Report PDF
       run: |

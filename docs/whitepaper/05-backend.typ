@@ -59,21 +59,12 @@ Where $"PGA"_"calib"$ accounts for the ADXL345 scale and hardware calibration co
   ]
   #align(center)[
     #figure(
-      image("assets/fig06_2-mobile-alert-propagation.pdf", width: 96%),
+      image("assets/fig06_2-mobile-alert-propagation.pdf", width: 100%),
       caption: [Real-time alert propagation and critical message publication sequence],
       numbering: _ => "6.2",
       placement: top
     ) <fig-alert-delivery-2>
   ]
-  #align(center)[
-    #figure(
-      image("assets/fig06_3-ai-report-propagation.pdf", width: 96%),
-      caption: [AI reporting sequence and propagation],
-      numbering: _ => "6.3",
-      placement: top
-    ) <fig-ai-report-prop>
-  ]
-  
 
 == System Telemetry & Grafana Observability (v2.1.0)
 
@@ -84,3 +75,12 @@ To ensure the physical and network infrastructure operates with absolute reliabi
 - *Zero-Config Provisioning:* The system automatically alters the TimescaleDB hypertable at startup to store these columns. The `docker-compose.yml` launches Grafana, utilizing a pre-injected `postgres.yml` datasource to connect natively to TimescaleDB, rendering time-series diagnostics instantly.
 
 - *Dashboard-as-Code:* The full "Mission Control" dashboard is provisioned via a JSON file mounted into Grafana's provisioning directory.
+
+  #align(center)[
+    #figure(
+      image("assets/fig06_3-ai-report-propagation.pdf", width: 100%),
+      caption: [AI reporting sequence and propagation],
+      numbering: _ => "6.3",
+      placement: top
+    ) <fig-ai-report-prop>
+  ]
