@@ -31,7 +31,7 @@
   #v(2cm)
   #text(size: 12pt)[Release: *v2.1.0* (Grafana Observability & System Telemetry)]\
   #v(0.5cm)
-  #text(size: 12pt)[Core Maintainers: \@GiZano, \@riccardo0731]\
+  #text(size: 12pt)[Core Maintainers: #link("https://github.com/GiZano")[\@GiZano], #link("https://github.com/riccardo0731")[\@riccardo0731]]\
   #v(2cm)
   #image("assets/logo/png/logo.png", width: 45%)
 ]
@@ -70,3 +70,4 @@
 #include "14-bibliography.typ"
 #include "15-glossary.typ"
 #include "16-appendix.typ"
+#include "17-authors.typ"
