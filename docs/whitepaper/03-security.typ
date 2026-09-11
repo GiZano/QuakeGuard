@@ -25,14 +25,14 @@ Before transmitting any seismic data, an unregistered sensor must complete an au
 + A unique `sensor_id` is returned to the device, which saves it to NVS for all future communications.
 
 #figure(
-  image("assets/fig05_1-provisioning-handshake-sequence.pdf", width: 96%),
+  image("assets/fig05_1-provisioning-handshake-sequence.svg", width: 96%),
   caption: [_Provisioning Handshake Sequence_],
   numbering: _ => "5.1",
   placement: top
 ) <fig-provisioning-a>
 
 #figure(
-  image("assets/fig05_2-provisioning-handshake-sequence.pdf", width: 94%),
+  image("assets/fig05_2-provisioning-handshake-sequence.svg", width: 94%),
   caption: [_Provisioning Handshake Sequence (continuation)_],
   numbering: _ => "5.2",
   placement: top
