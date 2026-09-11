@@ -13,7 +13,7 @@ Before calculating the physical epicenter, the ingestion worker (`backend/src/wo
 
   #align(center)[
     #figure(
-      block(height: 45%, image("assets/fig08_1-clustering-sequence.svg", width: 98%, height: 100%, fit: "contain")),
+      block(height: 42%, image("assets/fig08_1-clustering-sequence.svg", width: 98%, height: 100%, fit: "contain")),
       caption: [Temporal and spatial clustering sequence for seismic triggers],
       numbering: _ => "8.1",
       placement: top
@@ -21,7 +21,7 @@ Before calculating the physical epicenter, the ingestion worker (`backend/src/wo
   ]
   #align(center)[
     #figure(
-      block(height: 45%, image("assets/fig08_2-triangulation-sequence.svg", width: 94%, height: 100%, fit: "contain")),
+      block(height: 58%, image("assets/fig08_2-triangulation-sequence.svg", width: 112%, height: 112%, fit: "contain")),
       caption: [Triangulation and epicenter generation sequence],
       numbering: _ => "8.2",
       placement: top
