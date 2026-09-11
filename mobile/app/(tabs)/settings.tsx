@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useState, useRef, useEffect } from "react";
-import { View, Text, StyleSheet, Switch, Alert, TouchableOpacity, ActivityIndicator, ScrollView, Linking, TextInput } from "react-native";
+import { View, Text, StyleSheet, Switch, Alert, TouchableOpacity, ActivityIndicator, ScrollView, Linking, TextInput, Modal } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams } from "expo-router";
 import {
@@ -15,8 +15,11 @@ import {
   Globe,
   Github,
   ExternalLink,
+  QrCode,
+  X,
 } from "lucide-react-native";
 import * as Location from "expo-location";
+import { CameraView, useCameraPermissions } from "expo-camera";
 import { usePreferencesStore } from "../../store/usePreferencesStore";
 import { useAlertStore } from "../../store/useAlertStore";
 import { useThemeStore } from "../../store/useThemeStore";
@@ -32,6 +35,9 @@ interface Zone {
 
 export default function SettingsScreen() {
   const [customUrl, setCustomUrl] = useState("");
+  const [permission, requestPermission] = useCameraPermissions();
+  const [scanning, setScanning] = useState(false);
+  const scannedRef = useRef(false);
 
   useEffect(() => {
     AsyncStorage.getItem('CLOUD_TUNNEL_URL').then(url => setCustomUrl(url || ""));
@@ -44,6 +50,39 @@ export default function SettingsScreen() {
       await AsyncStorage.setItem('CLOUD_TUNNEL_URL', customUrl.trim());
     }
     alert("Backend URL saved! Please restart the app.");
+  };
+
+  const handleOpenScanner = async () => {
+    if (!permission?.granted) {
+      const result = await requestPermission();
+      if (!result.granted) {
+        Alert.alert("Permission denied", "Grant camera permission to scan the tunnel QR code.");
+        return;
+      }
+    }
+    scannedRef.current = false;
+    setScanning(true);
+  };
+
+  const handleBarCodeScanned = async ({ data }: { data: string }) => {
+    if (scannedRef.current) return;
+    scannedRef.current = true;
+    setScanning(false);
+    let url = data.trim();
+    // tunnel_init.sh encodes "https://xxx.trycloudflare.com"
+    if (!/^https?:\/\//i.test(url)) {
+      url = `https://${url}`;
+    }
+    try {
+      const parsed = new URL(url);
+      if (!parsed.hostname) throw new Error("invalid");
+    } catch {
+      Alert.alert("Invalid QR", `QR content is not a valid URL:\n${data}`);
+      return;
+    }
+    setCustomUrl(url);
+    await AsyncStorage.setItem('CLOUD_TUNNEL_URL', url);
+    Alert.alert("QR captured", `Backend URL set to:\n${url}\nRestart the app to apply.`);
   };
 
   const {
@@ -296,7 +335,7 @@ export default function SettingsScreen() {
         <View style={styles.card}>
           <View style={[styles.settingRow, styles.lastRow, { flexDirection: 'column', alignItems: 'flex-start', gap: 10 }]}>
             <Text style={styles.settingLabel}>Custom Backend URL</Text>
-            <Text style={styles.settingHint}>Override API URL for Cloudflare Tunnels</Text>
+            <Text style={styles.settingHint}>Override API URL for Cloudflare Tunnels — scan the terminal QR code</Text>
             <View style={{ flexDirection: 'row', width: '100%', gap: 10 }}>
               <TextInput 
                 style={{ flex: 1, backgroundColor: '#1a1a1a', color: 'white', padding: 10, borderRadius: 8, fontFamily: 'SpaceMono' }} 
@@ -307,12 +346,55 @@ export default function SettingsScreen() {
                 autoCapitalize="none"
                 autoCorrect={false}
               />
+              <TouchableOpacity style={[styles.detectButton, { backgroundColor: colors.info }]} onPress={handleOpenScanner}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <QrCode size={16} color={colors.bg} />
+                  <Text style={styles.detectButtonText}>SCAN</Text>
+                </View>
+              </TouchableOpacity>
               <TouchableOpacity style={styles.detectButton} onPress={handleSaveUrl}>
                 <Text style={styles.detectButtonText}>SAVE</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
+
+        {/* QR Scanner Modal */}
+        <Modal visible={scanning} animationType="slide" onRequestClose={() => setScanning(false)}>
+          <View style={styles.scannerContainer}>
+            {!permission?.granted ? (
+              <View style={styles.scannerPermissionBox}>
+                <Text style={styles.scannerHint}>Camera permission required</Text>
+                <TouchableOpacity style={styles.detectButton} onPress={requestPermission}>
+                  <Text style={styles.detectButtonText}>GRANT</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.scannerCloseBtn, { marginTop: 12 }]} onPress={() => setScanning(false)}>
+                  <Text style={styles.scannerCloseText}>CLOSE</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <>
+                <CameraView
+                  style={StyleSheet.absoluteFill}
+                  facing="back"
+                  barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
+                  onBarcodeScanned={handleBarCodeScanned}
+                />
+                <View style={styles.scannerOverlay}>
+                  <View style={styles.scannerHeader}>
+                    <Text style={styles.scannerTitle}>Scan the tunnel QR code</Text>
+                    <Text style={styles.scannerHint}>Displayed in terminal by tunnel_init.sh</Text>
+                  </View>
+                  <View style={styles.scannerFrame} />
+                  <TouchableOpacity style={styles.scannerCloseBtn} onPress={() => setScanning(false)}>
+                    <X size={20} color="#fff" />
+                    <Text style={styles.scannerCloseText}>CLOSE</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
+          </View>
+        </Modal>
 
         {/* Explore */}
         <Text style={[styles.sectionTitle, styles.sectionTitleSpaced]}>EXPLORE</Text>
@@ -415,4 +497,13 @@ const createStyles = (c: ReturnType<typeof useAppTheme>["colors"]) =>
       fontFamily: MONO,
       letterSpacing: 1,
     },
+    scannerContainer: { flex: 1, backgroundColor: "#000" },
+    scannerPermissionBox: { flex: 1, justifyContent: "center", alignItems: "center", padding: 24, gap: 16, backgroundColor: c.bg },
+    scannerOverlay: { flex: 1, justifyContent: "space-between", alignItems: "center", paddingVertical: 40, paddingHorizontal: 20 },
+    scannerHeader: { alignItems: "center", gap: 6, backgroundColor: "rgba(0,0,0,0.6)", paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12 },
+    scannerTitle: { color: "#fff", fontSize: 16, fontWeight: "700", fontFamily: MONO, letterSpacing: 1, textAlign: "center" },
+    scannerHint: { color: "#aaa", fontSize: 11, fontFamily: MONO, textAlign: "center" },
+    scannerFrame: { width: 240, height: 240, borderWidth: 3, borderColor: "#fff", borderRadius: 16, backgroundColor: "transparent" },
+    scannerCloseBtn: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: "rgba(0,0,0,0.7)", paddingHorizontal: 20, paddingVertical: 12, borderRadius: 24, borderWidth: 1, borderColor: "rgba(255,255,255,0.3)" },
+    scannerCloseText: { color: "#fff", fontSize: 12, fontWeight: "700", fontFamily: MONO, letterSpacing: 1 },
   });

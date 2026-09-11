@@ -108,13 +108,16 @@ class Director:
 
 
 def generate_payload(s, quake_active, director):
-    value = secrets.choice(range(10, 31))
+    # Background ~M2-3 (below 4.5 threshold), quake ramps to M4.5+ (value 5500+ = threshold)
+    # See backend/src/worker.py:estimate_magnitude() -> M=log10(value/100/1.6)+3.0
+    # and tests/unit/test_magnitude.py: 5500 => M>=4.5
+    value = secrets.choice(range(120, 750))
     if quake_active and s.city == director.trigger_city:
         elapsed = time.time() - director.trigger_time
         if elapsed < 5:
-            value = secrets.choice(range(80, 151))
+            value = secrets.choice(range(5500, 8500))
         else:
-            value = secrets.choice(range(150, 401))
+            value = secrets.choice(range(8500, 15000))
 
     timestamp_sec = int(time.time())
     timestamp_ms = int(time.time() * 1000)
@@ -217,10 +220,10 @@ async def load_or_create_fleet():
             with open(FLEET_FILE, 'r') as f:
                 return json.load(f)
         data = await asyncio.to_thread(read_fleet)
-            sensors = [VirtualSensor(
-                s['lat'], s['lon'], s['city'],
-                s['sensor_id'], s['mac'], s['priv_pem']
-            ) for s in data]
+        sensors = [VirtualSensor(
+            s['lat'], s['lon'], s['city'],
+            s['sensor_id'], s['mac'], s['priv_pem']
+        ) for s in data]
 
         print("🔍 Validating fleet against database...")
         if await _validate_fleet(sensors):
