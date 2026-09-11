@@ -355,24 +355,24 @@ export default function SettingsScreen() {
 const createStyles = (c: ReturnType<typeof useAppTheme>["colors"]) =>
   StyleSheet.create({
     safeArea: { flex: 1, backgroundColor: c.bg },
-    container: { padding: 20, paddingBottom: 100 },
-    header: { flexDirection: "row", alignItems: "center", marginBottom: 30, marginTop: 10, gap: 10 },
+    container: { padding: 20, paddingBottom: 80 },
+    header: { flexDirection: "row", alignItems: "center", marginBottom: 30, marginTop: 12, gap: 8 },
     headerTitle: { fontSize: 22, fontWeight: "bold", color: c.text, letterSpacing: 1.5, fontFamily: MONO },
     card: {
-      backgroundColor: c.surface,
-      borderColor: c.border,
-      borderWidth: 1,
-      borderRadius: 16,
       padding: 16,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: c.border,
+      backgroundColor: c.surface,
     },
     sectionTitle: {
+      fontFamily: MONO,
+      fontWeight: "700",
       fontSize: 11,
       color: c.textMuted,
-      fontWeight: "700",
       letterSpacing: 1.5,
-      fontFamily: MONO,
-      marginBottom: 8,
       marginTop: 4,
+      marginBottom: 8,
     },
     sectionTitleSpaced: { marginTop: 24 },
     settingRow: {
