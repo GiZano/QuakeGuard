@@ -22,7 +22,7 @@ Beyond the core data path, the platform provides three supporting capabilities:
 #figure(
   image("assets/fig01-context-diagram.pdf", width: 115%, height: 105%, fit: "contain"),
   caption: [_High-Level Architecture Context Diagram_],
-  numbering: _ => "1",
+  numbering: _ => "2.1",
   placement: auto
 ) <fig-context>
 
@@ -36,7 +36,7 @@ Following the v1.1.0 cloud migration, the architecture strictly separates the da
 #figure(
   image("assets/fig02-container-diagram.pdf", width: 115%, height: 105%, fit: "contain"),
   caption: [_High-Level Architecture Container Diagram_],
-  numbering: _ => "2",
+  numbering: _ => "2.2",
   placement: auto
 ) <fig-container>
 
