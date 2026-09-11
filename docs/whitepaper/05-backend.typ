@@ -53,7 +53,7 @@ Where $"PGA"_"calib"$ accounts for the ADXL345 scale and hardware calibration co
     #figure(
       image("assets/fig06_1-backend-alert-propagation.pdf", width: 100%),
       caption: [Telemetry ingestion and magnitude estimation sequence],
-      numbering: _ => "5.1",
+      numbering: _ => "6.1",
       placement: top
     ) <fig-alert-delivery-1>
   ]
@@ -61,7 +61,7 @@ Where $"PGA"_"calib"$ accounts for the ADXL345 scale and hardware calibration co
     #figure(
       image("assets/fig06_2-mobile-alert-propagation.pdf", width: 100%),
       caption: [Real-time alert propagation and critical message publication sequence],
-      numbering: _ => "5.2",
+      numbering: _ => "6.2",
       placement: top
     ) <fig-alert-delivery-2>
   ]

@@ -31,7 +31,7 @@ Report generation is fully decoupled from the alert engine via a dedicated Redis
   #figure(
     image("assets/fig07-ai-report-state-machine.pdf", width: 100%),
     caption: [_AI Report State Machine_],
-    numbering: _ => "8",
+    numbering: _ => "9.1",
     placement: top
   ) <fig-ai-state>
 ]

@@ -237,14 +237,14 @@
                             </div>
                             <div class="col-6 col-md-3">
                                 <div class="qg-card stat-chip">
-                                    <div class="num">≤ 4.5</div>
+                                    <div class="num">≥ 4.5</div>
                                     <div class="lbl"><span data-i18n="stat_mag">Magnitude threshold</span></div>
                                 </div>
                             </div>
                             <div class="col-6 col-md-3">
                                 <div class="qg-card stat-chip">
                                     <div class="num">300 s</div>
-                                    <div class="lbl"><span data-i18n="stat_dedup">Zone dedup / anti-replay</span></div>
+                                    <div class="lbl"><span data-i18n="stat_dedup">Anti-replay window</span></div>
                                 </div>
                             </div>
                             <div class="col-6 col-md-3">
@@ -484,7 +484,7 @@
                                 seismograph with a horizontal zone strip, GPS "Detect my zone" via <code
                                     style="color:#00f5ff">GET /zones/locate</code>, WebSocket alerts with SOS haptics
                                 &amp; push, siren audio (<code style="color:#00f5ff">expo-audio</code>), MIC/RESEARCH
-                                dual theme, offline mode, Captive Portal onboarding, Dynamic Demo Onboarding (QR), OTA in-app updater, last-10 alert history and AI report cards.</p>
+                                dual theme, offline mode, OTA in-app updater, last-10 alert history and AI report cards.</p>
                             <span class="qg-tag">Expo</span><span class="qg-tag">Zustand</span><span
                                 class="qg-tag">TanStack Query</span>
                             <img src="https://img.shields.io/badge/React%20Native-Mobile-20232A?style=for-the-badge&logo=react&logoColor=61DAFB"
@@ -497,8 +497,8 @@
                     <div class="col-12">
                         <div class="qg-card d-flex flex-column flex-md-row align-items-center gap-4" style="overflow:hidden;">
                             <div style="flex: 1 1 0; min-width: 0;">
-                                <h3 data-i18n="arch_hardware">Proprietary Hardware (v2.0.1)</h3>
-                                <p data-i18n="arch_hardware_p">The QuakeGuard v2.0.1 milestone introduces a custom
+                                <h3 data-i18n="arch_hardware">Proprietary Hardware (v2.0.0)</h3>
+                                <p data-i18n="arch_hardware_p">The QuakeGuard v2.0.0 milestone introduces a custom
                                     Printed Circuit Board (PCB) designed in KiCad. It houses the ESP32-C3 SuperMini, the
                                     ADXL345 accelerometer (powered accurately at 3.3V), and a J4 header for the optional
                                     u-blox GNSS module for precise spatial-temporal synchronization. For a complete list of components, refer to the <a href="https://github.com/GiZano/QuakeGuard/wiki/Bill-of-Materials" target="_blank" style="color: #00f5ff; text-decoration: underline;">Bill of Materials (BOM)</a>.</p>
@@ -904,9 +904,8 @@
                         <p class="qg-lead mb-0" data-i18n="mentors_p2">
                             We were honored to work with <strong style="color:#fff">Francesco Finazzi</strong> — UniBG
                             professor and founder of
-                            <em>Earthquake Network</em>, the largest community seismic network in the world. After the
-                            conference, our
-                            collaboration with him is exactly where the project&rsquo;s story began.
+                            <em>Earthquake Network</em>, the largest community seismic network in the world. Our
+                            collaboration following the conference was the true genesis of this project.
                         </p>
                     </div>
                     <div class="col-lg-4">
