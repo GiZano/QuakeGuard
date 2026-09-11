@@ -33,7 +33,7 @@
   #v(0.5cm)
   #text(size: 12pt)[Core Maintainers: #link("https://github.com/GiZano")[\@GiZano], #link("https://github.com/riccardo0731")[\@riccardo0731]]\
   #v(2cm)
-  #image("assets/logo/png/logo.png", width: 45%)
+  #image("assets/logo/png/logo.png", width: 55%)
 ]
 
 #pagebreak()

@@ -80,7 +80,7 @@ To ensure the physical and network infrastructure operates with absolute reliabi
     #figure(
       image("assets/fig06_3-ai-report-propagation.pdf", width: 100%),
       caption: [AI reporting sequence and propagation],
-      numbering: _ => "6.3",
+      numbering: _ => "5.3",
       placement: top
     ) <fig-ai-report-prop>
   ]
