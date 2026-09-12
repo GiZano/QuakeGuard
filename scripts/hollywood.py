@@ -63,7 +63,7 @@ async def register_sensor(session, sensor):
         "mac_address": sensor.mac,
         "latitude": sensor.lat,
         "longitude": sensor.lon,
-        "firmware_version": "2.1.0-HW",
+        "firmware_version": "2.1.1-HW",
         "enrollment_token": ENROLLMENT_TOKEN
     }
     try:
@@ -175,7 +175,7 @@ async def _validate_fleet(sensors):
                 "mac_address": test.mac,
                 "latitude": test.lat,
                 "longitude": test.lon,
-                "firmware_version": "2.1.0-HW",
+                "firmware_version": "2.1.1-HW",
                 "enrollment_token": ENROLLMENT_TOKEN
             }
             async with session.post(f"{API_URL}/devices/register", json=payload) as resp:

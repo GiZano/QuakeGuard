@@ -150,6 +150,8 @@ window.I18N_DATA = (function () {
         road_20: { en: 'Multi-node spatial correlation + AI reports for <strong>epicenter calculation</strong>.', it: 'Correlazione spaziale multi-nodo + report AI per il <strong>calcolo dell\u2019epicentro</strong>.' },
         road_21_label: { en: 'v2.1 · Released', it: 'v2.1 · Rilasciata' },
         road_21: { en: '<strong>Grafana Observability & System Telemetry</strong> — live visualization of seismic telemetry, End-to-End Latency tracking, and true Local Mosquitto resilience.', it: '<strong>Grafana Observability & System Telemetry</strong> — visualizzazione live della telemetria sismica, tracciamento End-to-End Latency e resilienza Mosquitto locale.' },
+        road_211_label: { en: 'v2.1.1 · Released', it: 'v2.1.1 · Rilasciata' },
+        road_211: { en: '<strong>Demo Calibration & Repository Fixes</strong> — dynamic GIS epicenter calculation, precise ADXL345 mock calibration, and Pisa Hollywood simulator.', it: '<strong>Demo Calibration & Repository Fixes</strong> — calcolo dinamico dell\u2019epicentro GIS, mock calibration precisa e simulatore Pisa Hollywood.' },
         roadmap_details: { en: 'See the detailed roadmap', it: 'Vedi la roadmap dettagliata' },
         roadmap_dev: { en: 'Development', it: 'Sviluppo' },
         roadmap_res: { en: 'Research', it: 'Ricerca' },

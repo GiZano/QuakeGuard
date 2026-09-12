@@ -16,7 +16,7 @@ docs/
 
 | Directory | Covers |
 |-----------|--------|
-| [`whitepaper/`](whitepaper/README.md) | Typst sources for the technical report, compiled into `QuakeGuard_Technical_Report_v2.1.0.pdf` |
+| [`whitepaper/`](whitepaper/README.md) | Typst sources for the technical report, compiled into `QuakeGuard_Technical_Report_v2.1.1.pdf` |
 | [`web/`](web/) | QuakeGuard page artifacts (html/css/js/demo + assets) synced to the `GiZano.github.io` Pages site via CI |
 
 ## Compiling the whitepaper PDF
@@ -25,7 +25,7 @@ Requires [Typst](https://typst.app/) (`typst` on PATH) and the Liberation Serif 
 
 ```bash
 cd docs
-typst compile whitepaper/main.typ whitepaper/QuakeGuard_Technical_Report_v2.1.0.pdf
+typst compile whitepaper/main.typ whitepaper/QuakeGuard_Technical_Report_v2.1.1.pdf
 ```
 
 The output PDF is a local build artifact and is intentionally **not** tracked in git.

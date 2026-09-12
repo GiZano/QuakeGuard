@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.1] - 2026-09-12
+### Fixed
+- **Demo Simulator Endpoint:** Fixed hardcoded epicenter in `/demo/trigger-earthquake` to use dynamic centroid coordinates based on requested zone.
+- **Demo Calibration Math:** Corrected reverse-engineering calibration constant from `160` to `1.6` to align with the worker node logic.
+- **Demo Plausibility:** Reduced default payload magnitude from `7.5` to `5.0`.
+- **Whitepaper Documentation:** Expanded Appendix A to fully document the mocked execution cascade of the demo endpoint.
+- **Hollywood Simulator:** Added Pisa to the interactive console and database seeding scripts (`seed_world_zones.py`, `hollywood.py`).
+
 ## [2.1.0] - 2026-09-10
 ### Added
 - **Grafana Mission Control:** Automated dashboard provisioning via JSON configuration, providing real-time seismographs, IoT telemetry (RSSI, free heap), and backend latency metrics instantly on `docker compose up`.

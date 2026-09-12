@@ -8,11 +8,11 @@
   [v1.2.x], [On-Premise AI, Geo-Zoning, Serial Fallback],
   [v1.3.0], [Synchronized GNSS (NTP + PPS Time Discipline)],
   [v2.0.0], [Epicenter Triangulation & Hardware Assembly],
-  [v2.1.0], [Grafana Observability, System Telemetry, Captive Portal Onboarding, Dynamic Demo Onboarding (QR), OTA In-App Updates, Hollywood Simulator, and Repository Health (ADRs, CI Hardening, Dependabot)]
+  [v2.1.0], [Grafana Observability, System Telemetry, Captive Portal Onboarding, Dynamic Demo Onboarding (QR), OTA In-App Updates, Hollywood Simulator, and Repository Health (ADRs, CI Hardening, Dependabot)],
+  [v2.1.1], [Demo Calibration & Repository Fixes],
 )
 
 == Next Steps
-- *v2.1.1 - Timeseries Migration:* Migration to TimescaleDB and InfluxDB for optimized sensor isolation.
 - *v2.2.0 - Edge AI (Two-Tier Cluster):* A hierarchical Decision Fusion network where ubiquitous ESP32-C3 sensors (Tier A) act as triggers, and intelligent ESP32-S3 nodes (Tier B) run quantized INT8 CNNs via ESP-DL to confirm or discard triggers.
 
 == Detailed v1.2.x Changelog

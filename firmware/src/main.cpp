@@ -1,6 +1,6 @@
 /**
  * Project: QuakeGuard - Professional Seismic Node
- * Version: 2.1.0
+ * Version: 2.1.1
  * Target Hardware: ESP32-C3 SuperMini + ADXL345 + NEO-6M (JLCPCB)
  * Author: GiZano
  *
@@ -39,7 +39,7 @@
 // --------------------------------------------------------------------------
 // FIRMWARE VERSION (printed at boot for field identification)
 // --------------------------------------------------------------------------
-constexpr const char* FIRMWARE_VERSION = "2.1.0";
+constexpr const char* FIRMWARE_VERSION = "2.1.1";
 
 // --------------------------------------------------------------------------
 // HARDWARE & SERVER CONFIGURATION

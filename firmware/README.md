@@ -1,5 +1,5 @@
 # QuakeGuard - Distributed Earthquake Early Warning System
-### Firmware Version: v2.1.0
+### Firmware Version: v2.1.1
 
 ## 1. Project Overview
 QuakeGuard is an IoT-based seismic detection node designed for the **ESP32-C3 SuperMini** platform. It utilizes an **ADXL345** accelerometer to detect ground vibrations in real-time using the **STA/LTA (Short Term Average / Long Term Average)** algorithm.

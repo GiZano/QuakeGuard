@@ -4,7 +4,7 @@ import Constants from 'expo-constants';
 
 const GITHUB_REPO = 'GiZano/QuakeGuard';
 
-// Compare semantic versions (e.g. "2.1.0" > "2.0.2")
+// Compare semantic versions (e.g. "2.1.1" > "2.0.2")
 const isNewerVersion = (latest: string, current: string) => {
   const parse = (v: string) => v.replace(/^v/, '').split('.').map(Number);
   const l = parse(latest);

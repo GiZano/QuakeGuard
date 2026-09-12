@@ -154,7 +154,7 @@ async def lifespan(app: FastAPI):
     listener_task.cancel()
 
 # Initialize FastAPI
-app = FastAPI(title="QuakeGuard Backend", version="2.1.0", lifespan=lifespan)
+app = FastAPI(title="QuakeGuard Backend", version="2.1.1", lifespan=lifespan)
 
 # ==========================================
 # MIDDLEWARE
