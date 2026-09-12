@@ -78,7 +78,7 @@ On first power-up after a successful flash, the device will:
 ### Serial Monitor Output (Successful Boot)
 
 ```
-[BOOT] QuakeGuard v2.1.0
+[BOOT] QuakeGuard v2.1.1
 [SEC] Generating New ECDSA Key Pair...
 [SEC] Keys Generated.
 [BOOT] Device UNREGISTERED. Entering Provisioning Mode...

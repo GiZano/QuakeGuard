@@ -447,7 +447,7 @@ QuakeGuard/
 | **v2.0.0** | ✅ Released — Triangulation (multi-node spatial correlation), Hybrid Network Architecture, Automated DevOps Orchestration (Ptyxis), Local Factory Provisioning, GNSS sync, NTP+PPS, ADXL calibration, and INGV FDSN SIL validation |
 | **v2.0.1** | ✅ Released — Documentation & Zenodo Sync: PDF/Wiki architectural coherence (Cloudflare, 300s anti-replay), CERN-OHL hardware licensing, SIL vs Firmware threshold clarification, and `CITATION.cff` bump |
 | **v2.1.0** | ✅ Released — System Telemetry & Grafana Observability, Captive Portal, Dynamic Demo Onboarding (QR), OTA In-App Updater, Local Mosquitto architecture, Repository Health: Dependabot, ADRs, C4/sequence diagrams, multi-stage Dockerfile, firmware versioning, pinout, flashing guide, hardware compliance |
-| **v2.1.1** | Timeseries DB & Mobile Fix — migration to TimescaleDB/InfluxDB; per-sensor chart isolation in React Native mobile |
+| **v2.1.1** | ✅ Released — Demo Calibration & Repository Fixes |
 | **v2.2** | Heterogeneous Edge Intelligence — hybrid Tier A (STA/LTA) + Tier B (quantized CNN) decision fusion |
 | **Future** | Cloud IaC — Kubernetes + Terraform auto-scaling platform (see [ROADMAP.md](ROADMAP.md)) |
 

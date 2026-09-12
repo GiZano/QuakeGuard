@@ -22,6 +22,7 @@ CITIES = [
     {"name": "Los Angeles", "lat": 34.0522, "lon": -118.2437, "radius": 2.0},
     {"name": "Istanbul", "lat": 41.0082, "lon": 28.9784, "radius": 2.0},
     {"name": "Jakarta", "lat": -6.2088, "lon": 106.8456, "radius": 2.0},
+    {"name": "Pisa", "lat": 43.7228, "lon": 10.4017, "radius": 2.0},
 ]
 
 async def seed():

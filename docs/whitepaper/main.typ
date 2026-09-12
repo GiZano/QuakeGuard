@@ -9,7 +9,7 @@
   header: context {
     // Utilizes native Typst context syntax
     if counter(page).get().first() > 1 {
-      align(right)[_QuakeGuard v2.1.0 - Technical Architecture_]
+      align(right)[_QuakeGuard v2.1.1 - Technical Architecture_]
     }
   },
   numbering: "1",
@@ -29,7 +29,7 @@
   #v(0.2cm)
   #text(size: 14pt)[Technical Architecture & Protocol Specification]\
   #v(2cm)
-  #text(size: 12pt)[Release: *v2.1.0* (Grafana Observability & System Telemetry)]\
+  #text(size: 12pt)[Release: *v2.1.1* (Grafana Observability & System Telemetry)]\
   #v(0.5cm)
   #text(size: 12pt)[Core Maintainers: #link("https://github.com/GiZano")[\@GiZano], #link("https://github.com/riccardo0731")[\@riccardo0731]]\
   #v(2cm)

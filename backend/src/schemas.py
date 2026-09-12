@@ -144,5 +144,5 @@ class EmergencyReport(BaseModel):
 class DemoAlertRequest(BaseModel):
     """Payload for manually triggering a simulated earthquake alert."""
     zone_id: int = Field(default=1, description="Target Zone ID for the alert")
-    magnitude: float = Field(default=7.5, le=10.0, description="Simulated earthquake magnitude")
+    magnitude: float = Field(default=5.0, le=10.0, description="Simulated earthquake magnitude")
     message: str = Field(default="Simulated Critical Event", description="Custom alert message")

@@ -96,7 +96,7 @@ class TestDemoAlertRequest:
     def test_default_values(self):
         d = DemoAlertRequest()
         assert d.zone_id == 1
-        assert d.magnitude == 7.5
+        assert d.magnitude == 5.0
         assert d.message == "Simulated Critical Event"
 
 

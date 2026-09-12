@@ -32,8 +32,8 @@ Note: The `assets/` directory contains logos and color palettes used by the repo
 Requires [Typst](https://typst.app/) (`typst` on PATH) and the Liberation Serif font family.
 
 ```bash
-cd docs
-typst compile main.typ QuakeGuard_Technical_Report_v2.1.0.pdf
+cd docs/whitepaper
+typst compile main.typ QuakeGuard_Technical_Report_v2.1.1.pdf
 ```
 
 The output PDF is a local build artifact and is intentionally **not** tracked in git.

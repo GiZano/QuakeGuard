@@ -103,6 +103,13 @@ Documentation-only patch aligning the technical whitepaper, GitHub Wiki, and pro
 
 ---
 
+## v2.1.1 — Demo Calibration & Repository Fixes (Released)
+
+- ✅ **Demo Plausibility:** Modified the `/demo/trigger-earthquake` endpoint (magnitude 5.0, PostGIS dynamic centroid, 1.6 calibration factor).
+- ✅ **Hollywood Simulator:** Added Pisa to local orchestration.
+- ✅ **Versioning Fix:** Cleaned up ghost roadmap entries.
+
+
 ## v2.1.0 — System Telemetry & Repository Health (Released)
 
 Comprehensive repository maturity improvements: CI hardening, architectural documentation, developer experience, and compliance foundations.
