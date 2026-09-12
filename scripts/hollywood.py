@@ -35,6 +35,7 @@ CITIES = {
     "Los Angeles": (34.0522, -118.2437),
     "Istanbul": (41.0082, 28.9784),
     "Jakarta": (-6.2088, 106.8456),
+    "Pisa": (43.7228, 10.4017),
 }
 
 class VirtualSensor:
