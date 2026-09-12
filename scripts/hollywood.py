@@ -101,9 +101,11 @@ class Director:
             # Find closest match
             match = next((c for c in CITIES.keys() if c.lower().startswith(cmd.lower())), None)
             if match:
-                print(f"\n💥 DIRECTOR: Triggering Earthquake in {match}!\n")
+                print(f"\n💥 DIRECTOR: Triggering Earthquake in {match}!")
                 self.trigger_city = match
                 self.trigger_time = time.time()
+                await asyncio.sleep(15.5)
+                print("\n🛑 DIRECTOR: Earthquake simulation ended. Returning to background noise.\n")
             else:
                 print(f"Unknown city. Try: {', '.join(CITIES.keys())}")
 
@@ -148,7 +150,6 @@ async def hollywood_loop(mqtt_client, sensors, director):
         quake_active = director.trigger_city is not None and (time.time() - director.trigger_time) < 15
         if director.trigger_city and not quake_active:
             director.trigger_city = None # Reset after 15 seconds of shaking
-            print("\n🛑 DIRECTOR: Earthquake simulation ended. Returning to background noise.\n")
 
         for s in sensors:
             if s.sensor_id == -1:
@@ -191,12 +192,12 @@ async def _register_fleet():
     """Generate and register a brand new fleet."""
     sensors = []
     print("🏭 Generating new global fleet...")
-    for _ in range(NUM_SENSORS):
-        city_name = secrets.choice(list(CITIES.keys()))
-        base_lat, base_lon = CITIES[city_name]
-        lat = base_lat + (-0.1 + secrets.SystemRandom().random() * (0.1 - -0.1))  # NOSONAR - geographic jitter, not cryptographic
-        lon = base_lon + (-0.1 + secrets.SystemRandom().random() * (0.1 - -0.1))  # NOSONAR - geographic jitter, not cryptographic
-        sensors.append(VirtualSensor(lat, lon, city_name))
+    for city_name in CITIES.keys():
+        for _ in range(7):
+            base_lat, base_lon = CITIES[city_name]
+            lat = base_lat + (-0.1 + secrets.SystemRandom().random() * (0.1 - -0.1))  # NOSONAR - geographic jitter, not cryptographic
+            lon = base_lon + (-0.1 + secrets.SystemRandom().random() * (0.1 - -0.1))  # NOSONAR - geographic jitter, not cryptographic
+            sensors.append(VirtualSensor(lat, lon, city_name))
 
     async with aiohttp.ClientSession() as session:
         await asyncio.gather(*[register_sensor(session, s) for s in sensors])
