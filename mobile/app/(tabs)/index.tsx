@@ -26,7 +26,7 @@ import { createQuakeGuardTheme } from "../../theme/victory";
 import { MONO } from "../../theme";
 import { estimateMagnitude } from "../../utils/magnitude";
 
-const WINDOW_MAX = 60; // samples kept in the sliding window
+const WINDOW_MAX = 1000; // samples kept in the sliding window
 const WINDOW_SECONDS = 30; // time domain of the seismograph
 const RIGHT_PAD = 8; // breathing room right of x=0 so live samples stay in-field
 
@@ -205,7 +205,7 @@ function NetworkChart({ points, isAlertActive, colors }: Readonly<{
 
   // Wrap the real data with a boundary point at the far left so the line reaches the edge.
   const data = [
-    { x: -WINDOW_SECONDS, y: realData.length > 0 ? realData[0].y : 0, t: 0 },
+    { x: -WINDOW_SECONDS, y: 0, t: 0 },
     ...realData,
   ];
 

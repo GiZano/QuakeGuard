@@ -598,7 +598,7 @@ def get_zone_readings(zone_id: int, limit: int = 60, db: Session = Depends(get_d
     zone = db.query(models.Zone).filter(models.Zone.id == zone_id).first()
     if not zone:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ZONE_NOT_FOUND)
-    limit = max(1, min(limit, 200))
+    limit = max(1, min(limit, 1000))
     return (
         db.query(models.Reading)
         .join(models.Sensor, models.Reading.sensor_id == models.Sensor.id)
