@@ -304,14 +304,28 @@ async def trigger_demo_earthquake(
     Instantly triggers a simulated TRIANGULATED earthquake alert.
     Bypasses the IoT ingestion pipeline and broadcasts directly to all connected WebSocket clients.
     """
+    db = next(get_db())
+    
+    # We resolve the actual zone name if we can for realism
+    zone = db.query(models.Zone).filter(models.Zone.id == payload.zone_id).first()
+    
+    lat = 45.4642
+    lon = 9.1900
+    if zone and zone.geom is not None:
+        lon_scalar = db.scalar(func.ST_X(func.ST_Centroid(zone.geom)))
+        lat_scalar = db.scalar(func.ST_Y(func.ST_Centroid(zone.geom)))
+        if lon_scalar is not None and lat_scalar is not None:
+            lon = float(lon_scalar)
+            lat = float(lat_scalar)
+
     # Construct the exact payload format expected by the frontend WebSocketContext
     alert_data = {
         "type": "TRIANGULATED",
         "zone_id": payload.zone_id,
         "magnitude": payload.magnitude,
         "message": payload.message,
-        "latitude": 45.4642,    # Mock epicenter (Milan, or any city)
-        "longitude": 9.1900,
+        "latitude": lat,
+        "longitude": lon,
         "origin_time": datetime.now(timezone.utc).isoformat(),
         "timestamp": datetime.now(timezone.utc).isoformat()
     }
@@ -319,11 +333,7 @@ async def trigger_demo_earthquake(
     # Publish directly to the Redis Pub/Sub channel for live updates
     await redis_client.publish("quake_alerts", json.dumps(alert_data))
 
-    db = next(get_db())
-    
-    # We resolve the actual zone name if we can for realism
-    zone = db.query(models.Zone).filter(models.Zone.id == payload.zone_id).first()
-    
+
     # 1. Create an Alert record so we can link the EmergencyReport
     demo_alert = models.Alert(
         zone_id=payload.zone_id,
@@ -380,9 +390,9 @@ async def trigger_demo_earthquake(
     
     for i, mag in enumerate(demo_magnitudes):
         # Reverse engineer the raw sensor value:
-        # magnitude = log10(sensorValue / 160) + 3.0
-        # 10^(magnitude - 3.0) = sensorValue / 160
-        raw_value = int(160 * (10 ** (mag - 3.0)))
+        # magnitude = log10(sensorValue / 1.6) + 3.0
+        # 10^(magnitude - 3.0) = sensorValue / 1.6
+        raw_value = int(1.6 * (10 ** (mag - 3.0)))
         
         # Space them out by 1 second leading up to now
         record_time = now_dt - timedelta(seconds=(len(demo_magnitudes) - i - 1))
