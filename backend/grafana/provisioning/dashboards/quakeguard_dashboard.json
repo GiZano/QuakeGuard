@@ -250,7 +250,7 @@
           "group": [],
           "metricColumn": "none",
           "rawQuery": true,
-          "rawSql": "SELECT a.magnitude as \"Peak Magnitude\"\nFROM alerts a\nJOIN zones z ON a.zone_id = z.id\nWHERE z.city IN ($zone)\nORDER BY a.created_at DESC\nLIMIT 1",
+          "rawSql": "SELECT MAX(log(GREATEST(r.value, 1) / 160.0) + 3.0) as \"Peak Magnitude\"\nFROM readings r\nJOIN sensors s ON r.sensor_id = s.id\nJOIN zones z ON s.zone_id = z.id\nWHERE z.city IN ($zone) AND $__timeFilter(r.recorded_at)",
           "refId": "A",
           "select": [
             [
@@ -262,7 +262,7 @@
               }
             ]
           ],
-          "timeColumn": "created_at",
+          "timeColumn": "recorded_at",
           "where": [
             {
               "name": "$__timeFilter",
@@ -332,7 +332,7 @@
           "group": [],
           "metricColumn": "none",
           "rawQuery": true,
-          "rawSql": "SELECT\n  a.created_at AS \"Timestamp\",\n  z.city AS \"Zone Name\",\n  a.magnitude AS \"Magnitude\"\nFROM alerts a\nLEFT JOIN zones z ON a.zone_id = z.id\nWHERE z.city IN ($zone)\nORDER BY a.created_at DESC\nLIMIT 10",
+          "rawSql": "WITH actual_alerts AS (\n  SELECT\n    a.created_at AS \"Timestamp\",\n    z.city AS \"Zone Name\",\n    a.magnitude::text AS \"Magnitude\"\n  FROM alerts a\n  LEFT JOIN zones z ON a.zone_id = z.id\n  WHERE z.city IN ($zone)\n  ORDER BY a.created_at DESC\n  LIMIT 10\n)\nSELECT * FROM actual_alerts\nUNION ALL\nSELECT\n  NOW() AS \"Timestamp\",\n  'No alerts yet...' AS \"Zone Name\",\n  '-' AS \"Magnitude\"\nWHERE NOT EXISTS (SELECT 1 FROM actual_alerts);",
           "refId": "A",
           "select": [
             [
