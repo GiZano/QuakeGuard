@@ -8,6 +8,8 @@ This PR finalizes the `v2.1.1` release for QuakeGuard. It corrects critical bugs
 * **`docs/whitepaper/16-appendix.typ` & `QuakeGuard_Technical_Report_v2.1.1.pdf`**: Rewrote Appendix A to fully document the cascade effect of the demo endpoint (DB inserts, AI Worker trigger, fake telemetry generation). Re-compiled the Typst whitepaper.
 * **Repository-wide Version Bump**: Systematically updated all versions from `2.1.0` to `2.1.1` across `package.json`, `.cff`, `.js`, `settings.tsx`, OpenAPI docs, SVGs, and `CHANGELOG.md`. Also removed a ghost "Timeseries" roadmap item that was already completed in v1.2.1.
 * **`backend/tests/unit/test_schemas.py`**: Fixed a failing unit test asserting the old `7.5` magnitude default. All 157 tests now pass.
+* **`scripts/hollywood.py`**: Refactored sensor generation by introducing a `SENSORS_PER_CITY` constant, removed legacy variables, and cleaned up unused comments.
+* **`scripts/quakeguard_init.sh`**: Replaced the multi-window `ptyxis` startup with a unified `tmux` dashboard grid for better UX, consolidating Backend, Mobile, and IoT panes into a single terminal window with mouse support.
 
 ## Impact & Next Steps
 This ensures the QuakeGuard demo functionality is statistically robust, spatially accurate, and safely bounded for public exhibitions. It also guarantees a completely clean `v2.1.1` release with no mismatched tags or documentation ghosts.
