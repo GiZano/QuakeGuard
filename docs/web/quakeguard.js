@@ -177,6 +177,8 @@ window.I18N_DATA = (function () {
         exp_eyebrow: { en: 'See it in action', it: 'Vedilo in azione' },
         exp_title: { en: 'The experience', it: 'L\u2019esperienza' },
         exp_note: { en: 'Watch the demo with captions available in English and Italian.', it: 'Guarda la demo con i sottotitoli disponibili in italiano e inglese.' },
+        exp_trailer_title: { en: 'Trailer', it: 'Trailer' },
+        exp_explanation_title: { en: 'Explanation', it: 'Spiegazione' },
         contact_title: { en: 'Contribute or collaborate', it: 'Contribuisci o collabora' },
         contact_p: { en: 'QuakeGuard is open source and community-driven. Ideas, issues and pull requests are always welcome.', it: 'QuakeGuard è open source e guidato dalla community: idee, segnalazioni e pull request sono sempre benvenute.' },
         contact_open: { en: 'Open the repository', it: 'Apri il repository' },
