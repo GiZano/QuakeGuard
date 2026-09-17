@@ -23,7 +23,7 @@ MQTT_TOPIC = "quakeguard/telemetry"
 MQTT_USERNAME = os.getenv("MQTT_USERNAME", None)
 MQTT_PASSWORD = os.getenv("MQTT_PASSWORD", None)
 
-NUM_SENSORS = 50
+SENSORS_PER_CITY = 7
 FLEET_FILE = os.path.join(os.path.dirname(__file__), "fleet.json")
 
 CITIES = {
@@ -193,7 +193,7 @@ async def _register_fleet():
     sensors = []
     print("🏭 Generating new global fleet...")
     for city_name in CITIES.keys():
-        for _ in range(7):
+        for _ in range(SENSORS_PER_CITY):
             base_lat, base_lon = CITIES[city_name]
             lat = base_lat + (-0.1 + secrets.SystemRandom().random() * (0.1 - -0.1))  # NOSONAR - geographic jitter, not cryptographic
             lon = base_lon + (-0.1 + secrets.SystemRandom().random() * (0.1 - -0.1))  # NOSONAR - geographic jitter, not cryptographic
