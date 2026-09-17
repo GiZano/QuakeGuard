@@ -38,7 +38,7 @@ jobs:
 
     - name: Install PlatformIO CLI
       run: |
-        python -m pip install pip==24.0
+        python -m pip install --only-binary :all: pip==24.0
         pip install --only-binary :all: platformio==6.1.19
 
     - name: Inject CI Environment Variables

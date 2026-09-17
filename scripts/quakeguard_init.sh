@@ -15,6 +15,7 @@ if [[ "$1" == "--console" ]]; then
         else
             echo "❌ No QR Code found in /tmp/qg_tunnel_output.log"
         fi
+        return 0
     }
 
     # Function to print the Menu
@@ -33,6 +34,7 @@ if [[ "$1" == "--console" ]]; then
         echo "  'help/menu' -> Show this command list"
         echo "  'exit'      -> Close everything and exit"
         echo ""
+        return 0
     }
 
     clear
