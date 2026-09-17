@@ -39,7 +39,7 @@ jobs:
 
     - name: Install Python Dependencies & Security Tools
       run: |
-        python -m pip install pip==24.0
+        python -m pip install --only-binary :all: pip==24.0
         pip install --only-binary :all: bandit==1.8.3 safety==3.3.1 pytest==8.3.4 httpx==0.28.1 pytest-asyncio==0.25.3
         if [ -f backend/requirements.txt ]; then pip install --only-binary :all: --require-hashes -r backend/requirements.txt; fi
 
