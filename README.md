@@ -465,7 +465,7 @@ QuakeGuard's architecture and real-world applicability have been recognized in t
 
 * 🥇 **1st Place Overall - Institute Project Day (2025):** Awarded best technical project out of ~20 prototypes across four engineering disciplines (Computer Science, Automation, Mechanics, Chemistry). The full-stack architecture was evaluated and awarded by an industrial jury featuring technical representatives from **Siemens, ABB, SORINT.lab, SAME, Ferrero, and Confindustria**.
 * 🎓 **Academic Origin & Consultation:** The system's conceptualization originated during the 2025 CQIIA-MatNet Summer School (Università di Bergamo). The distributed network logic and spatial deployment strategy were subsequently refined following technical consultations with Prof. F. Finazzi.
-* 🏅 **GF Marilli Competition:** [Currently competing - Pending evaluation].
+* 🥇 **1st Place - GF Marilli Competition (5th Year Category):** Awarded 1st place in the 5th-year category of the Gianfranco Marilli competition, recognizing QuakeGuard for innovation in distributed edge IoT architectures, real-time seismic sensing, and full-stack engineering.
 
 ---
 
