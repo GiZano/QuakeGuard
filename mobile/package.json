@@ -52,5 +52,11 @@
     "ts-jest": "^29.2.0",
     "typescript": "~6.0.3"
   },
+  "overrides": {
+    "decode-uri-component": "^0.5.0",
+    "eslint": {
+      "brace-expansion": "^1.1.21"
+    }
+  },
   "private": true
 }
