@@ -345,7 +345,7 @@ export default function MonitorScreen() {
 
   // Try to silently fetch the user location if we don't have it (for ETA calculation)
   useEffect(() => {
-    (async () => {
+    void (async () => {
       if (!userLocation) {
         const { status } = await Location.getForegroundPermissionsAsync();
         if (status === 'granted') {
