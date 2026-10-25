@@ -56,7 +56,7 @@ export function useUpdateChecker() {
     // Only check for APK updates on Android. 
     // On iOS we'd use TestFlight/App Store, so this is mostly for the open-source sideloading.
     if (Platform.OS === 'android') {
-      checkForUpdates();
+      void checkForUpdates();
     }
   }, []);
 }

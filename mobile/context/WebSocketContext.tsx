@@ -21,14 +21,14 @@ try {
   Notifications = require("expo-notifications");
   // --- NOTIFICATION HANDLER ---
   Notifications.setNotificationHandler({
-    handleNotification: async () => {
+    handleNotification: () => {
       const enabled = usePreferencesStore.getState().notificationsEnabled;
-      return {
+      return Promise.resolve({
         shouldShowBanner: enabled,
         shouldShowList: enabled,
         shouldPlaySound: enabled,
         shouldSetBadge: false,
-      };
+      });
     },
   });
 } catch (e) {
@@ -118,7 +118,7 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
         }
       }
     };
-    registerForPushNotificationsAsync();
+    void registerForPushNotificationsAsync();
   }, []);
   
   const handleEmergencyReport = useCallback((report: EmergencyReportMessage, ringsForZone: (zoneId: number) => boolean) => {
@@ -149,7 +149,7 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
 
     if ((alert.type === "CRITICAL" || alert.type === "TRIANGULATED") && ringsForZone(alert.zone_id)) {
       Vibration.vibrate(SOS_VIBRATION_PATTERN);
-      playAlarm(15000);
+      void playAlarm(15000);
       if (Notifications) {
         Notifications.scheduleNotificationAsync({
           content: {
@@ -223,7 +223,7 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
       console.log(`⏳ Reconnecting in ${delay / 1000} seconds...`);
       reconnectTimeout.current = setTimeout(() => {
         reconnectAttempts.current += 1;
-        doConnect();
+        void doConnect();
       }, delay);
     };
 
@@ -244,7 +244,7 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
       }
     } else {
       console.log("🟢 Online Mode Activated. Booting up WS...");
-      connect();
+      void connect();
     }
 
     // Cleanup function for when the app is closed
