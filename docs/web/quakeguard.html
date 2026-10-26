@@ -130,7 +130,7 @@
                             <li><a class="dropdown-item" href="#roadmap" data-i18n="navbar_roadmap">Roadmap</a></li>
                             <li><a class="dropdown-item" href="#health" data-i18n="navbar_health">Project Health</a>
                             </li>
-                            <li><a class="dropdown-item" href="#mentors" data-i18n="navbar_mentors">Mentors</a></li>
+                            <li><a class="dropdown-item" href="#mentors" data-i18n="navbar_mentors">Awards &amp; Mentors</a></li>
                         </ul>
                     </li>
                     <li class="nav-item">
@@ -889,27 +889,70 @@
             </div>
         </section>
 
-        <!-- ============ MENTORS ============ -->
+        <!-- ============ AWARDS & MENTORS ============ -->
         <section id="mentors" class="qg-section">
             <div class="container">
+                <div class="text-center mb-5">
+                    <span class="qg-eyebrow" data-i18n="mentors_eyebrow">Milestones &amp; Recognition</span>
+                    <h2 class="qg-title" data-i18n="mentors_title">Awards &amp; Mentorship</h2>
+                    <div class="accent-bar mx-auto"></div>
+                    <p class="qg-lead mx-auto" data-i18n="mentors_intro" style="max-width:780px;">
+                        QuakeGuard's architecture and full-stack engineering have been recognized in competitive engineering contests and guided by academic research mentors &mdash; developed in collaboration with <a href="https://riccardo0731.github.io" target="_blank" rel="noopener noreferrer">riccardo0731</a>.
+                    </p>
+                </div>
+
+                <!-- Awards Grid -->
+                <div class="row g-4 mb-4">
+                    <div class="col-lg-6">
+                        <div class="qg-card award-card d-flex flex-column h-100">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <span class="badge text-bg-warning fs-6"><i class="fas fa-trophy me-1"></i> <span data-i18n="award_marilli_badge">1st Place</span></span>
+                                <span class="text-white-50 small"><i class="fas fa-calendar-alt me-1"></i> 2026</span>
+                            </div>
+                            <h3 class="mb-1"><span data-i18n="award_marilli_title">GF Marilli Competition</span></h3>
+                            <p class="text-white-50 small mb-3" data-i18n="award_marilli_sub">HackersGen Event &mdash; 5th Year Category</p>
+                            <p class="qg-lead mb-4" style="font-size:0.95rem;" data-i18n="award_marilli_desc">
+                                Awarded 1st place in the 5th-year category of the Gianfranco Marilli competition, recognizing QuakeGuard for innovation in distributed edge IoT architectures, real-time seismic sensing, and full-stack engineering.
+                            </p>
+                            <div class="mt-auto pt-2">
+                                <a href="https://www.hackersgen.com/event" target="_blank" rel="noopener noreferrer" class="btn btn-qg-ghost btn-sm align-self-start">
+                                    <i class="fas fa-external-link-alt me-1"></i><span data-i18n="award_marilli_btn">HackersGen Event</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="qg-card award-card d-flex flex-column h-100">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <span class="badge text-bg-warning fs-6"><i class="fas fa-award me-1"></i> <span data-i18n="award_projectday_badge">1st Place Overall</span></span>
+                                <span class="text-white-50 small"><i class="fas fa-calendar-alt me-1"></i> 2025</span>
+                            </div>
+                            <h3 class="mb-1"><span data-i18n="award_projectday_title">Institute Project Day</span></h3>
+                            <p class="text-white-50 small mb-3" data-i18n="award_projectday_sub">I.S. Archimede &mdash; Industrial Jury Award</p>
+                            <p class="qg-lead mb-4" style="font-size:0.95rem;" data-i18n="award_projectday_desc">
+                                Awarded best technical project out of ~20 prototypes across four engineering disciplines (Computer Science, Automation, Mechanics, Chemistry). The full-stack architecture was evaluated and awarded by an industrial jury featuring representatives from <strong style="color:#fff">Siemens, ABB, SORINT.lab, SAME, Ferrero, and Confindustria</strong>.
+                            </p>
+                            <div class="mt-auto pt-2">
+                                <a href="https://www.isarchimede.edu.it/" target="_blank" rel="noopener noreferrer" class="btn btn-qg-ghost btn-sm align-self-start">
+                                    <i class="fas fa-external-link-alt me-1"></i><span data-i18n="award_projectday_btn">I.S. Archimede</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Academic Consultation & Mentorship -->
                 <div class="row align-items-center g-4">
                     <div class="col-lg-8">
-                        <span class="qg-eyebrow" data-i18n="mentors_eyebrow">Milestone</span>
-                        <h2 class="qg-title" data-i18n="mentors_title">Mentorship & Recognition</h2>
-                        <div class="accent-bar"></div>
-                        <p class="qg-lead" data-i18n="mentors_p1">
-                            Developed as a school-contest project for <strong style="color:#fff">Hackersgen by
-                                Sorint.lab</strong> and the
-                            <strong style="color:#fff">GF Marilli</strong> competition &mdash; in collaboration with
-                            <a href="https://riccardo0731.github.io" target="_blank"
-                                rel="noopener noreferrer">riccardo0731</a>.
-                        </p>
-                        <p class="qg-lead mb-0" data-i18n="mentors_p2">
-                            We were honored to work with <strong style="color:#fff">Francesco Finazzi</strong> — UniBG
-                            professor and founder of
-                            <em>Earthquake Network</em>, the largest community seismic network in the world. Our
-                            collaboration following the conference was the true genesis of this project.
-                        </p>
+                        <div class="qg-card h-100 d-flex flex-column justify-content-center">
+                            <h3 class="mb-3"><i class="fas fa-graduation-cap me-2" style="color:var(--qg-cyan);"></i><span data-i18n="mentors_academic_title">Academic Origin & Scientific Consultation</span></h3>
+                            <p class="qg-lead mb-3" style="font-size:0.95rem;" data-i18n="mentors_academic_p1">
+                                The system's conceptualization originated during the 2025 <strong style="color:#fff">CQIIA-MatNet Summer School</strong> (Università di Bergamo).
+                            </p>
+                            <p class="qg-lead mb-0" style="font-size:0.95rem;" data-i18n="mentors_academic_p2">
+                                We were honored to consult with <strong style="color:#fff">Francesco Finazzi</strong> &mdash; UniBG professor and founder of <em>Earthquake Network</em>, the largest community seismic network in the world. The distributed network logic and spatial deployment strategy were refined following technical discussions with him.
+                            </p>
+                        </div>
                     </div>
                     <div class="col-lg-4">
                         <div class="mentor-cards">
