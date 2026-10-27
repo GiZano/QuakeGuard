@@ -120,6 +120,16 @@ button.btn-qg:focus {
     color: #021528;
 }
 
+.btn.btn-qg.btn-sm,
+a.btn-qg.btn-sm,
+button.btn-qg.btn-sm,
+.btn.btn-qg-ghost.btn-sm,
+a.btn-qg-ghost.btn-sm,
+button.btn-qg-ghost.btn-sm {
+    padding: 0.35rem 1rem;
+    font-size: 0.85rem;
+}
+
 @media (prefers-reduced-motion: no-preference) {
     .btn.btn-qg,
     a.btn-qg,
@@ -218,6 +228,8 @@ button.btn-qg-ghost:focus {
     transition: border-color 0.25s ease, box-shadow 0.25s ease;
 }
 .qg-card:hover { border-color: var(--qg-sea); box-shadow: 0 12px 30px rgba(0,0,0,0.4); }
+.award-card { border-color: rgba(241, 162, 8, 0.25); }
+.award-card:hover { border-color: var(--qg-orange); box-shadow: 0 12px 30px rgba(241, 162, 8, 0.2); }
 @media (prefers-reduced-motion: no-preference) {
     .qg-card {
         transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
