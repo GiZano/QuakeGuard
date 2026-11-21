@@ -394,7 +394,7 @@
                                     alert storms (outbox pattern).</span></div>
                             <div class="pipe-arrow"><i class="fas fa-chevron-down"></i></div>
                             <div class="pipe-step"><span class="n">8</span><strong
-                                    data-i18n="pipe_8_t">Alert</strong><br><span data-i18n="pipe_8_d">WebSocket broadcast → mobile SOS haptic vibration + push notification (~2.76s median detection latency from P-wave onset in SIL benchmarks).</span></div>
+                                    data-i18n="pipe_8_t">Alert</strong><br><span data-i18n="pipe_8_d">WebSocket broadcast → mobile SOS haptic vibration + push notification (sub-second network dispatch &lt;100ms; preceded by ~2.76s median algorithmic sample accumulation from P-wave onset in SIL benchmarks).</span></div>
                             <div class="pipe-arrow"><i class="fas fa-chevron-down"></i></div>
                             <div class="pipe-step"><span class="n">9</span><strong data-i18n="pipe_9_t">AI
                                     Report</strong><br><span data-i18n="pipe_9_d"><code
@@ -544,7 +544,7 @@
                         <h2 class="qg-title" data-i18n="res_title">The Thundering Herd</h2>
                         <div class="accent-bar"></div>
                         <p class="qg-lead mb-3" data-i18n="res_lead1">
-                            Earthquakes don&rsquo;t knock on one door. When hundreds of sensors in the same zone detect
+                            Earthquakes don&rsquo;t knock on one door. When dense clusters of sensors (validated up to 150 concurrent simulated nodes in load tests) detect
                             the same event
                             at once, the backend is hit by a <strong style="color:#fff">massive, synchronous traffic
                                 spike</strong>.
@@ -850,10 +850,11 @@
                             <p data-i18n="health_stress_p">Validates the full ingestion → Redis → worker → PostGIS →
                                 WebSocket pipeline against a simulated massive seismic event.</p>
                             <ul class="qg-lead" style="font-size:0.95rem;padding-left:1.2rem;">
-                                <li>🔥 150 concurrent sensors — rate limiter</li>
-                                <li>⚔️ Bad signature (401) + replay (403)</li>
-                                <li>🤖 AI dedup stress test — 50 raw alerts → 1 report</li>
-                                <li>📊 SIL Metrics: 80% Recall, 0.0% FPR, 0.888 F1 (2.76s median latency)</li>
+                                <li>🔥 150 concurrent simulated sensors — rate limiter</li>
+                                <li>⚡ Dual-rate: 100 Hz local DSP sampling vs 1 Hz cloud MQTT telemetry</li>
+                                <li>⚔️ Bad signature (401) + replay attack (403) rejection</li>
+                                <li>🤖 AI dedup stress test — 50 raw alerts collapsed to 1 incident report</li>
+                                <li>📊 SIL Benchmark (n=5 synthetic events, PGA 1.0–3.4 m/s²): 80% Recall (4/5 within 10s P-window), 0.0% FPR, 0.888 F1 (2.76s median DSP latency; grid sweep calibration over trigger ratio 1.2–3.0 &amp; noise floor 0.02–0.08)</li>
                                 <li>🔍 DB persistence verified end-to-end</li>
                             </ul>
                             <div class="mt-auto pt-3"><span class="badge text-bg-warning fs-6"><i
