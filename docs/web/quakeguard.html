@@ -386,7 +386,7 @@
                             <div class="pipe-arrow"><i class="fas fa-chevron-down"></i></div>
                             <div class="pipe-step"><span class="n">6</span><strong
                                     data-i18n="pipe_6_t">Process</strong><br><span data-i18n="pipe_6_d">Worker estimates
-                                    <code style="color:#00f5ff">M = log10(PGA / 1.6) + 3.0</code> (PGA normalized in m/s², empirical heuristic pending regional calibration); if M ≥ 4.5 an Alert is triggered.</span></div>
+                                    <code style="color:#00f5ff">M = log10(PGA / 1.6) + 3.0</code> (PGA normalized in cm/s² / Gal, empirical heuristic pending regional calibration); if M ≥ 4.5 an Alert is triggered.</span></div>
                             <div class="pipe-arrow"><i class="fas fa-chevron-down"></i></div>
                             <div class="pipe-step"><span class="n">7</span><strong data-i18n="pipe_7_t">Persist &amp;
                                     dedup</strong><br><span data-i18n="pipe_7_d">Atomically saved to TimescaleDB
@@ -394,7 +394,7 @@
                                     alert storms (outbox pattern).</span></div>
                             <div class="pipe-arrow"><i class="fas fa-chevron-down"></i></div>
                             <div class="pipe-step"><span class="n">8</span><strong
-                                    data-i18n="pipe_8_t">Alert</strong><br><span data-i18n="pipe_8_d">WebSocket broadcast → mobile SOS haptic vibration + push notification (sub-second network dispatch &lt;100ms; preceded by ~2.76s median algorithmic sample accumulation from P-wave onset in SIL benchmarks).</span></div>
+                                    data-i18n="pipe_8_t">Alert</strong><br><span data-i18n="pipe_8_d">WebSocket broadcast → mobile SOS haptic vibration + push notification (design target: design target: sub-second network dispatch &lt;100ms; preceded by ~2.76s median algorithmic sample accumulation from P-wave onset in SIL benchmarks).</span></div>
                             <div class="pipe-arrow"><i class="fas fa-chevron-down"></i></div>
                             <div class="pipe-step"><span class="n">9</span><strong data-i18n="pipe_9_t">AI
                                     Report</strong><br><span data-i18n="pipe_9_d"><code
@@ -854,12 +854,11 @@
                                 <li>⚡ Dual-rate: 100 Hz local DSP sampling vs 1 Hz cloud MQTT telemetry</li>
                                 <li>⚔️ Bad signature (401) + replay attack (403) rejection</li>
                                 <li>🤖 AI dedup stress test — 50 raw alerts collapsed to 1 incident report</li>
-                                <li>📊 SIL Benchmark (n=5 synthetic events, PGA 1.0–3.4 m/s²): 80% Recall (4/5 within 10s P-window), 0.0% FPR, 0.888 F1 (2.76s median DSP latency; grid sweep calibration over trigger ratio 1.2–3.0 &amp; noise floor 0.02–0.08)</li>
+                                <li>📊 SIL Benchmark (n=5 in-sample synthetic events, PGA 1.0–3.4 m/s²): 4/5 events detected within 10s P-window (missed synth_000 at min PGA 1.0 m/s²; in-sample F1 = 0.889 with TRIGGER_RATIO=2.4 via grid sweep; zero false triggers on 5 quiescent baseline windows). Median algorithmic DSP detection latency: 2.76s.</li>
                                 <li>🔍 DB persistence verified end-to-end</li>
                             </ul>
-                            <div class="mt-auto pt-3"><span class="badge text-bg-warning fs-6"><i
-                                        class="fas fa-trophy me-1"></i> <span data-i18n="health_stress_cert">SYNTHETIC
-                                        VALIDATION PASSED</span></span></div>
+                            <div class="mt-auto pt-3"><span class="badge text-bg-secondary fs-6"><i
+                                        class="fas fa-flask me-1"></i> <span data-i18n="health_stress_cert">Synthetic benchmark (n=5)</span></span></div>
                         </div>
                     </div>
                     <div class="col-md-4">
