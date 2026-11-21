@@ -386,8 +386,7 @@
                             <div class="pipe-arrow"><i class="fas fa-chevron-down"></i></div>
                             <div class="pipe-step"><span class="n">6</span><strong
                                     data-i18n="pipe_6_t">Process</strong><br><span data-i18n="pipe_6_d">Worker estimates
-                                    <code style="color:#00f5ff">M = log10(PGA / 1.6) + 3.0</code>; if M ≥ 4.5 an Alert
-                                    is triggered.</span></div>
+                                    <code style="color:#00f5ff">M = log10(PGA / 1.6) + 3.0</code> (PGA normalized in m/s², empirical heuristic pending regional calibration); if M ≥ 4.5 an Alert is triggered.</span></div>
                             <div class="pipe-arrow"><i class="fas fa-chevron-down"></i></div>
                             <div class="pipe-step"><span class="n">7</span><strong data-i18n="pipe_7_t">Persist &amp;
                                     dedup</strong><br><span data-i18n="pipe_7_d">Atomically saved to TimescaleDB
@@ -395,9 +394,7 @@
                                     alert storms (outbox pattern).</span></div>
                             <div class="pipe-arrow"><i class="fas fa-chevron-down"></i></div>
                             <div class="pipe-step"><span class="n">8</span><strong
-                                    data-i18n="pipe_8_t">Alert</strong><br><span data-i18n="pipe_8_d">WebSocket
-                                    broadcast → mobile SOS haptic vibration + high-priority push notification,
-                                    sub-second delivery.</span></div>
+                                    data-i18n="pipe_8_t">Alert</strong><br><span data-i18n="pipe_8_d">WebSocket broadcast → mobile SOS haptic vibration + push notification (~2.76s median detection latency from P-wave onset in SIL benchmarks).</span></div>
                             <div class="pipe-arrow"><i class="fas fa-chevron-down"></i></div>
                             <div class="pipe-step"><span class="n">9</span><strong data-i18n="pipe_9_t">AI
                                     Report</strong><br><span data-i18n="pipe_9_d"><code
@@ -574,8 +571,7 @@
                             <div class="sec-gate">
                                 <div class="ico"><i class="fas fa-water"></i></div>
                                 <div><strong data-i18n="res_rate_t">Control-plane rate limit</strong>
-                                    <p data-i18n="res_rate_p">50 req/s per IP, backs off buggy or malicious nodes early.
-                                    </p>
+                                    <p data-i18n="res_rate_p">HTTP perimeter defense (50 req/s per IP) mitigates volumetric DDoS. Edge hardware streams telemetry over authenticated MQTT broker.</p>
                                 </div>
                             </div>
                             <div class="sec-gate">
@@ -804,8 +800,7 @@
                                             (Zenodo DOI) + technical paper / preprint.</p>
                                     </div>
                                 </div>
-                                <p class="small text-muted mt-3" data-i18n="roadmap_res_note">R1 is the blocking
-                                    prerequisite for the v2.2.0 Edge AI tier and runs in parallel with v1.3 (GNSS).</p>
+                                <p class="small text-muted mt-3" data-i18n="roadmap_res_note">R1 validates synthetic waveforms; physical field validation with INGV/ESM seismic databases will proceed alongside embedded hardware deployment.</p>
                             </div>
                         </div>
                     </div>
@@ -858,11 +853,12 @@
                                 <li>🔥 150 concurrent sensors — rate limiter</li>
                                 <li>⚔️ Bad signature (401) + replay (403)</li>
                                 <li>🤖 AI dedup stress test — 50 raw alerts → 1 report</li>
+                                <li>📊 SIL Metrics: 80% Recall, 0.0% FPR, 0.888 F1 (2.76s median latency)</li>
                                 <li>🔍 DB persistence verified end-to-end</li>
                             </ul>
                             <div class="mt-auto pt-3"><span class="badge text-bg-warning fs-6"><i
-                                        class="fas fa-trophy me-1"></i> <span data-i18n="health_stress_cert">SYSTEM
-                                        CERTIFIED</span></span></div>
+                                        class="fas fa-trophy me-1"></i> <span data-i18n="health_stress_cert">SYNTHETIC
+                                        VALIDATION PASSED</span></span></div>
                         </div>
                     </div>
                     <div class="col-md-4">

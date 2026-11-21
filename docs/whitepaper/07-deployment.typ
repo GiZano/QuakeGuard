@@ -70,4 +70,4 @@ export NUM_SENSORS=150
 export CONCURRENCY_LIMIT=50
 python -m tests.stress_test
 ```
-A successful test will conclude with the message `🏆 SYSTEM CERTIFIED`, confirming that the rate limiter, security gates, and per-area cooldown locks are functioning nominally.
+A successful test will conclude with the message `🏆 SYNTHETIC VALIDATION PASSED`, confirming that the rate limiter, security gates, and per-area cooldown locks are functioning nominally.

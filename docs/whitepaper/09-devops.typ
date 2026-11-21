@@ -24,7 +24,7 @@ To enforce the "Zero-Trust" architecture without manual pain, `generate_secrets.
 == E2E Pipeline Stress Testing
 
 The automation suite also includes Python-based stress testers to validate the deployment's resilience:
-- *`stress_test.py` (in `backend/tests/`):* Simulates the "Thundering Herd" effect by spawning 150 concurrent asynchronous sensors, blasting the API to validate the Redis sliding-window rate limiter and the `FastAPI` concurrency limits. A successful run finishes with a `🏆 SYSTEM CERTIFIED` banner.
+- *`stress_test.py` (in `backend/tests/`):* Simulates the "Thundering Herd" effect by spawning 150 concurrent asynchronous sensors, blasting the API to validate the Redis sliding-window rate limiter and the `FastAPI` concurrency limits. A successful run finishes with a `🏆 SYNTHETIC VALIDATION PASSED` banner.
 - *`simulate_zone.py` (in `backend/scripts/`):* Streams synthetic, scaled acceleration telemetry into specific PostGIS zones to visualize live graphs on the React Native mobile app without triggering a full E2E pipeline crash.
 
 == Testing & CI/CD Pipeline
