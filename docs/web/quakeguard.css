@@ -15,7 +15,7 @@
     --qg-head: 'Rajdhani', sans-serif;
 }
 
-html { scroll-behavior: auto; }
+html { scroll-behavior: auto; overflow-x: hidden; max-width: 100vw; }
 @media (prefers-reduced-motion: no-preference) {
     html { scroll-behavior: smooth; }
 }
@@ -26,6 +26,20 @@ body {
     background-attachment: fixed;
     color: var(--qg-light);
     line-height: 1.7;
+    overflow-x: hidden;
+    max-width: 100vw;
+}
+
+.qg-tech-badge {
+    background: #02162a;
+    color: #ffffff !important;
+    border: 1px solid rgba(0, 245, 255, 0.45);
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+.qg-tech-badge i {
+    color: var(--qg-cyan);
 }
 
 h1, h2, h3, h4, h5, h6 {
