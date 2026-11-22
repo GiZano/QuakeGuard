@@ -854,7 +854,7 @@
                                 <li>⚡ Dual-rate: 100 Hz local DSP sampling vs 1 Hz cloud MQTT telemetry</li>
                                 <li>⚔️ Bad signature (401) + replay attack (403) rejection</li>
                                 <li>🤖 AI dedup stress test — 50 raw alerts collapsed to 1 incident report</li>
-                                <li>📊 SIL Benchmark (n=5 in-sample synthetic events, PGA 1.0–3.4 m/s²): 4/5 events detected within 10s P-window (missed synth_000 at min PGA 1.0 m/s²; in-sample F1 = 0.889 with TRIGGER_RATIO=2.4 via grid sweep; zero false triggers on 5 quiescent baseline windows). Median algorithmic DSP detection latency: 2.76s.</li>
+                                <li>📊 SIL Benchmark (n=5 in-sample synthetic events, PGA 1.0–3.4 m/s² / 100–340 Gal): 4/5 events detected within 10s P-window (synth_000 at min PGA 1.0 m/s² peaked at STA/LTA ratio 1.792, remaining below calibrated threshold 2.4; in-sample F1 = 0.889; zero false alarms on 5 quiescent baseline windows). Median algorithmic DSP detection latency: 2.76s.</li>
                                 <li>🔍 DB persistence verified end-to-end</li>
                             </ul>
                             <div class="mt-auto pt-3"><span class="badge text-bg-secondary fs-6"><i
