@@ -957,7 +957,7 @@
                                     Facendo clic sul pulsante, verrà caricato il player incorporato da YouTube (youtube-nocookie.com). Nessun dato viene trasmesso prima del clic.
                                 </p>
                                 <div class="d-flex gap-2 flex-wrap justify-content-center">
-                                    <button type="button" class="btn btn-outline-light btn-sm px-3 py-2 fw-semibold" onclick="this.closest('.ratio').innerHTML='<iframe src='https://www.youtube-nocookie.com/embed/Nwnah5GTkrk?autoplay=1' title='QuakeGuard Demo' allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share' allowfullscreen style='border:0;width:100%;height:100%;'></iframe>'">
+                                    <button type="button" class="btn btn-outline-light btn-sm px-3 py-2 fw-semibold" onclick="loadQgVideo(this, 'Nwnah5GTkrk', 'QuakeGuard Demo')">
                                         <i class="fas fa-play me-1"></i> Carica Video / Play Demo
                                     </button>
                                     <a href="https://www.youtube.com/watch?v=Nwnah5GTkrk" target="_blank" rel="noopener noreferrer" class="btn btn-link btn-sm text-white-50 text-decoration-none">
@@ -977,7 +977,7 @@
                                     Facendo clic sul pulsante, verrà caricato il player incorporato da YouTube (youtube-nocookie.com). Nessun dato viene trasmesso prima del clic.
                                 </p>
                                 <div class="d-flex gap-2 flex-wrap justify-content-center">
-                                    <button type="button" class="btn btn-outline-light btn-sm px-3 py-2 fw-semibold" onclick="this.closest('.ratio').innerHTML='<iframe src='https://www.youtube-nocookie.com/embed/whOCWCu1Xxg?autoplay=1' title='QuakeGuard Explanation' allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share' allowfullscreen style='border:0;width:100%;height:100%;'></iframe>'">
+                                    <button type="button" class="btn btn-outline-light btn-sm px-3 py-2 fw-semibold" onclick="loadQgVideo(this, 'whOCWCu1Xxg', 'QuakeGuard Explanation')">
                                         <i class="fas fa-play me-1"></i> Carica Video / Play Explanation
                                     </button>
                                     <a href="https://www.youtube.com/watch?v=whOCWCu1Xxg" target="_blank" rel="noopener noreferrer" class="btn btn-link btn-sm text-white-50 text-decoration-none">
@@ -988,6 +988,22 @@
                         </div>
                     </div>
                 </div>
+                <script>
+                    function loadQgVideo(btn, videoId, title) {
+                        var r = btn.closest('.ratio');
+                        if (!r) return;
+                        var f = document.createElement('iframe');
+                        f.src = 'https://www.youtube-nocookie.com/embed/' + videoId + '?autoplay=1';
+                        f.title = title || 'Video';
+                        f.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+                        f.allowFullscreen = true;
+                        f.style.border = '0';
+                        f.style.width = '100%';
+                        f.style.height = '100%';
+                        r.innerHTML = '';
+                        r.appendChild(f);
+                    }
+                </script>
             </div>
         </section>
 

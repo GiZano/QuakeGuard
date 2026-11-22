@@ -5,6 +5,21 @@
  * and keep a rolling "last 10 critical events" history (persisted to localStorage).
  * No MQTT broker / network required.
  */
+window.loadQgVideo = window.loadQgVideo || function (btn, videoId, title) {
+    var r = btn.closest('.ratio');
+    if (!r) return;
+    var f = document.createElement('iframe');
+    f.src = 'https://www.youtube-nocookie.com/embed/' + videoId + '?autoplay=1';
+    f.title = title || 'Video';
+    f.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+    f.allowFullscreen = true;
+    f.style.border = '0';
+    f.style.width = '100%';
+    f.style.height = '100%';
+    r.innerHTML = '';
+    r.appendChild(f);
+};
+
 (function () {
     'use strict';
 
