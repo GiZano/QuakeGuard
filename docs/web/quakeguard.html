@@ -2,8 +2,7 @@
 <html lang="en">
 
 <head>
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5JCG2NQS1Y"></script>
-    <script async src="../assets/quakeguard/analytics.js"></script>
+    <script src="../Script/consent.js" defer></script>
 
     <meta charset="UTF-8">
     <meta name="referrer" content="strict-origin-when-cross-origin">
@@ -51,14 +50,14 @@
 
 
     <meta http-equiv="Content-Security-Policy"
-        content="
-    default-src 'self';
-    script-src 'self' https://www.googletagmanager.com https://cdn.jsdelivr.net;
-    style-src 'self' https://fonts.googleapis.com https://cdn.jsdelivr.net;
-    font-src 'self' https://fonts.gstatic.com;
-    img-src 'self' data: https://www.googletagmanager.com https://img.shields.io https://sonarcloud.io https://github.com https://camo.githubusercontent.com https://i.ytimg.com https://img.youtube.com;
-    frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://www.youtube.com/embed/;
-    connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com; object-src 'none'; base-uri 'self'">
+ content="
+ default-src 'self';
+ script-src 'self' https://www.googletagmanager.com ;
+ style-src 'self' ;
+ font-src 'self' ;
+ img-src 'self' data: https://www.googletagmanager.com https://img.shields.io https://sonarcloud.io https://github.com https://camo.githubusercontent.com https://i.ytimg.com https://img.youtube.com;
+ frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://www.youtube.com/embed/;
+ connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com; object-src 'none'; base-uri 'self'">
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="canonical" href="https://giovanni-zanotti.is-a.dev/projects/quakeguard">
@@ -85,19 +84,11 @@
     <meta name="author" content="Giovanni Zanotti">
 
     <link rel="icon" type="image/png" href="../assets/quakeguard/favicon-shield.png">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://cdn.jsdelivr.net">
     <link rel="preconnect" href="https://img.shields.io">
     <link rel="preconnect" href="https://sonarcloud.io">
     <link rel="preconnect" href="https://zenodo.org">
     <link rel="preconnect" href="https://github.com">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600&family=Rajdhani:wght@500;600;700&display=swap"
-        rel="stylesheet">
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    <link rel="stylesheet" href="../Style/bootstrap.min.css">
     <link rel="stylesheet" href="../Style/font-awesome/css/all.min.css">
 
     <link rel="stylesheet" href="../Style/quakeguard.css?v=2.1.2">
@@ -1132,9 +1123,7 @@
 
     <button class="lang-toggle" type="button" data-i18n-toggle aria-label="Switch language">EN</button>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"
-        defer></script>
+    <script src="../Script/bootstrap.bundle.min.js" defer></script>
     <script src="../Script/nav.js?v=2.0.1" defer></script>
     <script src="../Script/i18n/quakeguard.js?v=2.1.2" defer></script>
     <script src="../Script/i18n.js?v=2.0.1" defer></script>
