@@ -20,6 +20,23 @@ window.loadQgVideo = window.loadQgVideo || function (btn, videoId, title) {
     r.appendChild(f);
 };
 
+function initQgVideoButtons() {
+    var buttons = document.querySelectorAll('.qg-video-btn');
+    buttons.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var videoId = btn.getAttribute('data-video-id');
+            var title = btn.getAttribute('data-video-title') || 'Video';
+            window.loadQgVideo(btn, videoId, title);
+        });
+    });
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initQgVideoButtons);
+} else {
+    initQgVideoButtons();
+}
+
 (function () {
     'use strict';
 
