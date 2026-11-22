@@ -386,7 +386,7 @@
                             <div class="pipe-arrow"><i class="fas fa-chevron-down"></i></div>
                             <div class="pipe-step"><span class="n">6</span><strong
                                     data-i18n="pipe_6_t">Process</strong><br><span data-i18n="pipe_6_d">Worker estimates
-                                    <code style="color:#00f5ff">M = log10(PGA / 1.6) + 3.0</code> (PGA normalized in cm/s² / Gal, uncalibrated preliminary heuristic from design notes, omits hypocentral distance attenuation); if M ≥ 4.5 an Alert is triggered.</span></div>
+                                    <code style="color:#00f5ff">M = log10(PGA / 1.6) + 3.0</code> (PGA normalized in cm/s² (Gal), uncalibrated preliminary heuristic from design notes, omits hypocentral distance attenuation); if M ≥ 4.5 an Alert is triggered.</span></div>
                             <div class="pipe-arrow"><i class="fas fa-chevron-down"></i></div>
                             <div class="pipe-step"><span class="n">7</span><strong data-i18n="pipe_7_t">Persist &amp;
                                     dedup</strong><br><span data-i18n="pipe_7_d">Atomically saved to TimescaleDB
@@ -854,7 +854,9 @@
                                 <li>⚡ Dual-rate: 100 Hz local DSP sampling vs 1 Hz cloud MQTT telemetry</li>
                                 <li>⚔️ Bad signature (401) + replay attack (403) rejection</li>
                                 <li>🤖 AI dedup stress test — 50 raw alerts collapsed to 1 incident report</li>
-                                <li>📊 SIL Benchmark (n=5 ad-hoc synthetic events, 1.0–3.4 m/s² [100–340 Gal]): functional pipeline verification (not a real-world detection probability estimate). 4/5 events detected within 10s: on synth_000 (PGA 1.0 m/s²), the damped 10 Hz impulse drops to 0.074 m/s² after HPF and noise gate, peaking at STA/LTA ratio 1.792 (bounded also by LTA floor 0.01) below the calibrated threshold 2.4 (and missed also at uncalibrated 1.8). Zero false alarms on 5 pre-event quiescent baseline windows. Median algorithmic DSP latency: 2.76s.</li>
+                                <li>📊 <strong>SIL Functional Benchmark (n=5 synthetic events, 1.0–3.4 m/s² [100–340 Gal]):</strong> in-sample verification across C++ detection core and cloud ingestion pipeline (not a real-world detection probability estimate).</li>
+                                <li>⏱️ <strong>Benchmark Results:</strong> 4/5 events detected within 10s (median algorithmic DSP latency: 2.76s); zero false triggers (0/5) on pre-event quiescent baseline windows.</li>
+                                <li>🔍 <strong>Calibration &amp; Trace Analysis:</strong> on <code>synth_000</code> (PGA 1.0 m/s²), the damped 10 Hz impulse drops to 0.074 m/s² through HPF and noise gate, peaking at STA/LTA ratio 1.792 (bounded by LTA floor 0.01) below calibrated threshold 2.4 (and missed also at 1.8). Threshold 2.4 was selected via trace grid search: uncalibrated 1.8 yielded trace-noise FDR = 33.3% (2 false triggers / 6 detections), eliminated (0% FDR) at calibrated threshold 2.4.</li>
                                 <li>🔍 DB persistence verified end-to-end</li>
                             </ul>
                             <div class="mt-auto pt-3"><span class="badge text-bg-secondary fs-6"><i
