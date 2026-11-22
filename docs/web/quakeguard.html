@@ -52,11 +52,11 @@
     <meta http-equiv="Content-Security-Policy"
  content="
  default-src 'self';
- script-src 'self' https://www.googletagmanager.com ;
- style-src 'self' ;
+ script-src 'self' 'unsafe-inline' https://www.googletagmanager.com ;
+ style-src 'self' 'unsafe-inline' ;
  font-src 'self' ;
- img-src 'self' data: https://www.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://img.shields.io https://sonarcloud.io https://github.com https://camo.githubusercontent.com https://i.ytimg.com https://img.youtube.com;
- frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://www.youtube.com/embed/;
+ img-src 'self' data: https://www.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com;
+ frame-src 'self' https://www.youtube-nocookie.com;
  connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; object-src 'none'; base-uri 'self'">
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -84,10 +84,7 @@
     <meta name="author" content="Giovanni Zanotti">
 
     <link rel="icon" type="image/png" href="../assets/quakeguard/favicon-shield.png">
-    <link rel="preconnect" href="https://img.shields.io">
-    <link rel="preconnect" href="https://sonarcloud.io">
-    <link rel="preconnect" href="https://zenodo.org">
-    <link rel="preconnect" href="https://github.com">
+
     <link rel="stylesheet" href="../Style/bootstrap.min.css">
     <link rel="stylesheet" href="../Style/font-awesome/css/all.min.css">
 
@@ -165,28 +162,22 @@
                             class="btn btn-qg-ghost"><i class="fab fa-github me-2"></i><span
                                 data-i18n="hero_wiki">Wiki</span></a>
                     </div>
-                    <div class="badge-strip mb-2">
+                    <div class="badge-strip mb-3">
                         <img src="../assets/badges/release.svg" alt="Latest release" loading="lazy">
                         <img src="../assets/badges/license.svg" alt="AGPL-3.0 license" loading="lazy">
                         <a href="https://doi.org/10.5281/zenodo.21710405" target="_blank" rel="noopener noreferrer"
                             aria-label="Zenodo DOI 10.5281/zenodo.21710405"><img src="../assets/badges/zenodo-doi.svg"
                                 alt="Zenodo DOI 10.5281/zenodo.21710405" loading="lazy"></a>
-                        <img src="https://github.com/GiZano/QuakeGuard/actions/workflows/backend-ci.yml/badge.svg"
-                            alt="Backend CI" loading="lazy">
-                        <img src="https://github.com/GiZano/QuakeGuard/actions/workflows/frontend-ci.yml/badge.svg"
-                            alt="Frontend CI" loading="lazy">
-                        <img src="https://github.com/GiZano/QuakeGuard/actions/workflows/iot-ci.yml/badge.svg"
-                            alt="IoT CI" loading="lazy">
                     </div>
-                    <div class="badge-strip">
-                        <img src="https://sonarcloud.io/api/project_badges/measure?project=GiZano_QuakeGuard&metric=alert_status"
-                            alt="Quality gate" loading="lazy">
-                        <img src="https://sonarcloud.io/api/project_badges/measure?project=GiZano_QuakeGuard&metric=security_rating"
-                            alt="Security rating" loading="lazy">
-                        <img src="https://sonarcloud.io/api/project_badges/measure?project=GiZano_QuakeGuard&metric=reliability_rating"
-                            alt="Reliability rating" loading="lazy">
-                        <img src="https://sonarcloud.io/api/project_badges/measure?project=GiZano_QuakeGuard&metric=sqale_rating"
-                            alt="Maintainability rating" loading="lazy">
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <a href="https://github.com/GiZano/QuakeGuard/actions" target="_blank" rel="noopener noreferrer"
+                            class="badge rounded-pill bg-dark text-info border border-info-subtle text-decoration-none py-2 px-3 small" aria-label="View CI Workflows on GitHub">
+                            <i class="fab fa-github me-1"></i> CI Workflows
+                        </a>
+                        <a href="https://sonarcloud.io/summary/overall?id=GiZano_QuakeGuard" target="_blank" rel="noopener noreferrer"
+                            class="badge rounded-pill bg-dark text-info border border-info-subtle text-decoration-none py-2 px-3 small" aria-label="View SonarCloud Dashboard">
+                            <i class="fas fa-shield-alt me-1"></i> SonarCloud Quality Gate
+                        </a>
                     </div>
                 </div>
                 <div class="col-lg-6 hero-logo-col order-1 order-lg-2 text-center">
@@ -406,8 +397,7 @@
                                 GNSS subsystem (NEO-6M/M8N) with NVS last-known-fix.</p>
                             <span class="qg-tag">ESP32-C3</span><span class="qg-tag">STA/LTA</span><span
                                 class="qg-tag">100 Hz</span>
-                            <img src="https://img.shields.io/badge/C%2B%2B-Hardware%20Logic-00599C?style=for-the-badge&logo=c%2B%2B&logoColor=white"
-                                alt="C++" style="height:22px;margin-top:8px;" loading="lazy">
+                            <span class="badge rounded-pill bg-primary-subtle text-info border border-info-subtle py-1 px-2 mt-2 d-inline-block">C++ · Hardware Logic</span>
                         </div>
                     </div>
                     <div class="col-md-6 col-lg-4">
@@ -419,8 +409,7 @@
                                 Herd.</p>
                             <span class="qg-tag">Async</span><span class="qg-tag">Rate limit</span><span
                                 class="qg-tag">Uvicorn</span>
-                            <img src="https://img.shields.io/badge/Python-FastAPI-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54"
-                                alt="Python" style="height:22px;margin-top:8px;" loading="lazy">
+                            <span class="badge rounded-pill bg-primary-subtle text-info border border-info-subtle py-1 px-2 mt-2 d-inline-block">Python · FastAPI</span>
                         </div>
                     </div>
                     <div class="col-md-6 col-lg-4">
@@ -434,8 +423,7 @@
                             </p>
                             <span class="qg-tag">Streams</span><span class="qg-tag">DLQ</span><span
                                 class="qg-tag">Outbox</span>
-                            <img src="https://img.shields.io/badge/Redis-Message%20Broker-DC382D?style=for-the-badge&logo=redis&logoColor=white"
-                                alt="Redis" style="height:22px;margin-top:8px;" loading="lazy">
+                            <span class="badge rounded-pill bg-primary-subtle text-info border border-info-subtle py-1 px-2 mt-2 d-inline-block">Redis · Message Broker</span>
                         </div>
                     </div>
                     <div class="col-md-6 col-lg-4">
@@ -446,8 +434,7 @@
                                 forwards telemetry to the secure HTTP pipeline, injecting the API key.</p>
                             <span class="qg-tag">Port 1883</span><span class="qg-tag">Paho</span><span
                                 class="qg-tag">Bridge</span>
-                            <img src="https://img.shields.io/badge/Eclipse%20Mosquitto-Broker-3C5280?style=for-the-badge&logo=eclipse-mosquitto&logoColor=white"
-                                alt="Eclipse Mosquitto" style="height:22px;margin-top:8px;" loading="lazy">
+                            <span class="badge rounded-pill bg-primary-subtle text-info border border-info-subtle py-1 px-2 mt-2 d-inline-block">Mosquitto · MQTT Broker</span>
                         </div>
                     </div>
                     <div class="col-md-6 col-lg-4">
@@ -460,8 +447,7 @@
                             </p>
                             <span class="qg-tag">TimescaleDB</span><span class="qg-tag">Geohash</span><span
                                 class="qg-tag">ST_Contains</span>
-                            <img src="https://img.shields.io/badge/PostgreSQL-PostGIS-316192?style=for-the-badge&logo=postgresql&logoColor=white"
-                                alt="PostgreSQL" style="height:22px;margin-top:8px;" loading="lazy">
+                            <span class="badge rounded-pill bg-primary-subtle text-info border border-info-subtle py-1 px-2 mt-2 d-inline-block">PostgreSQL · PostGIS</span>
                         </div>
                     </div>
                     <div class="col-md-6 col-lg-4">
@@ -475,8 +461,7 @@
                                 dual theme, offline mode, OTA in-app updater, last-10 alert history and AI report cards.</p>
                             <span class="qg-tag">Expo</span><span class="qg-tag">Zustand</span><span
                                 class="qg-tag">TanStack Query</span>
-                            <img src="https://img.shields.io/badge/React%20Native-Mobile-20232A?style=for-the-badge&logo=react&logoColor=61DAFB"
-                                alt="React Native" style="height:22px;margin-top:8px;" loading="lazy">
+                            <span class="badge rounded-pill bg-primary-subtle text-info border border-info-subtle py-1 px-2 mt-2 d-inline-block">React Native · Mobile</span>
                         </div>
                     </div>
                 </div>
@@ -502,25 +487,17 @@
                 </div>
 
                 <div class="row g-4 mt-1">
-                    <div class="col-12 col-md-4 mb-3">
-                        <div class="qg-card text-center"><img
-                                src="https://img.shields.io/badge/Docker-Containerization-2496ED?style=for-the-badge&logo=docker&logoColor=white"
-                                alt="Docker" class="qg-shield" loading="lazy"></div>
+                    <div class="col-6 col-md-3 mb-3">
+                        <div class="qg-card text-center py-3"><span class="badge rounded-pill bg-primary-subtle text-info border border-info-subtle py-2 px-3 fs-6 d-inline-block"><i class="fab fa-docker me-1"></i> Docker</span></div>
                     </div>
-                    <div class="col-12 col-md-4 mb-3">
-                        <div class="qg-card text-center"><img
-                                src="https://img.shields.io/badge/Ollama-LLM%20on--premise-F5C518?style=for-the-badge&logo=ollama&logoColor=white"
-                                alt="Ollama" class="qg-shield" loading="lazy"></div>
+                    <div class="col-6 col-md-3 mb-3">
+                        <div class="qg-card text-center py-3"><span class="badge rounded-pill bg-primary-subtle text-info border border-info-subtle py-2 px-3 fs-6 d-inline-block"><i class="fas fa-brain me-1"></i> Ollama LLM</span></div>
                     </div>
-                    <div class="col-12 col-md-4 mb-3">
-                        <div class="qg-card text-center"><img
-                                src="https://img.shields.io/badge/Cloudflare-HTTPS%20Tunnel-F38020?style=for-the-badge&logo=cloudflare&logoColor=white"
-                                alt="Cloudflare" class="qg-shield" loading="lazy"></div>
+                    <div class="col-6 col-md-3 mb-3">
+                        <div class="qg-card text-center py-3"><span class="badge rounded-pill bg-primary-subtle text-info border border-info-subtle py-2 px-3 fs-6 d-inline-block"><i class="fas fa-shield-alt me-1"></i> Cloudflare Tunnel</span></div>
                     </div>
-                    <div class="col-12 col-md-4 mb-3">
-                        <div class="qg-card text-center"><img
-                                src="https://img.shields.io/badge/ESP32-C3%20Edge-052f5f?style=for-the-badge&logo=espressif&logoColor=white"
-                                alt="ESP32" class="qg-shield" loading="lazy"></div>
+                    <div class="col-6 col-md-3 mb-3">
+                        <div class="qg-card text-center py-3"><span class="badge rounded-pill bg-primary-subtle text-info border border-info-subtle py-2 px-3 fs-6 d-inline-block"><i class="fas fa-microchip me-1"></i> ESP32-C3</span></div>
                     </div>
                 </div>
             </div>
@@ -972,14 +949,42 @@
                 <div class="row g-4">
                     <div class="col-lg-6">
                         <h4 class="text-center mb-3 text-white fw-semibold" data-i18n="exp_trailer_title">Trailer</h4>
-                        <div class="ratio ratio-16x9" style="background:#000; border-radius:16px; overflow:hidden; border:1px solid rgba(255,255,255,0.12);">
-                            <iframe src="https://www.youtube.com/embed/Nwnah5GTkrk" title="QuakeGuard Demo" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen style="border:0;"></iframe>
+                        <div class="ratio ratio-16x9" style="background: radial-gradient(circle at center, #0f1d2e 0%, #080f18 100%); border-radius:16px; overflow:hidden; border:1px solid rgba(0, 245, 255, 0.2);">
+                            <div class="d-flex flex-column align-items-center justify-content-center h-100 w-100 p-4 text-center">
+                                <i class="fab fa-youtube text-danger fa-4x mb-3"></i>
+                                <p class="small text-white-50 mb-3 px-3">
+                                    <i class="fas fa-shield-alt text-info me-1"></i>
+                                    Facendo clic sul pulsante, verrà caricato il player incorporato da YouTube (youtube-nocookie.com). Nessun dato viene trasmesso prima del clic.
+                                </p>
+                                <div class="d-flex gap-2 flex-wrap justify-content-center">
+                                    <button type="button" class="btn btn-outline-light btn-sm px-3 py-2 fw-semibold" onclick="this.closest('.ratio').innerHTML='<iframe src='https://www.youtube-nocookie.com/embed/Nwnah5GTkrk?autoplay=1' title='QuakeGuard Demo' allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share' allowfullscreen style='border:0;width:100%;height:100%;'></iframe>'">
+                                        <i class="fas fa-play me-1"></i> Carica Video / Play Demo
+                                    </button>
+                                    <a href="https://www.youtube.com/watch?v=Nwnah5GTkrk" target="_blank" rel="noopener noreferrer" class="btn btn-link btn-sm text-white-50 text-decoration-none">
+                                        <i class="fas fa-external-link-alt me-1"></i> Apri su YouTube
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="col-lg-6">
                         <h4 class="text-center mb-3 text-white fw-semibold" data-i18n="exp_explanation_title">Explanation</h4>
-                        <div class="ratio ratio-16x9" style="background:#000; border-radius:16px; overflow:hidden; border:1px solid rgba(255,255,255,0.12);">
-                            <iframe src="https://www.youtube.com/embed/whOCWCu1Xxg" title="QuakeGuard Explanation" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen style="border:0;"></iframe>
+                        <div class="ratio ratio-16x9" style="background: radial-gradient(circle at center, #0f1d2e 0%, #080f18 100%); border-radius:16px; overflow:hidden; border:1px solid rgba(0, 245, 255, 0.2);">
+                            <div class="d-flex flex-column align-items-center justify-content-center h-100 w-100 p-4 text-center">
+                                <i class="fab fa-youtube text-danger fa-4x mb-3"></i>
+                                <p class="small text-white-50 mb-3 px-3">
+                                    <i class="fas fa-shield-alt text-info me-1"></i>
+                                    Facendo clic sul pulsante, verrà caricato il player incorporato da YouTube (youtube-nocookie.com). Nessun dato viene trasmesso prima del clic.
+                                </p>
+                                <div class="d-flex gap-2 flex-wrap justify-content-center">
+                                    <button type="button" class="btn btn-outline-light btn-sm px-3 py-2 fw-semibold" onclick="this.closest('.ratio').innerHTML='<iframe src='https://www.youtube-nocookie.com/embed/whOCWCu1Xxg?autoplay=1' title='QuakeGuard Explanation' allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share' allowfullscreen style='border:0;width:100%;height:100%;'></iframe>'">
+                                        <i class="fas fa-play me-1"></i> Carica Video / Play Explanation
+                                    </button>
+                                    <a href="https://www.youtube.com/watch?v=whOCWCu1Xxg" target="_blank" rel="noopener noreferrer" class="btn btn-link btn-sm text-white-50 text-decoration-none">
+                                        <i class="fas fa-external-link-alt me-1"></i> Apri su YouTube
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
