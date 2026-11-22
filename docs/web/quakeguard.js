@@ -210,7 +210,7 @@ window.I18N_DATA = (function () {
         mentor_1: { en: 'Sorint.lab &mdash; Hackersgen', it: 'Sorint.lab &mdash; Hackersgen' },
         mentor_2: { en: 'University of Bergamo', it: 'Università di Bergamo' },
         contact_eyebrow: { en: 'Get in touch', it: 'Contattaci' },
-        footer_tagline: { en: 'BSc Computer Science Student at UniPi | Specialized in Edge Computing, Cloud Architecture, and IoT.', it: 'Studente di Computer Science (BSc) presso UniPi | Specializzato in Edge Computing, Cloud Architecture e IoT.' },
+        footer_tagline: { en: 'BSc Computer Science Student at UniPi | Specialized in Edge Computing, Embedded Systems, and IoT.', it: 'Studente di Computer Science (BSc) presso UniPi | Specializzato in Edge Computing, Embedded Systems e IoT.' },
         video_fallback: { en: 'Your browser does not support the video tag.', it: 'Il tuo browser non supporta il tag video.' },
     };
     var en = {}, it = {};

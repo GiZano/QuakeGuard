@@ -10,12 +10,12 @@
     --qg-orange: #f1a208;
     --qg-cyan: #00f5ff;
     --qg-light: #eaf2ff;
-    --qg-muted: #9db4d0;
+    --qg-muted: #c5d8ee;
     --qg-font: 'Exo 2', sans-serif;
     --qg-head: 'Rajdhani', sans-serif;
 }
 
-html { scroll-behavior: auto; overflow-x: hidden; max-width: 100vw; }
+html { scroll-behavior: auto; }
 @media (prefers-reduced-motion: no-preference) {
     html { scroll-behavior: smooth; }
 }
@@ -26,8 +26,6 @@ body {
     background-attachment: fixed;
     color: var(--qg-light);
     line-height: 1.7;
-    overflow-x: hidden;
-    max-width: 100vw;
 }
 
 .qg-tech-badge {
@@ -53,6 +51,10 @@ a { color: var(--qg-cyan); }
 a:hover { color: var(--qg-orange); }
 
 /* ---------- Navbar (dark glass) ---------- */
+.navbar > .container,
+.navbar > .container-fluid {
+    flex-wrap: nowrap;
+}
 .navbar.navbar-glass {
     background: rgba(3, 15, 32, 0.6);
     backdrop-filter: blur(18px);
@@ -286,7 +288,7 @@ button.btn-qg-ghost:focus {
 .zero { color: var(--qg-cyan); font-weight: 600; }
 
 /* ---------- Zones ---------- */
-.zone-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.zone-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr)); gap: 12px; }
 .zone-item { background: rgba(3,21,32,0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 0.9rem 1.1rem; }
 .zone-item strong { font-family: var(--qg-head); color: #fff; }
 .zone-item span { display: block; color: var(--qg-muted); font-size: 0.88rem; }
