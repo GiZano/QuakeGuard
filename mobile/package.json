@@ -15,7 +15,7 @@
     "@tanstack/react-query": "^5.99.2",
     "axios": "^1.18.0",
     "expo": "~57.0.0",
-    "expo-asset": "~57.0.16",
+    "expo-asset": "~58.0.19",
     "expo-audio": "~57.0.5",
     "expo-camera": "~57.0.5",
     "expo-constants": "~57.0.18",
