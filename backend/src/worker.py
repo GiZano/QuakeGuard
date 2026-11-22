@@ -42,8 +42,8 @@ def estimate_magnitude(sensor_value: int) -> float:
     """
     Estimates IoT magnitude from STA-based peak acceleration.
     Formula: M_IoT = log10(PGA_calib) + b
-    Based on MyShake-style MEMS network approach.
-    Reference: Zanotti, G. (2026) - QuakeGuard Magnitude Estimation Note.
+    Preliminary heuristic proxy in Gal from QuakeGuard design notes (omits distance attenuation).
+    Reference: QuakeGuard internal design notes (preliminary uncalibrated heuristic in Gal; omits hypocentral distance attenuation).
     """
     pga_m_s2 = sensor_value / SENSOR_SCALE
     pga_calib = pga_m_s2 / K_CALIBRATION

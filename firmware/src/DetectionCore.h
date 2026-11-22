@@ -18,7 +18,7 @@
 class SeismicDetector {
 public:
     static constexpr float DEFAULT_HPF_ALPHA = 0.9f;
-    static constexpr float DEFAULT_TRIGGER_RATIO = 1.8f;
+    static constexpr float DEFAULT_TRIGGER_RATIO = 2.4f;
     static constexpr float DEFAULT_NOISE_FLOOR = 0.04f;
     static constexpr float DEFAULT_LTA_FLOOR = 0.01f;
     static constexpr size_t STA_WINDOW = 100;   // 1 s @ 100 Hz

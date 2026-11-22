@@ -166,7 +166,7 @@ struct SeismicEvent {
   unsigned long event_millis;
 };
 
-constexpr float TRIGGER_RATIO = 1.8f;
+constexpr float TRIGGER_RATIO = 2.4f;
 constexpr float NOISE_FLOOR = 0.04f;
 constexpr float HPF_ALPHA = 0.9f;
 
