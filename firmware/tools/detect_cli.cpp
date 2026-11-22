@@ -9,7 +9,7 @@
 // Output (stdout): one line per detected event:  t,ratio
 //
 // Parameters (argv, all optional):
-//   1: TRIGGER_RATIO  (default 1.8)
+//   1: TRIGGER_RATIO  (default 2.4, matches SeismicDetector::DEFAULT_TRIGGER_RATIO)
 //   2: NOISE_FLOOR    (default 0.04)
 //   3: HPF_ALPHA      (default 0.9)
 //

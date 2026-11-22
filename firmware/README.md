@@ -108,7 +108,7 @@ and the zone (via PostGIS) at registration time. The serial output shows:
 
 * `[SYS] Sensor OK`: Hardware initialization successful.
 * `[SENSOR] Stabilizing...`: Calibrating the accelerometer baseline (do not move the device).
-* `[SENSOR] EARTHQUAKE DETECTED!`: The STA/LTA ratio exceeded **1.8** and intensity exceeded **0.04G**.
+* `[SENSOR] EARTHQUAKE DETECTED!`: The STA/LTA ratio exceeded calibrated threshold **2.4** (with intensity exceeding noise floor **0.04G**).
 * `[NET] Transmission Successful`: JSON payload accepted by the server.
 * `[NET] MQTT Publish OK.` / `[NET] Serial Fallback Publish OK.`: event dispatched over the active path.
 * `[NET] No delivery path: event retained in ring.`: MQTT down and no USB host — the event is buffered for later drain.
