@@ -51,10 +51,6 @@ a { color: var(--qg-cyan); }
 a:hover { color: var(--qg-orange); }
 
 /* ---------- Navbar (dark glass) ---------- */
-.navbar > .container,
-.navbar > .container-fluid {
-    flex-wrap: nowrap;
-}
 .navbar.navbar-glass {
     background: rgba(3, 15, 32, 0.6);
     backdrop-filter: blur(18px);
